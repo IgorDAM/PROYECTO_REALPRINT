@@ -1,0 +1,204 @@
+## 01. DIAGRAMA CASOS DE USO
+```mermaid
+graph TB
+    subgraph US["GESTIÓN DE USUARIOS Y SEGURIDAD"]
+        subgraph USCasos["Casos de Uso"]
+            US01[CU-US-01: Registrar usuario]
+            US02[CU-US-02: Autenticar usuario]
+            US03[CU-US-03: Gestionar permisos]
+            US04[CU-US-04: Modificar perfil]
+        end
+        
+        AdminUS[👤 Administrador]
+        ClienteUS[👤 Cliente]
+        OperarioUS[👤 Operario]
+        JefeUS[👤 Jefe de Sección]
+                    AdminUS[👤 Administrador]
+                    ClienteUS[👤 Cliente]
+                    OperarioUS[👤 Operario]
+                    JefeUS[👤 Jefe de Sección]
+        AdminUS --> US04
+        
+        ClienteUS --> US02
+        ClienteUS --> US04
+        
+        OperarioUS --> US02
+        OperarioUS --> US04
+        
+        JefeUS --> US02
+        JefeUS --> US04
+    end
+    
+    subgraph CL["GESTIÓN DE CLIENTES"]
+        subgraph CLCasos["Casos de Uso"]
+            CL01[CU-CL-01: Registrar cliente]
+            CL02[CU-CL-02: Actualizar información]
+            CL03[CU-CL-03: Consultar historial]
+            CL04[CU-CL-04: Enviar valoración]
+            CL05[CU-CL-05: Gestionar preferencias]
+                        CL02[CU-CL-02: Actualizar información]
+        
+                        CL04[CU-CL-04: Enviar valoración]
+        
+        AdminCL --> CL01
+        AdminCL --> CL02
+                    AdminCL[👤 Administrador]
+                    ClienteCL[👤 Cliente]
+        
+        ClienteCL --> CL01
+        ClienteCL --> CL02
+        ClienteCL --> CL03
+        ClienteCL --> CL04
+        ClienteCL --> CL05
+    end
+    
+    subgraph PR["GESTIÓN DE PROVEEDORES"]
+        subgraph PRCasos["Casos de Uso"]
+            PR01[CU-PR-01: Registrar proveedor]
+            PR02[CU-PR-02: Actualizar información]
+            PR03[CU-PR-03: Consultar catálogo]
+            PR04[CU-PR-04: Evaluar desempeño]
+        end
+        
+        AdminPR[👤 Administrador]
+        JefePR[👤 Jefe de Sección]
+                        PR04[CU-PR-04: Evaluar desempeño]
+        AdminPR --> PR02
+        AdminPR --> PR03
+                    AdminPR[👤 Administrador]
+                    JefePR[👤 Jefe de Sección]
+        JefePR --> PR04
+    end
+    
+    subgraph PE["GESTIÓN DE PEDIDOS"]
+        subgraph PECasos["Casos de Uso"]
+            PE01[CU-PE-01: Crear pedido]
+            PE02[CU-PE-02: Dar seguimiento]
+            PE03[CU-PE-03: Personalizar producto]
+            PE04[CU-PE-04: Calcular costos]
+            PE05[CU-PE-05: Registrar devolución]
+            PE06[CU-PE-06: Gestionar garantía]
+        end
+        
+        AdminPE[👤 Administrador]
+        ClientePE[👤 Cliente]
+                        PE05[CU-PE-05: Registrar devolución]
+                        PE06[CU-PE-06: Gestionar garantía]
+        AdminPE --> PE04
+        AdminPE --> PE06
+                    AdminPE[👤 Administrador]
+                    ClientePE[👤 Cliente]
+                    JefePE[👤 Jefe de Sección]
+        ClientePE --> PE03
+        ClientePE --> PE04
+        ClientePE --> PE05
+        ClientePE --> PE06
+        
+        JefePE --> PE02
+        JefePE --> PE04
+    end
+    
+    subgraph PD["GESTIÓN DE PRODUCCIÓN"]
+        subgraph PDCasos["Casos de Uso"]
+            PD01[CU-PD-01: Visualizar calendario]
+            PD02[CU-PD-02: Programar tarea]
+            PD03[CU-PD-03: Actualizar estado]
+            PD04[CU-PD-04: Registrar materiales]
+            PD05[CU-PD-05: Registrar incidencia]
+            PD06[CU-PD-06: Resolver incidencia]
+        end
+        
+        AdminPD[👤 Administrador]
+        OperarioPD[👤 Operario]
+        JefePD[👤 Jefe de Sección]
+        
+        AdminPD --> PD01
+        
+        OperarioPD --> PD03
+        OperarioPD --> PD04
+                    AdminPD[👤 Administrador]
+                    OperarioPD[👤 Operario]
+                    JefePD[👤 Jefe de Sección]
+        JefePD --> PD02
+        JefePD --> PD03
+        JefePD --> PD04
+        JefePD --> PD05
+        JefePD --> PD06
+    end
+    
+    subgraph EC["GESTIÓN ECONÓMICA"]
+        subgraph ECCasos["Casos de Uso"]
+            EC01[CU-EC-01: Configurar precios y descuentos]
+            EC02[CU-EC-02: Generar factura]
+            EC03[CU-EC-03: Registrar pago]
+            EC04[CU-EC-04: Generar informe financiero]
+            EC05[CU-EC-05: Sincronizar con sistema contable]
+        end
+        
+        AdminEC[👤 Administrador]
+        
+        AdminEC --> EC01
+        AdminEC --> EC02
+        AdminEC --> EC03
+        AdminEC --> EC04
+        AdminEC --> EC05
+    end
+                    AdminEC[👤 Administrador]
+    subgraph CD["GESTIÓN DE CATÁLOGO Y DOCUMENTOS"]
+        subgraph CDCasos["Casos de Uso"]
+            CD01[CU-CD-01: Administrar catálogo]
+            CD02[CU-CD-02: Subir documento]
+            CD03[CU-CD-03: Buscar documento]
+            CD04[CU-CD-04: Compartir documento]
+        end
+        
+        AdminCD[👤 Administrador]
+        ClienteCD[👤 Cliente]
+        OperarioCD[👤 Operario]
+        JefeCD[👤 Jefe de Sección]
+        
+        AdminCD --> CD01
+        AdminCD --> CD02
+        AdminCD --> CD03
+                    AdminCD[👤 Administrador]
+                    ClienteCD[👤 Cliente]
+                    OperarioCD[👤 Operario]
+                    JefeCD[👤 Jefe de Sección]
+        ClienteCD --> CD04
+        
+        OperarioCD --> CD02
+        OperarioCD --> CD03
+        
+        JefeCD --> CD02
+        JefeCD --> CD03
+        JefeCD --> CD04
+    end
+    
+    subgraph SS["SISTEMA Y SOPORTE"]
+        subgraph SSCasos["Casos de Uso"]
+            SS01[CU-SS-01: Cambiar idioma]
+            SS02[CU-SS-02: Exportar datos]
+            SS03[CU-SS-03: Configurar copia de seguridad]
+            SS04[CU-SS-04: Restaurar sistema]
+        end
+        
+        AdminSS[👤 Administrador]
+        ClienteSS[👤 Cliente]
+        OperarioSS[👤 Operario]
+        JefeSS[👤 Jefe de Sección]
+        
+        AdminSS --> SS01
+        AdminSS --> SS02
+        AdminSS --> SS03
+                    AdminSS[👤 Administrador]
+                    ClienteSS[👤 Cliente]
+                    OperarioSS[👤 Operario]
+                    JefeSS[👤 Jefe de Sección]
+        
+        OperarioSS --> SS01
+        OperarioSS --> SS02
+        
+        JefeSS --> SS01
+        JefeSS --> SS02
+    end
+```
