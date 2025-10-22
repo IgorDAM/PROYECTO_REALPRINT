@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>REALPRINT - Historial de Pedidos</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    animation: {
+                        'slide-in': 'slideIn 0.7s ease forwards',
+                    },
+                    keyframes: {
+                        slideIn: {
+                            '0%': { left: '-100%' },
+                            '100%': { left: '120%' },
+                        }
+                    }
+                },
+            },
+        }
+        
+        // Funcionalidad para búsqueda en historial
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchOrder');
+            const orderRows = document.querySelectorAll('tbody tr');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchValue = this.value.toLowerCase();
+                    
+                    orderRows.forEach(row => {
+                        const idCell = row.querySelector('td:first-child');
+                        const productCell = row.querySelector('td:nth-child(4)');
+                        
+                        const idMatch = idCell.textContent.toLowerCase().includes(searchValue);
+                        const productMatch = productCell.textContent.toLowerCase().includes(searchValue);
+                        
+                        if (idMatch || productMatch) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+    
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+        }
+
+        .glass-container {
+            position: relative;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .glass-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: skewX(-25deg);
+            pointer-events: none;
+            transition: left 0.7s ease;
+        }
+
+        .glass-container:hover::before {
+            left: 120%;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+        }
+        
+        .glass-sidebar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.15);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-blue-600 text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="glass-sidebar w-64 flex flex-col p-6">
+            <div class="flex items-center gap-2 mb-10">
+                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold">RP</span>
+                </div>
+                <h1 class="text-xl font-bold">REALPRINT</h1>
+            </div>
+            
+            <nav class="flex flex-col gap-2 flex-1">
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors" href="dashboardAdmin.html">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors" href="admin_pedidos.html">
+                    <span class="material-symbols-outlined">package_2</span>
+                    <span>Pedidos</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/20 font-bold" href="#">
+                    <span class="material-symbols-outlined">history</span>
+                    <span>Historial</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors" href="admin_inventario.html">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                    <span>Inventario</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors" href="admin_usuarios.html">
+                    <span class="material-symbols-outlined">group</span>
+                    <span>Usuarios</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors" href="admin_reportes.html">
+                    <span class="material-symbols-outlined">monitoring</span>
+                    <span>Reportes</span>
+                </a>
+            </nav>
+            
+            <div class="mt-auto pt-4 border-t border-white/20">
+                <a class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors" href="#">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span>Configuración</span>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors" href="index.html">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center justify-between mb-8">
+                    <h1 class="text-3xl font-bold">Historial de Pedidos</h1>
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <input id="searchOrder" class="glass-card w-64 px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-white/50 rounded-lg" placeholder="Buscar pedido..." type="text"/>
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/60">search</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Table -->
+                <div class="glass-card overflow-hidden">
+                    <table class="w-full text-sm text-left text-white/80">
+                        <thead class="text-xs uppercase bg-white/10">
+                            <tr>
+                                <th class="px-6 py-3">Pedido ID</th>
+                                <th class="px-6 py-3">Fecha</th>
+                                <th class="px-6 py-3">Estado</th>
+                                <th class="px-6 py-3">Productos</th>
+                                <th class="px-6 py-3 text-right">Costo Total</th>
+                                <th class="px-6 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-white/10 hover:bg-white/5">
+                                <td class="px-6 py-4 font-medium text-white">#RP-00125</td>
+                                <td class="px-6 py-4">25 Oct 2023</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-300 rounded-full">Entregado</span>
+                                </td>
+                                <td class="px-6 py-4">2x DTF Personalizado, 5x Serigrafía Logo</td>
+                                <td class="px-6 py-4 text-right font-medium text-white">$150.00</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a class="font-medium text-white hover:underline" href="#">Ver Detalles</a>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-white/10 hover:bg-white/5">
+                                <td class="px-6 py-4 font-medium text-white">#RP-00124</td>
+                                <td class="px-6 py-4">15 Oct 2023</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-300 rounded-full">Entregado</span>
+                                </td>
+                                <td class="px-6 py-4">10x Planchado en vinilo</td>
+                                <td class="px-6 py-4 text-right font-medium text-white">$85.50</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a class="font-medium text-white hover:underline" href="#">Ver Detalles</a>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-white/10 hover:bg-white/5">
+                                <td class="px-6 py-4 font-medium text-white">#RP-00123</td>
+                                <td class="px-6 py-4">10 Oct 2023</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-300 rounded-full">Entregado</span>
+                                </td>
+                                <td class="px-6 py-4">3x Camisetas DTF, 1x Gorra Bordada</td>
+                                <td class="px-6 py-4 text-right font-medium text-white">$75.25</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a class="font-medium text-white hover:underline" href="#">Ver Detalles</a>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-white/10 hover:bg-white/5">
+                                <td class="px-6 py-4 font-medium text-white">#RP-00122</td>
+                                <td class="px-6 py-4">05 Oct 2023</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-300 rounded-full">Entregado</span>
+                                </td>
+                                <td class="px-6 py-4">20x Pegatinas Vinilo, 5x Tazas Personalizadas</td>
+                                <td class="px-6 py-4 text-right font-medium text-white">$120.75</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a class="font-medium text-white hover:underline" href="#">Ver Detalles</a>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-white/5">
+                                <td class="px-6 py-4 font-medium text-white">#RP-00121</td>
+                                <td class="px-6 py-4">01 Oct 2023</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-300 rounded-full">Entregado</span>
+                                </td>
+                                <td class="px-6 py-4">15x Serigrafía Logo Empresarial</td>
+                                <td class="px-6 py-4 text-right font-medium text-white">$200.00</td>
+                                <td class="px-6 py-4 text-right">
+                                    <a class="font-medium text-white hover:underline" href="#">Ver Detalles</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

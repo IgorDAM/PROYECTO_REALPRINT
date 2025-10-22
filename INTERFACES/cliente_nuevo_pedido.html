@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>REALPRINT - Nuevo Pedido</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <style>
+        .glass-container {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-input {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-header {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-blue-600 text-white font-display">
+    <div class="flex flex-col min-h-screen">
+        <header class="glass-header sticky top-0 z-10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-4">
+                        <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>
+                        </svg>
+                        <h2 class="text-xl font-bold">REALPRINT</h2>
+                    </div>
+                    <nav class="hidden md:flex items-center gap-8">
+                        <a class="text-sm font-medium hover:text-white/80 transition-colors" href="dashboard_cliente.html">Inicio</a>
+                        <a class="text-sm font-medium hover:text-white/80 transition-colors" href="#">Servicios</a>
+                        <a class="text-sm font-medium hover:text-white/80 transition-colors" href="#">Portafolio</a>
+                        <a class="text-sm font-medium hover:text-white/80 transition-colors" href="#">Contacto</a>
+                    </nav>
+                    <div class="flex items-center gap-4">
+                        <button class="hidden sm:inline-flex items-center justify-center rounded-lg h-10 px-4 glass-card text-sm font-bold hover:bg-white/20 transition-colors" onclick="window.location.href='index.html'">
+                            Iniciar sesión
+                        </button>
+                        <div class="size-10 rounded-full bg-white/20 bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCGpCB1DTq8lLloJzwet2YqF2pQZmEXjd4B6RFxO1wMvTgaUWtr-et9O9d6oXMasechH4u6LVgdtBhmjUgrgkIkS42e0SbX_A_0SbTgAFwwH8C3deJIhxZoIWB_RjjT0p_AB-oEsG2LlHMbW-ki2sjYDrs_gOzQFLhB2_TN8-Pdk4qavaHFvkLZvX0LCPedWJYRuTVuq8UhL6_ZmT1ClO6gwXfTm7D8Jm0h6jU_0qIkJz3-HShcvIVQ_TWSm70y04y3FHvNXIiwnfvw");'></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-3">
+                    <div class="space-y-8">
+                        <div>
+                            <h1 class="text-3xl font-bold tracking-tight">Nuevo Pedido</h1>
+                            <p class="text-white/80 mt-2">Completa el formulario para crear tu pedido.</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium">Tipo de Servicio</span>
+                                    <select class="glass-input w-full rounded-lg h-12 px-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition text-white">
+                                        <option class="text-gray-800">Selecciona un servicio</option>
+                                        <option value="rotulacion" class="text-gray-800">Rotulación</option>
+                                        <option value="serigrafia" class="text-gray-800">Serigrafía DTF</option>
+                                        <option value="planchado" class="text-gray-800">Planchado</option>
+                                    </select>
+                                </label>
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium">Nombre del Proyecto</span>
+                                    <input class="glass-input w-full rounded-lg h-12 px-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Ej. Rotulación de Vehículo" type="text"/>
+                                </label>
+                            </div>
+                            <label class="flex flex-col gap-2">
+                                <span class="text-sm font-medium">Descripción del Proyecto</span>
+                                <textarea class="glass-input w-full rounded-lg min-h-28 p-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Detalles sobre el diseño, materiales, dimensiones, etc."></textarea>
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium">Cantidad</span>
+                                    <input class="glass-input w-full rounded-lg h-12 px-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Ej. 10" type="number"/>
+                                </label>
+                                <label class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium">Fecha de Entrega Deseada</span>
+                                    <input class="glass-input w-full rounded-lg h-12 px-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition text-white/70" type="date"/>
+                                </label>
+                            </div>
+                            <label class="flex flex-col gap-2">
+                                <span class="text-sm font-medium">Instrucciones Especiales</span>
+                                <textarea class="glass-input w-full rounded-lg min-h-28 p-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Cualquier detalle adicional o preferencia específica"></textarea>
+                            </label>
+                            <div>
+                                <h3 class="text-lg font-bold">Archivos de Diseño</h3>
+                                <div class="mt-2 flex justify-center rounded-lg border-2 border-dashed border-white/30 px-6 py-10">
+                                    <div class="text-center">
+                                        <svg aria-hidden="true" class="mx-auto h-12 w-12 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                        </svg>
+                                        <div class="mt-4 flex text-sm text-white/80">
+                                            <label class="relative cursor-pointer rounded-md font-medium text-white hover:text-white/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-white/50">
+                                                <span>Sube un archivo</span>
+                                                <input class="sr-only" id="file-upload" name="file-upload" type="file"/>
+                                            </label>
+                                            <p class="pl-1">o arrástralo y suéltalo</p>
+                                        </div>
+                                        <p class="text-xs text-white/60">PNG, JPG, GIF hasta 10MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="sticky top-24">
+                        <div class="glass-card rounded-xl p-6">
+                            <h3 class="text-lg font-bold">Resumen del Pedido</h3>
+                            <div class="mt-6 space-y-4">
+                                <div class="flex justify-between border-t border-white/20 pt-4">
+                                    <p class="text-sm text-white/80">Tipo de Servicio</p>
+                                    <p class="text-sm font-medium">Rotulación</p>
+                                </div>
+                                <div class="flex justify-between border-t border-white/20 pt-4">
+                                    <p class="text-sm text-white/80">Nombre del Proyecto</p>
+                                    <p class="text-sm font-medium">Rotulación de Vehículo</p>
+                                </div>
+                                <div class="flex justify-between border-t border-white/20 pt-4">
+                                    <p class="text-sm text-white/80">Cantidad</p>
+                                    <p class="text-sm font-medium">10 unidades</p>
+                                </div>
+                                <div class="flex justify-between border-t border-white/20 pt-4">
+                                    <p class="text-sm text-white/80">Fecha de Entrega</p>
+                                    <p class="text-sm font-medium">20/07/2024</p>
+                                </div>
+                            </div>
+                            <div class="mt-8 border-t border-white/20 pt-6">
+                                <button class="w-full flex items-center justify-center rounded-lg h-12 px-6 glass-card text-sm font-bold hover:bg-white/20 transition-colors">
+                                    Confirmar Pedido
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

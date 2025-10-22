@@ -6,4 +6,5 @@ RealPrint permite reducir los plazos de entrega, mejorar la calidad del producto
 Los pedidos pueden abarcar desde el abastecimiento de stock, como la solicitud de camisetas de mujer en talla M, hasta tareas más complejas, como la medición de salas en instalaciones externas para la decoración de paredes con imágenes y texto. Todos estos detalles se cargan en la app para su revisión y verificación de calidad antes de proceder a la producción.
 
 ## 01. [ANALISIS](./DIAGRAMAS/ANALISIS.md)
+## 01.a [Diagrama Entidad Relación](./DIAGRAMAS/DiagramaEntidadRelacion.md)
 ## 02. [INTERFACES]
