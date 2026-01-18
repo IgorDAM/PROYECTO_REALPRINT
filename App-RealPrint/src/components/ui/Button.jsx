@@ -1,4 +1,6 @@
-export default function Button({ 
+import PropTypes from "prop-types";
+
+export default function Button({
   children, 
   variant = "primary", 
   size = "md",
@@ -37,3 +39,16 @@ export default function Button({
     </button>
   );
 }
+
+Button.propTypes = {
+  children: PropTypes.node,
+  variant: PropTypes.oneOf(["primary", "secondary", "success", "danger", "ghost", "gold"]),
+  size: PropTypes.oneOf(["sm", "md", "lg"]),
+  icon: PropTypes.string,
+  className: PropTypes.string,
+};
+
+/**
+ * Ejemplo de uso:
+ * <Button variant="success" size="lg">Guardar</Button>
+ */

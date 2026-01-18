@@ -1,3 +1,13 @@
+/**
+ * Gestión de usuarios para el administrador.
+ * Permite añadir, editar, eliminar usuarios y gestionar catálogos de empresa.
+ * Incluye lógica para roles y filtrado.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de edición y filtrado
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useState } from "react";
 import { useData } from "../../context/DataContext";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";

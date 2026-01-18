@@ -1,3 +1,12 @@
+/**
+ * Página de reportes y estadísticas para el administrador.
+ * Muestra métricas de pedidos, ingresos, clientes y stock por categoría.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de cálculo de métricas
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useData, ESTADOS_PEDIDO, SERVICIOS } from "../../context/DataContext";
 import { StatCard, GlassCard } from "../../components/ui";
 

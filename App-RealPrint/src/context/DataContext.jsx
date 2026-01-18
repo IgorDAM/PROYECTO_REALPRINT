@@ -1,6 +1,12 @@
 /**
  * Contexto global de datos de la aplicación.
  * Incluye productos, inventario, usuarios, pedidos, tareas y catálogos.
+ *
+ * Buenas prácticas:
+ * - Usa localStorage para persistencia de datos
+ * - Expone un hook useData para consumir el contexto
+ * - Modulariza funciones de negocio (CRUD, estadísticas, etc.)
+ * - Documenta cada función relevante
  */
 // Datos iniciales de productos finales vacíos
 const INITIAL_PRODUCTOS_FINALES = [];
@@ -51,21 +57,7 @@ export const ESTADOS_PEDIDO = {
 };
 
 export const SERVICIOS = [
-  {
-    value: "dtf",
-    label: "DTF",
-    subservicios: [
-      { value: "solo_dtf", label: "Solo DTF" },
-      {
-        value: "dtf_planchado",
-        label: "DTF + Planchado",
-        opciones: [
-          { value: "cliente_ropa", label: "El cliente entrega la ropa" },
-          { value: "realprint_ropa", label: "RealPrint proporciona la ropa" },
-        ],
-      },
-    ],
-  },
+  // DTF eliminado: solo_dtf y dtf_planchado
   {
     value: "rotulacion",
     label: "Rotulación",

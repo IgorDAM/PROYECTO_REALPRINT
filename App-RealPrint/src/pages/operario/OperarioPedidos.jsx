@@ -1,3 +1,12 @@
+/**
+ * Página de pedidos activos para operario.
+ * Muestra pedidos en producción y su estado.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y columnas de tabla
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
 import { Table, Badge } from "../../components/ui";
 
@@ -12,7 +21,7 @@ export default function OperarioPedidos() {
   const columns = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "cliente", label: "Cliente" },
-    { key: "proyecto", label: "Proyecto" },
+    { key: "pedido", label: "Pedido" },
     { key: "servicio", label: "Servicio" },
     { key: "cantidad", label: "Cantidad" },
     { key: "fechaEntrega", label: "Entrega" },

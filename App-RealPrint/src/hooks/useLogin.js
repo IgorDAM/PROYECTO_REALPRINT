@@ -1,6 +1,15 @@
 /**
  * Hook personalizado para gestionar el login de usuario.
- * Devuelve estado, setters y función de submit.
+ *
+ * Devuelve:
+ * - username, password: estados y setters
+ * - handleSubmit: función para manejar el envío del formulario
+ * - error, loading: estados de error y carga
+ *
+ * Buenas prácticas:
+ * - Separa la lógica de login del componente
+ * - Usa el contexto de autenticación
+ * - Documenta cada función relevante
  */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

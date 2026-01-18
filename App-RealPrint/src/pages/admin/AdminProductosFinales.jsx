@@ -1,3 +1,13 @@
+/**
+ * Gestión de productos finales para el administrador.
+ * Permite añadir, editar y eliminar productos finales y asociar materiales.
+ * Calcula el precio automáticamente según materiales seleccionados.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de edición y filtrado
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useState } from "react";
 import { useData } from "../../context/DataContext";
 import { Table, Button, Modal, Input, Select } from "../../components/ui";
@@ -11,7 +21,7 @@ export default function AdminProductosFinales() {
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
     servicio: "", // "serigrafia" o "rotulacion"
-    subservicio: "", // "solo_dtf" o "dtf_planchado"
+    subservicio: "", // "solo_serigrafia" o "serigrafia+planchado"
     quienRopa: "", // "cliente_ropa" o "realprint_ropa"
     materiales: [], // [{id, cantidad}]
     clientesPermitidos: [], // array de ids de clientes
@@ -25,7 +35,9 @@ export default function AdminProductosFinales() {
       const inv = inventario.find(i => i.id === mat.id);
       return sum + ((inv?.precio || 0) * (mat.cantidad || 1));
     }, 0);
-    const productoFinalConPrecio = { ...nuevoProducto, precio };
+    // Añadir productosInventario: array de ids de materiales
+    const productosInventario = (nuevoProducto.materiales || []).map(mat => mat.id);
+    const productoFinalConPrecio = { ...nuevoProducto, precio, productosInventario };
     if (isEdit && editId !== null) {
       updateProductoFinal(editId, { ...productoFinalConPrecio, id: editId });
     } else {
@@ -80,22 +92,26 @@ export default function AdminProductosFinales() {
               : v === "rotulacion" ? "Rotulación"
               : "-"
             },
-            // Subservicio solo para serigrafía
-            { key: "subservicio", label: "Tipo serigrafía", render: (v, row) =>
-              row.servicio === "serigrafia"
-                ? v === "solo_dtf" ? "Solo Serigrafía"
-                  : v === "dtf_planchado" ? "Serigrafía + Planchado"
-                  : "-"
-                : "-"
+            // Tipo de pedido (subservicio)
+            { key: "subservicio", label: "Tipo de pedido", render: (v, row) => {
+                if (!v) return "-";
+                if (row.servicio === "serigrafia") {
+                  if (v === "solo_serigrafia") return "Solo Serigrafía";
+                  if (v === "serigrafia+planchado") return "Serigrafía + Planchado";
+                }
+                return v;
+              }
             },
-            // Quién proporciona la ropa solo si es serigrafía + planchado
-            { key: "quienRopa", label: "Ropa", render: (v, row) =>
-              row.servicio === "serigrafia" && row.subservicio === "dtf_planchado"
-                ? v === "cliente_ropa" ? "Cliente trae la ropa"
-                  : v === "realprint_ropa" ? "RealPrint pone la ropa"
-                  : v === "ambas" ? "Ambos"
-                  : "-"
-                : "-"
+            // Quién proporciona la ropa (si aplica)
+            { key: "quienRopa", label: "Ropa", render: (v, row) => {
+                if (!v) return "-";
+                if (row.servicio === "serigrafia" && row.subservicio === "serigrafia+planchado") {
+                  if (v === "cliente_ropa") return "Cliente trae la ropa";
+                  if (v === "realprint_ropa") return "RealPrint pone la ropa";
+                  if (v === "ambas") return "Ambos";
+                }
+                return v;
+              }
             },
             { key: "materiales", label: "Materiales", render: v => {
               if (!v || v.length === 0) return "-";
@@ -207,37 +223,10 @@ export default function AdminProductosFinales() {
             </div>
             {/* Subservicio solo si es Serigrafía */}
             {nuevoProducto.servicio === "dtf" && (
-              <div className="mb-2">
-                <div className="font-semibold mb-1">¿Qué necesitas?</div>
-                <select
-                  className="border rounded px-2 py-1"
-                  value={nuevoProducto.subservicio}
-                  onChange={e => setNuevoProducto(prev => ({ ...prev, subservicio: e.target.value, quienRopa: "" }))}
-                  required
-                >
-                  <option value="">Selecciona una opción</option>
-                  <option value="solo_dtf">Solo DTF</option>
-                  <option value="dtf_planchado">Serigrafía + Planchado</option>
-                </select>
-              </div>
+              {/* Eliminado: opciones solo_dtf y dtf_planchado para DTF */}
             )}
             {/* Quién proporciona la ropa solo si es Serigrafía + Planchado */}
-            {nuevoProducto.servicio === "dtf" && nuevoProducto.subservicio === "dtf_planchado" && (
-              <div className="mb-2">
-                <div className="font-semibold mb-1">¿Quién proporciona la ropa?</div>
-                <select
-                  className="border rounded px-2 py-1"
-                  value={nuevoProducto.quienRopa}
-                  onChange={e => setNuevoProducto(prev => ({ ...prev, quienRopa: e.target.value }))}
-                  required
-                >
-                  <option value="">Selecciona una opción</option>
-                  <option value="cliente_ropa">El cliente entrega la ropa</option>
-                  <option value="realprint_ropa">RealPrint proporciona la ropa</option>
-                  <option value="ambas">Ambas</option>
-                </select>
-              </div>
-            )}
+            {/* Eliminado: bloque de ropa para DTF */}
             {/* Selección de materiales del inventario */}
             {nuevoProducto.servicio && (
               <div className="mb-2">

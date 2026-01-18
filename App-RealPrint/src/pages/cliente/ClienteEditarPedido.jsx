@@ -1,3 +1,12 @@
+/**
+ * Página de edición de pedido para clientes.
+ * Permite modificar un pedido pendiente, con validación de acceso y filtrado de productos.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de formulario y filtrado
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -18,7 +27,7 @@ export default function ClienteEditarPedido() {
     opcion: pedido.opcion || "",
     producto: pedido.producto || "",
     prendaCatalogo: pedido.prendaCatalogo || "",
-    proyecto: pedido.proyecto || "",
+    pedido: pedido.pedido || "",
     descripcion: pedido.descripcion || "",
     cantidad: pedido.cantidad || 1,
     fechaEntrega: pedido.fechaEntrega || "",
@@ -197,9 +206,9 @@ export default function ClienteEditarPedido() {
           )}
           <Input
             label="Nombre del Pedido"
-            name="proyecto"
+            name="pedido"
             placeholder="Ej. Camisetas Equipo Fútbol"
-            value={formData.proyecto}
+            value={formData.pedido}
             onChange={handleChange}
             required
           />

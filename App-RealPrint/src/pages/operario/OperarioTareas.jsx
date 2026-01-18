@@ -1,3 +1,12 @@
+/**
+ * Página de tareas del operario.
+ * Muestra tareas asignadas, permite cambiar su estado y ver detalles del pedido asociado.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y acciones
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 import { Table, Badge, Button } from "../../components/ui";
@@ -31,7 +40,7 @@ export default function OperarioTareas() {
     return {
       ...tarea,
       cliente: pedido?.cliente || "N/A",
-      proyecto: pedido?.proyecto || "N/A",
+      pedido: pedido?.pedido || "N/A",
       fechaEntrega: pedido?.fechaEntrega || "N/A",
     };
   });
@@ -39,7 +48,7 @@ export default function OperarioTareas() {
   const columns = [
     { key: "tarea", label: "Tarea", render: (value) => <span className="font-medium">{value}</span> },
     { key: "pedidoId", label: "Pedido", render: (value) => `#${value}` },
-    { key: "proyecto", label: "Proyecto" },
+    { key: "pedido", label: "Pedido" },
     { key: "cliente", label: "Cliente" },
     { key: "fechaEntrega", label: "Entrega" },
     { 

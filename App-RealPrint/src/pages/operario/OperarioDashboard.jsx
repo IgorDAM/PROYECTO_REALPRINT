@@ -1,3 +1,12 @@
+/**
+ * Dashboard principal del operario.
+ * Muestra tareas asignadas, su estado y permite cambiar el estado de cada tarea.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y acciones
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 import { StatCard, GlassCard, Badge, Table } from "../../components/ui";

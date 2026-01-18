@@ -1,6 +1,17 @@
 /**
  * Dashboard principal de administración.
  * Muestra estadísticas, accesos rápidos, últimos pedidos y alertas de stock.
+ *
+ * Estructura:
+ * - Cabecera con saludo y fecha
+ * - Tarjetas de estadísticas
+ * - Últimos pedidos recientes
+ * - Alerta de productos con stock bajo
+ *
+ * Buenas prácticas:
+ * - Usa hooks de contexto para datos y usuario
+ * - Modulariza columnas de tabla y lógica de filtrado
+ * - Usa componentes UI reutilizables
  */
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";

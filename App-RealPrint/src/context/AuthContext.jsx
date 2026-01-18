@@ -1,6 +1,11 @@
 /**
- * Contexto de autenticación global para la app.
- * Proporciona login, logout y estado de usuario.
+ * Contexto global de autenticación para la aplicación.
+ * Proporciona login, logout, estado de usuario y control de sesión persistente.
+ *
+ * Buenas prácticas:
+ * - Usa localStorage para persistencia de sesión
+ * - Expone un hook useAuth para consumir el contexto
+ * - Documenta cada función relevante
  */
 import { createContext, useContext, useState, useEffect } from "react";
 import { useData } from "./DataContext";

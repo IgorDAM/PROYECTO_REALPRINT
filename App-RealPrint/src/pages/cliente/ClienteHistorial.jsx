@@ -1,6 +1,11 @@
 /**
  * Historial de pedidos del cliente.
  * Muestra pedidos finalizados, enviados o cancelados y el total gastado.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y columnas de tabla
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
  */
 import { useAuth } from "../../context/AuthContext";
 import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
@@ -17,7 +22,7 @@ export default function ClienteHistorial() {
 
   const columns = [
     { key: "id", label: "ID Pedido", render: (value) => <span className="font-medium">#{value}</span> },
-    { key: "proyecto", label: "Proyecto" },
+    { key: "pedido", label: "Pedido" },
     { key: "servicio", label: "Servicio" },
     { key: "fecha", label: "Fecha Pedido" },
     { key: "fechaEntrega", label: "Fecha Entrega" },

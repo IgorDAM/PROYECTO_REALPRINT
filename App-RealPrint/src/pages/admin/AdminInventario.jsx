@@ -1,3 +1,13 @@
+/**
+ * Gestión de inventario para el administrador.
+ * Permite filtrar, buscar, editar, añadir y eliminar productos del inventario.
+ * Separa inventario por servicios (serigrafía, rotulación).
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y edición
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useState } from "react";
 import { useData } from "../../context/DataContext";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
@@ -32,6 +42,10 @@ export default function AdminInventario() {
     const matchesFilter = !filterCategoria || item.categoria === filterCategoria;
     return matchesSearch && matchesFilter;
   });
+
+  // Separar por servicio
+  const inventarioSerigrafia = filteredInventario.filter(item => item.serviciosDisponibles && item.serviciosDisponibles.includes("serigrafia"));
+  const inventarioRotulacion = filteredInventario.filter(item => item.serviciosDisponibles && item.serviciosDisponibles.includes("rotulacion"));
 
   const handleEdit = (item) => {
     setSelectedItem({
@@ -137,11 +151,19 @@ export default function AdminInventario() {
         </Button>
       </div>
 
-      {/* Table */}
+      {/* Tabla Serigrafía */}
+      <h2 className="text-lg font-bold mt-8 mb-2 text-primary-700">Inventario Serigrafía</h2>
       <Table 
         columns={columns} 
-        data={filteredInventario}
-        emptyMessage="No se encontraron productos"
+        data={inventarioSerigrafia}
+        emptyMessage="No se encontraron productos de serigrafía"
+      />
+      {/* Tabla Rotulación */}
+      <h2 className="text-lg font-bold mt-8 mb-2 text-secondary-700">Inventario Rotulación</h2>
+      <Table 
+        columns={columns} 
+        data={inventarioRotulacion}
+        emptyMessage="No se encontraron productos de rotulación"
       />
 
       {/* Edit Modal */}

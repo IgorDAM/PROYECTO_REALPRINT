@@ -1,4 +1,6 @@
-export default function Select({ 
+import PropTypes from "prop-types";
+
+export default function Select({
   label, 
   id, 
   options = [], 
@@ -38,3 +40,19 @@ export default function Select({
     </div>
   );
 }
+ 
+Select.propTypes = {
+  label: PropTypes.string,
+  id: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    label: PropTypes.string.isRequired,
+  })),
+  placeholder: PropTypes.string,
+  className: PropTypes.string,
+};
+
+/**
+ * Ejemplo de uso:
+ * <Select label="Servicio" options={[{value: 'a', label: 'A'}]} />
+ */

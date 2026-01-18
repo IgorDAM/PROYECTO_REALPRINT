@@ -1,21 +1,31 @@
+/**
+ * Gestión de pedidos para el administrador.
+ * Permite filtrar, buscar, ver detalles, cambiar estado y eliminar pedidos.
+ * Aplica lógica de inventario según el estado del pedido.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y actualización de estado
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useState } from "react";
 import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
 
 export default function AdminPedidos() {
-  const { pedidos, updatePedido, deletePedido, productosFinales, inventario } = useData();
+  const { pedidos, updatePedido, deletePedido, productosFinales, inventario, updateInventario } = useData();
   const [selectedPedido, setSelectedPedido] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
 
   const filteredPedidos = pedidos
-    .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente && pedido.proyecto)
+    .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente && pedido.pedido)
     .filter((pedido) => {
       const matchesSearch = 
         pedido.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pedido.proyecto.toLowerCase().includes(searchTerm.toLowerCase());
+        pedido.pedido.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = !filterEstado || pedido.estado === filterEstado;
       return matchesSearch && matchesFilter;
     });
@@ -26,6 +36,46 @@ export default function AdminPedidos() {
   };
 
   const handleUpdateEstado = (id, nuevoEstado) => {
+    const pedido = pedidos.find(p => p.id === id);
+    if (!pedido) {
+      updatePedido(id, { estado: nuevoEstado });
+      if (selectedPedido?.id === id) setSelectedPedido({ ...selectedPedido, estado: nuevoEstado });
+      return;
+    }
+    // Si pasa a 'en_proceso', descontar stock y sumar usados
+    if (nuevoEstado === 'en_proceso') {
+      if (pedido.productoFinalId) {
+        const pf = productosFinales.find(p => p.id == pedido.productoFinalId);
+        if (pf && pf.productosInventario && Array.isArray(pf.productosInventario)) {
+          pf.productosInventario.forEach(matId => {
+            const prod = inventario.find(i => i.id == matId);
+            if (prod) {
+              updateInventario(prod.id, {
+                stock: Math.max(0, prod.stock - (pedido.cantidad || 1)),
+                usados: (prod.usados || 0) + (pedido.cantidad || 1)
+              });
+            }
+          });
+        }
+      }
+    }
+    // Si vuelve a 'pendiente' desde 'en_proceso', restaurar stock y restar usados
+    if (nuevoEstado === 'pendiente' && pedido.estado === 'en_proceso') {
+      if (pedido.productoFinalId) {
+        const pf = productosFinales.find(p => p.id == pedido.productoFinalId);
+        if (pf && pf.productosInventario && Array.isArray(pf.productosInventario)) {
+          pf.productosInventario.forEach(matId => {
+            const prod = inventario.find(i => i.id == matId);
+            if (prod) {
+              updateInventario(prod.id, {
+                stock: prod.stock + (pedido.cantidad || 1),
+                usados: Math.max(0, (prod.usados || 0) - (pedido.cantidad || 1))
+              });
+            }
+          });
+        }
+      }
+    }
     updatePedido(id, { estado: nuevoEstado });
     if (selectedPedido?.id === id) {
       setSelectedPedido({ ...selectedPedido, estado: nuevoEstado });
@@ -33,48 +83,25 @@ export default function AdminPedidos() {
   };
 
   const columns = [
-    { key: "id", label: "ID Pedido", render: (value) => <span className="font-medium">#{value}</span> },
+    { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "cliente", label: "Cliente" },
-    { key: "proyecto", label: "Proyecto" },
-    { key: "servicio", label: "Servicio" },
+    { key: "pedido", label: "Pedido" },
     { key: "productoFinalId", label: "Producto Final", render: (id) => {
       const pf = productosFinales.find(p => p.id == id);
       return pf ? pf.nombre : "-";
     } },
     { key: "fechaEntrega", label: "Entrega" },
-    { 
-      key: "estado", 
-      label: "Estado",
-      render: (value) => (
-        <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>
-      )
-    },
-    { 
-      key: "total", 
-      label: "Total",
-      render: (value) => `€${value.toFixed(2)}`
-    },
-    {
-      key: "materialesUsados",
-      label: "Materiales Usados",
-      render: (_, row) => {
-        const pf = productosFinales.find(p => p.id == row.productoFinalId);
-        if (!pf || !pf.productosInventario) return "-";
-        return pf.productosInventario.map(id => {
-          const prod = inventario.find(i => i.id == id);
-          return prod ? prod.nombre : id;
-        }).join(", ");
-      }
-    },
+    { key: "estado", label: "Estado", render: (value) => (
+      <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>
+    ) },
+    { key: "total", label: "Total", render: (value) => `€${value.toFixed(2)}` },
     {
       key: "acciones",
-      label: "Acciones",
+      label: "",
       render: (_, row) => (
-        <div className="flex gap-2">
-          <Button size="sm" variant="ghost" onClick={() => handleViewDetails(row)}>
-            Ver
-          </Button>
-        </div>
+        <Button size="sm" variant="ghost" onClick={() => handleViewDetails(row)}>
+          Ver
+        </Button>
       ),
     },
   ];
@@ -97,7 +124,7 @@ export default function AdminPedidos() {
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Input
-          placeholder="Buscar por ID, cliente o proyecto..."
+          placeholder="Buscar por ID, cliente o pedido..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -119,11 +146,13 @@ export default function AdminPedidos() {
       </div>
 
       {/* Table */}
-      <Table 
-        columns={columns} 
-        data={filteredPedidos}
-        emptyMessage="No se encontraron pedidos"
-      />
+      <div className="overflow-x-auto md:overflow-x-visible">
+        <Table 
+          columns={columns} 
+          data={filteredPedidos}
+          emptyMessage="No se encontraron pedidos"
+        />
+      </div>
 
       {/* Detail Modal */}
       <Modal
@@ -162,8 +191,8 @@ export default function AdminPedidos() {
                 <p className="font-medium">{selectedPedido.cliente}</p>
               </div>
               <div>
-                <p className="text-surface-500 text-sm">Proyecto</p>
-                <p className="font-medium">{selectedPedido.proyecto}</p>
+                <p className="text-surface-500 text-sm">Pedido</p>
+                <p className="font-medium">{selectedPedido.pedido}</p>
               </div>
               <div>
                 <p className="text-surface-500 text-sm">Servicio</p>

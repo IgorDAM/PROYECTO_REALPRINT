@@ -1,6 +1,11 @@
 /**
  * Página de creación de nuevo pedido para clientes.
  * Permite seleccionar servicio, producto final y subir archivos.
+ *
+// ...existing code...
+ * - Modulariza lógica de formulario y envío
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
  */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +24,7 @@ export default function ClienteNuevoPedido() {
     opcion: "",
     producto: "",
     prendaCatalogo: "",
-    proyecto: "",
+    pedido: "",
     descripcion: "",
     cantidad: 1,
     fechaEntrega: "",
@@ -53,18 +58,21 @@ export default function ClienteNuevoPedido() {
       }
     }
     if (!precioUnitario) {
-      // Si no hay producto final seleccionado, el precio será 0
       precioUnitario = 0;
     }
     total = precioUnitario * formData.cantidad;
+    // Generar nombre automático: cantidad+producto_final+fecha_creación_pedido
+    const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
+    const fechaCreacion = new Date().toISOString().split("T")[0];
+    const nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
     const nuevoPedido = {
       clienteId: user.id,
       cliente: user.name,
       servicio: formData.servicio,
       subservicio: formData.subservicio,
       opcion: formData.opcion,
-      producto: formData.producto,
-      proyecto: formData.proyecto,
+      productoFinalId: formData.producto,
+      pedido: nombrePedido, // nombre automático
       descripcion: formData.descripcion + (formData.instrucciones ? `\n\nInstrucciones: ${formData.instrucciones}` : ""),
       cantidad: parseInt(formData.cantidad),
       fechaEntrega: formData.fechaEntrega,
@@ -135,6 +143,7 @@ export default function ClienteNuevoPedido() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* El campo nombre del pedido se elimina, ahora es automático */}
             <Select
               label="Tipo de Servicio"
               name="servicio"
@@ -187,24 +196,31 @@ export default function ClienteNuevoPedido() {
                 placeholder={productosFinalesFiltrados.length ? "Selecciona un producto final" : "No hay productos finales disponibles"}
               />
             )}
-            <Input
-              label="Nombre del Pedido"
-              name="proyecto"
-              placeholder="Ej. Camisetas Equipo Fútbol"
-              value={formData.proyecto}
-              onChange={handleChange}
-              required
-            />
+            {/* Vista previa del nombre automático del pedido */}
+            {(() => {
+              let productoFinal = null;
+              if (formData.producto) {
+                productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+              }
+              const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
+              const fechaCreacion = new Date().toISOString().split("T")[0];
+              const nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
+              return (
+                <div className="mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Pedido (automático)</label>
+                  <div className="px-3 py-2 bg-gray-100 rounded border border-gray-200 text-gray-700">{nombrePedido}</div>
+                </div>
+              );
+            })()}
           </div>
 
           <Textarea
-            label="Descripción del Pedido"
+            label="Descripción del Pedido (opcional)"
             name="descripcion"
             placeholder="Detalles sobre el diseño, materiales, colores, dimensiones, etc."
             value={formData.descripcion}
             onChange={handleChange}
             rows={4}
-            required
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -1,3 +1,12 @@
+/**
+ * Historial de pedidos para el administrador.
+ * Permite filtrar por estado, fecha y buscar pedidos completados, enviados o cancelados.
+ *
+ * Buenas prácticas:
+ * - Modulariza lógica de filtrado y columnas de tabla
+ * - Usa componentes UI reutilizables
+ * - Documenta cada función relevante
+ */
 import { useState } from "react";
 import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
 import { Table, Button, Badge, Input, Select } from "../../components/ui";
@@ -27,7 +36,7 @@ export default function AdminHistorial() {
   const columns = [
     { key: "id", label: "ID Pedido", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "cliente", label: "Cliente" },
-    { key: "proyecto", label: "Proyecto" },
+    { key: "pedido", label: "Pedido" },
     { key: "fecha", label: "Fecha Pedido" },
     { key: "fechaEntrega", label: "Fecha Entrega" },
     { 

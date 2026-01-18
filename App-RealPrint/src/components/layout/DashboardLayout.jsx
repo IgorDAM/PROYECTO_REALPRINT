@@ -2,11 +2,19 @@
  * Layout principal del dashboard con sidebar y cabecera responsive.
  */
 
-import { Outlet, useLocation } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../context/AuthContext";
+import PropTypes from "prop-types";
 
+/**
+ * Layout principal del dashboard con sidebar y cabecera responsive.
+ * Proporciona navegación lateral y cabecera móvil.
+ *
+ * Ejemplo de uso:
+ * <DashboardLayout />
+ */
 export default function DashboardLayout() {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,3 +58,6 @@ export default function DashboardLayout() {
     </div>
   );
 }
+
+// No recibe props, pero se deja la estructura para futuras extensiones
+DashboardLayout.propTypes = {};

@@ -1,8 +1,18 @@
+import React from "react";
+import PropTypes from "prop-types";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 /**
  * Menú de navegación lateral según el rol del usuario.
+ * Muestra enlaces y permite cerrar sesión.
+ *
+ * Props:
+ * - isOpen: boolean (si el sidebar está abierto en móvil)
+ * - onClose: función para cerrar el sidebar
+ *
+ * Ejemplo de uso:
+ * <Sidebar isOpen={true} onClose={() => ...} />
  */
 const menuItems = {
   admin: [
@@ -134,4 +144,10 @@ export default function Sidebar({ isOpen, onClose }) {
       </div>
     </aside>
   );
+
 }
+
+Sidebar.propTypes = {
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
+};

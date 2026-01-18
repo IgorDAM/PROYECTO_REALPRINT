@@ -1,6 +1,16 @@
 /**
  * Dashboard principal del cliente.
  * Muestra resumen de pedidos, estadísticas y acceso rápido a nuevo pedido.
+ *
+ * Estructura:
+ * - Cabecera con saludo
+ * - Tarjetas de estadísticas
+ * - Tabla de pedidos activos y recientes
+ *
+ * Buenas prácticas:
+ * - Filtra pedidos por cliente
+ * - Modulariza columnas de tabla y lógica de acciones
+ * - Usa componentes UI reutilizables
  */
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -23,7 +33,7 @@ export default function ClienteDashboard() {
 
   const columns = [
     { key: "id", label: "ID Pedido", render: (value) => <span className="font-medium">#{value}</span> },
-    { key: "proyecto", label: "Proyecto" },
+    { key: "pedido", label: "Pedido" },
     { key: "servicio", label: "Servicio" },
     { key: "fechaEntrega", label: "Entrega" },
     {

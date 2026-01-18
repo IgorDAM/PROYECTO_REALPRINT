@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 export default function Table({ columns, data, onRowClick, emptyMessage = "No hay datos disponibles" }) {
   if (!data || data.length === 0) {
     return (
@@ -45,3 +47,19 @@ export default function Table({ columns, data, onRowClick, emptyMessage = "No ha
     </div>
   );
 }
+
+Table.propTypes = {
+  columns: PropTypes.arrayOf(PropTypes.shape({
+    key: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    render: PropTypes.func,
+  })).isRequired,
+  data: PropTypes.array.isRequired,
+  onRowClick: PropTypes.func,
+  emptyMessage: PropTypes.string,
+};
+
+/**
+ * Ejemplo de uso:
+ * <Table columns={[{key:'id',label:'ID'}]} data={dataArray} />
+ */

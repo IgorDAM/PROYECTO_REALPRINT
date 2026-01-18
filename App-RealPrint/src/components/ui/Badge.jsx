@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 export default function Badge({ children, variant = "default", className = "" }) {
   const variants = {
     default: "bg-surface-100 text-surface-600 border border-surface-200",
@@ -21,3 +23,14 @@ export default function Badge({ children, variant = "default", className = "" })
     </span>
   );
 }
+ 
+Badge.propTypes = {
+  children: PropTypes.node,
+  variant: PropTypes.string,
+  className: PropTypes.string,
+};
+
+/**
+ * Ejemplo de uso:
+ * <Badge variant="success">Activo</Badge>
+ */
