@@ -2,7 +2,6 @@
  * Página de creación de nuevo pedido para clientes.
  * Permite seleccionar servicio, producto final y subir archivos.
  *
-// ...existing code...
  * - Modulariza lógica de formulario y envío
  * - Usa componentes UI reutilizables
  * - Documenta cada función relevante
