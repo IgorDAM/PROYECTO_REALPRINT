@@ -26,6 +26,8 @@ export default function AdminProductosFinales() {
     materiales: [], // [{id, cantidad}]
     clientesPermitidos: [], // array de ids de clientes
     precio: 0,
+    enCaja: false, // solo para serigrafía
+    tamanoCaja: 50, // solo si enCaja
   });
 
   const handleAdd = () => {
@@ -58,6 +60,8 @@ export default function AdminProductosFinales() {
       materiales: producto.materiales || [],
       clientesPermitidos: producto.clientesPermitidos || [],
       precio: producto.precio || 0,
+      enCaja: !!producto.enCaja,
+      tamanoCaja: producto.tamanoCaja || 50,
     });
     setIsEdit(true);
     setEditId(producto.id);
@@ -68,7 +72,7 @@ export default function AdminProductosFinales() {
     setIsModalOpen(false);
     setIsEdit(false);
     setEditId(null);
-    setNuevoProducto({ nombre: "", servicio: "", subservicio: "", quienRopa: "", materiales: [], clientesPermitidos: [] });
+    setNuevoProducto({ nombre: "", servicio: "", subservicio: "", quienRopa: "", materiales: [], clientesPermitidos: [], enCaja: false, tamanoCaja: 50 });
   };
 
   return (
@@ -201,6 +205,28 @@ export default function AdminProductosFinales() {
                   <option value="solo_serigrafia">Solo Serigrafía</option>
                   <option value="serigrafia+planchado">Serigrafía + Planchado</option>
                 </select>
+                {/* Opción de caja solo para serigrafía */}
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="enCaja"
+                    checked={!!nuevoProducto.enCaja}
+                    onChange={e => setNuevoProducto(prev => ({ ...prev, enCaja: e.target.checked }))}
+                  />
+                  <label htmlFor="enCaja">¿Este producto se entrega en cajas?</label>
+                  {nuevoProducto.enCaja && (
+                    <>
+                      <span className="ml-2">Tamaño de caja:</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={nuevoProducto.tamanoCaja}
+                        onChange={e => setNuevoProducto(prev => ({ ...prev, tamanoCaja: Math.max(1, Number(e.target.value)) }))}
+                        className="w-16 border rounded px-2 py-1 ml-2"
+                      />
+                    </>
+                  )}
+                </div>
               </div>
             )}
             {/* Quién proporciona la ropa solo si es Serigrafía + Planchado */}

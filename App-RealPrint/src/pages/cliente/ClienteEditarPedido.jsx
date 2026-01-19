@@ -25,13 +25,14 @@ export default function ClienteEditarPedido() {
     servicio: pedido.servicio,
     subservicio: pedido.subservicio || "",
     opcion: pedido.opcion || "",
-    producto: pedido.producto || "",
+    producto: pedido.productoFinalId || pedido.producto || "",
     prendaCatalogo: pedido.prendaCatalogo || "",
     pedido: pedido.pedido || "",
     descripcion: pedido.descripcion || "",
     cantidad: pedido.cantidad || 1,
     fechaEntrega: pedido.fechaEntrega || "",
     instrucciones: "",
+    tamanoCaja: pedido.tamanoCaja || undefined,
   } : {});
 
   useEffect(() => {
@@ -94,22 +95,32 @@ export default function ClienteEditarPedido() {
 
   // Maneja cambios en los campos del formulario
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
     if (name === "servicio") {
-      setFormData((prev) => ({ ...prev, producto: "", subservicio: "", opcion: "" }));
+      setFormData((prev) => ({ ...prev, producto: "", subservicio: "", opcion: "", tamanoCaja: undefined }));
     }
     if (name === "subservicio") {
-      setFormData((prev) => ({ ...prev, opcion: "" }));
+      setFormData((prev) => ({ ...prev, opcion: "", tamanoCaja: undefined }));
+    }
+    if (name === "producto") {
+      // Si el producto seleccionado es de serigrafía y enCaja, poner el valor por defecto
+      const pf = productosFinales.find(p => String(p.id) === String(value));
+      if (pf && pf.enCaja) {
+        setFormData((prev) => ({ ...prev, tamanoCaja: pf.tamanoCaja || 50 }));
+      } else {
+        setFormData((prev) => ({ ...prev, tamanoCaja: undefined }));
+      }
     }
   };
 
   // Guardar cambios
   const handleSubmit = (e) => {
     e.preventDefault();
-    let total = 0;
     let precioUnitario = 0;
     let productoFinal = null;
+    let total = 0;
+    let cantidadUnidades = formData.cantidad;
     if (formData.producto) {
       productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
       if (productoFinal && typeof productoFinal.precio === 'number') {
@@ -130,7 +141,14 @@ export default function ClienteEditarPedido() {
         precioUnitario = 0;
       }
     }
-    total = precioUnitario * formData.cantidad;
+    // Si es en caja, la cantidad es de cajas, y el precio es cajas * unidades por caja * precio unitario
+    if (productoFinal && productoFinal.enCaja) {
+      const unidadesPorCaja = formData.tamanoCaja || productoFinal.tamanoCaja || 50;
+      cantidadUnidades = formData.cantidad * unidadesPorCaja;
+      total = precioUnitario * cantidadUnidades;
+    } else {
+      total = precioUnitario * formData.cantidad;
+    }
     updatePedido(pedido.id, {
       ...pedido,
       ...formData,
@@ -138,7 +156,10 @@ export default function ClienteEditarPedido() {
       subservicio: formData.subservicio,
       opcion: formData.opcion,
       total,
+      tamanoCaja: formData.tamanoCaja,
+      cantidadUnidades: cantidadUnidades,
     });
+    // Redirigir siempre al dashboard de cliente tras editar pedido
     navigate("/cliente");
   };
 
@@ -204,14 +225,48 @@ export default function ClienteEditarPedido() {
               placeholder={productosFinalesFiltrados.length ? "Selecciona un producto final" : "No hay productos finales disponibles"}
             />
           )}
-          <Input
-            label="Nombre del Pedido"
-            name="pedido"
-            placeholder="Ej. Camisetas Equipo Fútbol"
-            value={formData.pedido}
-            onChange={handleChange}
-            required
-          />
+          {/* Nombre del Pedido automático */}
+          {(() => {
+            let productoFinal = null;
+            if (formData.producto) {
+              productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+            }
+            const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
+            const fechaCreacion = pedido && pedido.fecha ? pedido.fecha : new Date().toISOString().split("T")[0];
+            let nombrePedido = "";
+            if (productoFinal && productoFinal.enCaja && formData.opcion !== "realprint_ropa") {
+              nombrePedido = `${formData.cantidad} caja ${nombreProducto} ${fechaCreacion}`;
+            } else {
+              nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
+            }
+            return (
+              <div className="mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Pedido (automático)</label>
+                <div className="px-3 py-2 bg-gray-100 rounded border border-gray-200 text-gray-700">{nombrePedido}</div>
+              </div>
+            );
+          })()}
+          {/* Si el producto es de serigrafía y enCaja, permitir modificar el tamaño de la caja */}
+          {(() => {
+            let productoFinal = null;
+            if (formData.producto) {
+              productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+            }
+            if (productoFinal && productoFinal.servicio === "serigrafia" && productoFinal.enCaja && formData.opcion !== "realprint_ropa") {
+              return (
+                <Input
+                  label="Tamaño de la caja"
+                  name="tamanoCaja"
+                  type="number"
+                  min="1"
+                  value={formData.tamanoCaja || productoFinal.tamanoCaja || 50}
+                  onChange={handleChange}
+                  required
+                />
+              );
+            }
+            return null;
+          })()}
         </div>
         <Textarea
           label="Descripción del Pedido"
@@ -223,16 +278,42 @@ export default function ClienteEditarPedido() {
           required
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Input
-            label="Cantidad"
-            name="cantidad"
-            type="number"
-            min="1"
-            placeholder="Ej. 50"
-            value={formData.cantidad}
-            onChange={handleChange}
-            required
-          />
+          {(() => {
+            let productoFinal = null;
+            if (formData.producto) {
+              productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+            }
+            if (productoFinal && productoFinal.enCaja) {
+              const unidadesPorCaja = formData.tamanoCaja || productoFinal.tamanoCaja || 50;
+              return (
+                <div>
+                  <Input
+                    label="Cantidad de cajas"
+                    name="cantidad"
+                    type="number"
+                    min="1"
+                    placeholder="Ej. 1"
+                    value={formData.cantidad}
+                    onChange={handleChange}
+                    required
+                  />
+                  <div className="text-xs text-gray-500 mt-1">Total: {formData.cantidad * unidadesPorCaja} unidades</div>
+                </div>
+              );
+            }
+            return (
+              <Input
+                label="Cantidad"
+                name="cantidad"
+                type="number"
+                min="1"
+                placeholder="Ej. 50"
+                value={formData.cantidad}
+                onChange={handleChange}
+                required
+              />
+            );
+          })()}
           <Input
             label="Fecha de Entrega Deseada"
             name="fechaEntrega"

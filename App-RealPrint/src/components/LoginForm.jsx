@@ -65,7 +65,8 @@ export default function LoginForm() {
         <div className="flex flex-wrap justify-center gap-2">
           <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>admin</strong> / admin123</span>
           <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>cliente</strong> / cliente123</span>
-          <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>operario</strong> / operario123</span>
+          <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>operario_demo_serigrafia</strong> / operario123</span>
+          <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>operario_demo_rotulacion</strong> / operario123</span>
         </div>
       </div>
     </form>

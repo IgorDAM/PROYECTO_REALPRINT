@@ -20,12 +20,14 @@ export default function AdminPedidos() {
   const [filterEstado, setFilterEstado] = useState("");
 
   const filteredPedidos = pedidos
-    .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente && pedido.pedido)
+    .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente)
     .filter((pedido) => {
-      const matchesSearch = 
+      const matchesSearch =
         pedido.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pedido.pedido.toLowerCase().includes(searchTerm.toLowerCase());
+        (pedido.pedido ? pedido.pedido.toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
+        (pedido.servicio ? pedido.servicio.toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
+        (pedido.descripcion ? pedido.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) : false);
       const matchesFilter = !filterEstado || pedido.estado === filterEstado;
       return matchesSearch && matchesFilter;
     });

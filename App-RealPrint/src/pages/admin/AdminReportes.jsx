@@ -11,7 +11,7 @@ import { useData, ESTADOS_PEDIDO, SERVICIOS } from "../../context/DataContext";
 import { StatCard, GlassCard } from "../../components/ui";
 
 export default function AdminReportes() {
-  const { pedidos, inventario, usuarios, getEstadisticas } = useData();
+  const { pedidos, inventario, usuarios, getEstadisticas, productosFinales } = useData();
   const stats = getEstadisticas();
 
   // Calcular estadísticas por servicio
@@ -22,6 +22,17 @@ export default function AdminReportes() {
       .filter((p) => p.servicio === servicio.label)
       .reduce((sum, p) => sum + p.total, 0),
   }));
+
+  // Estadísticas de productos finales
+  const productosFinalesStats = productosFinales.map((pf) => {
+    const pedidosDeEsteProducto = pedidos.filter(p => String(p.productoFinalId) === String(pf.id));
+    return {
+      nombre: pf.nombre,
+      servicio: pf.servicio,
+      pedidos: pedidosDeEsteProducto.length,
+      total: pedidosDeEsteProducto.reduce((sum, p) => sum + (typeof p.total === 'number' ? p.total : 0), 0),
+    };
+  });
 
   // Calcular estadísticas por estado
   const pedidosPorEstado = Object.entries(ESTADOS_PEDIDO).map(([key, { label }]) => ({
@@ -81,6 +92,43 @@ export default function AdminReportes() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Productos Finales por Servicio */}
+                <GlassCard className="p-6" hover={false}>
+                  <h3 className="text-xl font-bold text-surface-900 mb-4">Productos Finales por Servicio</h3>
+                  <div className="space-y-8">
+                    {["Serigrafía", "Rotulación"].map(servicio => {
+                      // Mostrar todos los productos finales, aunque tengan 0 pedidos
+                      const productosServicio = productosFinales
+                        .filter(pf => (pf.servicio || "").toLowerCase() === servicio.toLowerCase())
+                        .map(pf => {
+                          // Buscar stats si existen, si no, poner 0
+                          const stat = productosFinalesStats.find(s => s.nombre === pf.nombre && (s.servicio || "").toLowerCase() === servicio.toLowerCase());
+                          return {
+                            nombre: pf.nombre,
+                            pedidos: stat ? stat.pedidos : 0,
+                            total: stat ? stat.total : 0,
+                          };
+                        });
+                      return (
+                        <div key={servicio}>
+                          <h4 className="text-lg font-bold text-primary-700 mb-2">{servicio}</h4>
+                          {productosServicio.length === 0 && <div className="text-surface-500 mb-4">No hay productos finales de {servicio}</div>}
+                          {productosServicio.map((pf) => (
+                            <div key={pf.nombre} className="flex items-center justify-between p-3 bg-surface-50 rounded-xl border border-surface-200 mb-2">
+                              <div>
+                                <p className="font-semibold text-surface-900">{pf.nombre}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold text-surface-900">{pf.pedidos} pedidos</p>
+                                <p className="text-sm text-surface-500">€{pf.total.toFixed(2)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
         {/* Pedidos por Servicio */}
         <GlassCard className="p-6" hover={false}>
           <h3 className="text-xl font-bold text-surface-900 mb-4">Pedidos por Servicio</h3>

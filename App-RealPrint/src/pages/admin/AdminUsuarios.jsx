@@ -264,8 +264,19 @@ export default function AdminUsuarios() {
               label="Rol"
               options={ROLES}
               value={selectedUsuario.role}
-              onChange={(e) => setSelectedUsuario({ ...selectedUsuario, role: e.target.value })}
+              onChange={(e) => setSelectedUsuario({ ...selectedUsuario, role: e.target.value, especialidad: e.target.value === 'operario' ? (selectedUsuario.especialidad || 'serigrafia') : undefined })}
             />
+            {selectedUsuario.role === 'operario' && (
+              <Select
+                label="Especialidad"
+                options={[
+                  { value: 'serigrafia', label: 'Serigrafía' },
+                  { value: 'rotulacion', label: 'Rotulación' }
+                ]}
+                value={selectedUsuario.especialidad || 'serigrafia'}
+                onChange={e => setSelectedUsuario({ ...selectedUsuario, especialidad: e.target.value })}
+              />
+            )}
             <Input
               label="Contraseña"
               type="password"
@@ -321,8 +332,19 @@ export default function AdminUsuarios() {
             label="Rol"
             options={ROLES}
             value={newUsuario.role}
-            onChange={(e) => setNewUsuario({ ...newUsuario, role: e.target.value })}
+            onChange={(e) => setNewUsuario({ ...newUsuario, role: e.target.value, especialidad: e.target.value === 'operario' ? (newUsuario.especialidad || 'serigrafia') : undefined })}
           />
+          {newUsuario.role === 'operario' && (
+            <Select
+              label="Especialidad"
+              options={[
+                { value: 'serigrafia', label: 'Serigrafía' },
+                { value: 'rotulacion', label: 'Rotulación' }
+              ]}
+              value={newUsuario.especialidad || 'serigrafia'}
+              onChange={e => setNewUsuario({ ...newUsuario, especialidad: e.target.value })}
+            />
+          )}
           <Input
             label="Contraseña"
             type="password"

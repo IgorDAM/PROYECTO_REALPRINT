@@ -40,8 +40,8 @@ const INITIAL_INVENTARIO = [
 const INITIAL_USUARIOS = [
   { id: 1, username: "admin", password: "admin123", nombre: "Administrador", email: "admin@realprint.com", role: "admin", activo: true },
   { id: 2, username: "cliente", password: "cliente123", nombre: "Cliente Demo", email: "cliente@email.com", role: "cliente", activo: true },
-  { id: 3, username: "operario1", password: "operario123", nombre: "Operario Serigrafía", email: "operario1@email.com", role: "operario", activo: true, especialidad: "dtf" },
-  { id: 4, username: "operario2", password: "operario123", nombre: "Operario Rotulación", email: "operario2@email.com", role: "operario", activo: true, especialidad: "rotulacion" },
+  { id: 3, username: "operario_demo_serigrafia", password: "operario123", nombre: "Operario Demo Serigrafía", email: "operario_demo_serigrafia@email.com", role: "operario", activo: true, especialidad: "serigrafia" },
+  { id: 4, username: "operario_demo_rotulacion", password: "operario123", nombre: "Operario Demo Rotulación", email: "operario_demo_rotulacion@email.com", role: "operario", activo: true, especialidad: "rotulacion" },
 ];
 
 const INITIAL_TAREAS = [
@@ -57,7 +57,11 @@ export const ESTADOS_PEDIDO = {
 };
 
 export const SERVICIOS = [
-  // DTF eliminado: solo_dtf y dtf_planchado
+  {
+    value: "serigrafia",
+    label: "Serigrafía",
+    subservicios: [],
+  },
   {
     value: "rotulacion",
     label: "Rotulación",
@@ -135,8 +139,9 @@ export function DataProvider({ children }) {
 
   // Añadir tarea pendiente para el operario adecuado
   const addTareaPorPedido = (pedido) => {
-    // Buscar operario con especialidad igual al servicio del pedido
-    const operario = usuarios.find(u => u.role === "operario" && u.especialidad === pedido.servicio);
+    // Buscar operario con especialidad igual al servicio del pedido (ignorando mayúsculas/minúsculas)
+    const servicioKey = (pedido.servicio || "").toLowerCase();
+    const operario = usuarios.find(u => u.role === "operario" && (u.especialidad || "").toLowerCase() === servicioKey);
     if (!operario) return;
     const nuevaTarea = {
       id: Date.now(),
@@ -148,7 +153,11 @@ export function DataProvider({ children }) {
     };
     setTareas(prev => [nuevaTarea, ...prev]);
   };
-  const [tareas, setTareas] = useState(INITIAL_TAREAS);
+  const [tareas, setTareas] = useState(() => {
+    const stored = localStorage.getItem("realprint_tareas");
+    return stored ? JSON.parse(stored) : INITIAL_TAREAS;
+  });
+
 
   // Guardar inventario en localStorage cuando cambian
   useEffect(() => {
@@ -164,6 +173,11 @@ export function DataProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("realprint_usuarios", JSON.stringify(usuarios));
   }, [usuarios]);
+
+  // Guardar tareas en localStorage cuando cambian
+  useEffect(() => {
+    localStorage.setItem("realprint_tareas", JSON.stringify(tareas));
+  }, [tareas]);
 
   // Funciones para pedidos
   const addPedido = (pedido) => {
@@ -197,6 +211,7 @@ export function DataProvider({ children }) {
 
   const deletePedido = (id) => {
     setPedidos(pedidos.filter((p) => p.id !== id));
+    setTareas(tareas.filter((t) => t.pedidoId !== id));
   };
 
   // Funciones para inventario
