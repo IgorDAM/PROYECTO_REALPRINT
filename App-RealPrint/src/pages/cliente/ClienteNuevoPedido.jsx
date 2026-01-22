@@ -58,7 +58,6 @@ export default function ClienteNuevoPedido() {
   // Envía el pedido y navega al dashboard
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Calcular precio estimado
     let total = 0;
     let precioUnitario = 0;
     let productoFinal = null;
@@ -72,40 +71,54 @@ export default function ClienteNuevoPedido() {
     if (!precioUnitario) {
       precioUnitario = 0;
     }
-    // Si es en caja, la cantidad es de cajas, y el precio es cajas * unidades por caja * precio unitario
+    const unidadesPorCaja = productoFinal && productoFinal.enCaja ? (formData.tamanoCaja || productoFinal.tamanoCaja || 50) : 1;
     if (productoFinal && productoFinal.enCaja) {
-      const unidadesPorCaja = formData.tamanoCaja || productoFinal.tamanoCaja || 50;
       cantidadUnidades = formData.cantidad * unidadesPorCaja;
       total = precioUnitario * cantidadUnidades;
+      // Crear un pedido por cada caja
+      for (let i = 0; i < formData.cantidad; i++) {
+        const nombrePedido = `Caja ${i + 1} de ${formData.cantidad} - ${productoFinal.nombre} ${new Date().toISOString().split("T")[0]}`;
+        const pedidoCaja = {
+          clienteId: user.id,
+          cliente: user.name,
+          servicio: formData.servicio,
+          subservicio: formData.subservicio,
+          opcion: formData.opcion,
+          productoFinalId: formData.producto,
+          pedido: nombrePedido,
+          descripcion: formData.descripcion + (formData.instrucciones ? `\n\nInstrucciones: ${formData.instrucciones}` : ""),
+          cantidad: 1, // una caja
+          cantidadUnidades: unidadesPorCaja,
+          fechaEntrega: formData.fechaEntrega,
+          total: precioUnitario * unidadesPorCaja,
+          tamanoCaja: formData.tamanoCaja,
+          boxIndex: i + 1,
+          boxTotal: formData.cantidad,
+        };
+        addPedido(pedidoCaja);
+      }
     } else {
       total = precioUnitario * formData.cantidad;
+      const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
+      const fechaCreacion = new Date().toISOString().split("T")[0];
+      const nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
+      const nuevoPedido = {
+        clienteId: user.id,
+        cliente: user.name,
+        servicio: formData.servicio,
+        subservicio: formData.subservicio,
+        opcion: formData.opcion,
+        productoFinalId: formData.producto,
+        pedido: nombrePedido,
+        descripcion: formData.descripcion + (formData.instrucciones ? `\n\nInstrucciones: ${formData.instrucciones}` : ""),
+        cantidad: parseInt(formData.cantidad),
+        cantidadUnidades: cantidadUnidades,
+        fechaEntrega: formData.fechaEntrega,
+        total,
+        tamanoCaja: formData.tamanoCaja,
+      };
+      addPedido(nuevoPedido);
     }
-    // Generar nombre automático: cantidad+caja+producto_final+fecha_creación_pedido si aplica
-    const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
-    const fechaCreacion = new Date().toISOString().split("T")[0];
-    let nombrePedido = "";
-    if (productoFinal && productoFinal.enCaja && formData.opcion !== "realprint_ropa") {
-      nombrePedido = `${formData.cantidad} caja ${nombreProducto} ${fechaCreacion}`;
-    } else {
-      nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
-    }
-    const nuevoPedido = {
-      clienteId: user.id,
-      cliente: user.name,
-      servicio: formData.servicio,
-      subservicio: formData.subservicio,
-      opcion: formData.opcion,
-      productoFinalId: formData.producto,
-      pedido: nombrePedido, // nombre automático
-      descripcion: formData.descripcion + (formData.instrucciones ? `\n\nInstrucciones: ${formData.instrucciones}` : ""),
-      cantidad: parseInt(formData.cantidad), // cantidad de cajas si es enCaja, unidades si no
-      cantidadUnidades: cantidadUnidades, // total de unidades reales
-      fechaEntrega: formData.fechaEntrega,
-      total,
-      tamanoCaja: formData.tamanoCaja, // solo si aplica
-    };
-    addPedido(nuevoPedido);
-    // Redirigir siempre al dashboard de cliente tras crear pedido
     navigate("/cliente");
   };
 

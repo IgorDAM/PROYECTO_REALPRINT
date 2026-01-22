@@ -26,11 +26,20 @@ export default function AdminReportes() {
   // Estadísticas de productos finales
   const productosFinalesStats = productosFinales.map((pf) => {
     const pedidosDeEsteProducto = pedidos.filter(p => String(p.productoFinalId) === String(pf.id));
+    // Agrupar por talla/modelo y caja
+    const porTallaModelo = {};
+    pedidosDeEsteProducto.forEach(p => {
+      const key = `${pf.nombre} | Caja ${p.boxIndex || 1}`;
+      if (!porTallaModelo[key]) porTallaModelo[key] = { pedidos: 0, total: 0 };
+      porTallaModelo[key].pedidos += 1;
+      porTallaModelo[key].total += (typeof p.total === 'number' ? p.total : 0);
+    });
     return {
       nombre: pf.nombre,
       servicio: pf.servicio,
       pedidos: pedidosDeEsteProducto.length,
       total: pedidosDeEsteProducto.reduce((sum, p) => sum + (typeof p.total === 'number' ? p.total : 0), 0),
+      detallePorCaja: porTallaModelo
     };
   });
 
@@ -114,14 +123,22 @@ export default function AdminReportes() {
                           <h4 className="text-lg font-bold text-primary-700 mb-2">{servicio}</h4>
                           {productosServicio.length === 0 && <div className="text-surface-500 mb-4">No hay productos finales de {servicio}</div>}
                           {productosServicio.map((pf) => (
-                            <div key={pf.nombre} className="flex items-center justify-between p-3 bg-surface-50 rounded-xl border border-surface-200 mb-2">
-                              <div>
+                            <div key={pf.nombre} className="flex flex-col gap-1 p-3 bg-surface-50 rounded-xl border border-surface-200 mb-2">
+                              <div className="flex items-center justify-between">
                                 <p className="font-semibold text-surface-900">{pf.nombre}</p>
+                                <div className="text-right">
+                                  <p className="font-bold text-surface-900">{pf.pedidos} pedidos</p>
+                                  <p className="text-sm text-surface-500">€{pf.total.toFixed(2)}</p>
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className="font-bold text-surface-900">{pf.pedidos} pedidos</p>
-                                <p className="text-sm text-surface-500">€{pf.total.toFixed(2)}</p>
-                              </div>
+                              {/* Detalle por caja/talla/modelo */}
+                              {pf.detallePorCaja && Object.entries(pf.detallePorCaja).map(([key, detalle]) => (
+                                <div key={key} className="flex items-center justify-between pl-4">
+                                  <span className="text-xs text-surface-500">{key}</span>
+                                  <span className="text-xs text-surface-700">{detalle.pedidos} pedidos</span>
+                                  <span className="text-xs text-primary-600">€{detalle.total.toFixed(2)}</span>
+                                </div>
+                              ))}
                             </div>
                           ))}
                         </div>

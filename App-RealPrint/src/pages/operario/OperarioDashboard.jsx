@@ -45,12 +45,18 @@ export default function OperarioDashboard() {
       ...tarea,
       cliente: pedido?.cliente || "N/A",
       fechaEntrega: pedido?.fechaEntrega || "N/A",
+      tallaModelo: pedido?.nombre?.replace(/CAMISETA |\(.+\)/g,"") || "-",
+      boxIndex: pedido?.boxIndex,
+      boxTotal: pedido?.boxTotal,
+      nombrePedido: pedido?.pedido || "-",
     };
   });
 
   const columns = [
-    { key: "tarea", label: "Tarea", render: (value) => <span className="font-medium">{value}</span> },
+    { key: "tarea", label: "Tarea", render: (value, row) => <span className="font-medium">{value} <span className="text-xs text-surface-500">({row.nombrePedido})</span></span> },
     { key: "pedidoId", label: "Pedido", render: (value) => `#${value}` },
+    { key: "tallaModelo", label: "Talla/Modelo" },
+    { key: "boxIndex", label: "Caja", render: (value, row) => value ? `${value} de ${row.boxTotal}` : "-" },
     { key: "cliente", label: "Cliente" },
     { key: "fechaEntrega", label: "Fecha Entrega" },
     { 
@@ -169,7 +175,7 @@ export default function OperarioDashboard() {
       </div>
 
       {/* All Tasks Table */}
-      <h3 className="text-xl font-bold text-surface-900 mb-4">Todas mis Tareas</h3>
+      <h3 className="text-xl font-bold text-surface-900 mb-4">Todas mis Tareas (por caja y talla/modelo)</h3>
       <Table 
         columns={columns} 
         data={tareasConPedido}
