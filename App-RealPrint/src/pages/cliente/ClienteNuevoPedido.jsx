@@ -28,8 +28,10 @@ export default function ClienteNuevoPedido() {
     cantidad: 1,
     fechaEntrega: "",
     instrucciones: "",
-    tamanoCaja: undefined, // solo si aplica
+    tamanoCaja: undefined,
   });
+  // Carrito de productos
+  const [carrito, setCarrito] = useState([]);
   const [archivo, setArchivo] = useState(null);
 
   // Maneja cambios en los campos del formulario
@@ -55,70 +57,93 @@ export default function ClienteNuevoPedido() {
     }
   };
 
-  // Envía el pedido y navega al dashboard
-  const handleSubmit = (e) => {
+  // Añadir producto al carrito
+  const handleAddToCarrito = (e) => {
     e.preventDefault();
-    let total = 0;
-    let precioUnitario = 0;
     let productoFinal = null;
-    let cantidadUnidades = formData.cantidad;
     if (formData.producto) {
       productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
-      if (productoFinal && typeof productoFinal.precio === 'number') {
-        precioUnitario = productoFinal.precio;
-      }
     }
-    if (!precioUnitario) {
-      precioUnitario = 0;
-    }
-    const unidadesPorCaja = productoFinal && productoFinal.enCaja ? (formData.tamanoCaja || productoFinal.tamanoCaja || 50) : 1;
-    if (productoFinal && productoFinal.enCaja) {
-      cantidadUnidades = formData.cantidad * unidadesPorCaja;
-      total = precioUnitario * cantidadUnidades;
-      // Crear un pedido por cada caja
-      for (let i = 0; i < formData.cantidad; i++) {
-        const nombrePedido = `Caja ${i + 1} de ${formData.cantidad} - ${productoFinal.nombre} ${new Date().toISOString().split("T")[0]}`;
-        const pedidoCaja = {
+    if (!productoFinal) return;
+    // Guardar en el carrito todos los datos relevantes
+    setCarrito(prev => [...prev, {
+      ...formData,
+      productoFinal: productoFinal,
+      nombre: productoFinal.nombre,
+      precio: productoFinal.precio,
+      enCaja: productoFinal.enCaja,
+      tamanoCaja: formData.tamanoCaja || productoFinal.tamanoCaja || 50,
+    }]);
+    // Limpiar el formulario para añadir otro producto
+    setFormData({
+      servicio: "",
+      subservicio: "",
+      opcion: "",
+      producto: "",
+      prendaCatalogo: "",
+      pedido: "",
+      descripcion: "",
+      cantidad: 1,
+      fechaEntrega: "",
+      instrucciones: "",
+      tamanoCaja: undefined,
+    });
+    setArchivo(null);
+  };
+
+  // Enviar todos los productos del carrito como pedidos
+  const handleEnviarCarrito = () => {
+    carrito.forEach(item => {
+      let productoFinal = item.productoFinal;
+      let precioUnitario = productoFinal.precio;
+      let cantidadUnidades = item.cantidad;
+      const unidadesPorCaja = productoFinal.enCaja ? (item.tamanoCaja || productoFinal.tamanoCaja || 50) : 1;
+      if (productoFinal.enCaja) {
+        cantidadUnidades = item.cantidad * unidadesPorCaja;
+        for (let i = 0; i < item.cantidad; i++) {
+          const nombrePedido = `Caja ${i + 1} de ${item.cantidad} - ${productoFinal.nombre} ${new Date().toISOString().split("T")[0]}`;
+          const pedidoCaja = {
+            clienteId: user.id,
+            cliente: user.name,
+            servicio: item.servicio,
+            subservicio: item.subservicio,
+            opcion: item.opcion,
+            productoFinalId: productoFinal.id,
+            pedido: nombrePedido,
+            descripcion: item.descripcion + (item.instrucciones ? `\n\nInstrucciones: ${item.instrucciones}` : ""),
+            cantidad: 1,
+            cantidadUnidades: unidadesPorCaja,
+            fechaEntrega: item.fechaEntrega,
+            total: precioUnitario * unidadesPorCaja,
+            tamanoCaja: item.tamanoCaja,
+            boxIndex: i + 1,
+            boxTotal: item.cantidad,
+          };
+          addPedido(pedidoCaja);
+        }
+      } else {
+        const nombreProducto = productoFinal.nombre;
+        const fechaCreacion = new Date().toISOString().split("T")[0];
+        const nombrePedido = `${item.cantidad} ${nombreProducto} ${fechaCreacion}`;
+        const nuevoPedido = {
           clienteId: user.id,
           cliente: user.name,
-          servicio: formData.servicio,
-          subservicio: formData.subservicio,
-          opcion: formData.opcion,
-          productoFinalId: formData.producto,
+          servicio: item.servicio,
+          subservicio: item.subservicio,
+          opcion: item.opcion,
+          productoFinalId: productoFinal.id,
           pedido: nombrePedido,
-          descripcion: formData.descripcion + (formData.instrucciones ? `\n\nInstrucciones: ${formData.instrucciones}` : ""),
-          cantidad: 1, // una caja
-          cantidadUnidades: unidadesPorCaja,
-          fechaEntrega: formData.fechaEntrega,
-          total: precioUnitario * unidadesPorCaja,
-          tamanoCaja: formData.tamanoCaja,
-          boxIndex: i + 1,
-          boxTotal: formData.cantidad,
+          descripcion: item.descripcion + (item.instrucciones ? `\n\nInstrucciones: ${item.instrucciones}` : ""),
+          cantidad: parseInt(item.cantidad),
+          cantidadUnidades: item.cantidad,
+          fechaEntrega: item.fechaEntrega,
+          total: precioUnitario * item.cantidad,
+          tamanoCaja: item.tamanoCaja,
         };
-        addPedido(pedidoCaja);
+        addPedido(nuevoPedido);
       }
-    } else {
-      total = precioUnitario * formData.cantidad;
-      const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
-      const fechaCreacion = new Date().toISOString().split("T")[0];
-      const nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
-      const nuevoPedido = {
-        clienteId: user.id,
-        cliente: user.name,
-        servicio: formData.servicio,
-        subservicio: formData.subservicio,
-        opcion: formData.opcion,
-        productoFinalId: formData.producto,
-        pedido: nombrePedido,
-        descripcion: formData.descripcion + (formData.instrucciones ? `\n\nInstrucciones: ${formData.instrucciones}` : ""),
-        cantidad: parseInt(formData.cantidad),
-        cantidadUnidades: cantidadUnidades,
-        fechaEntrega: formData.fechaEntrega,
-        total,
-        tamanoCaja: formData.tamanoCaja,
-      };
-      addPedido(nuevoPedido);
-    }
+    });
+    setCarrito([]);
     navigate("/cliente");
   };
 
@@ -181,7 +206,7 @@ export default function ClienteNuevoPedido() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
+        <form className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* El campo nombre del pedido se elimina, ahora es automático */}
             <Select
@@ -377,17 +402,45 @@ export default function ClienteNuevoPedido() {
             <Button type="button" variant="secondary" onClick={() => navigate("/cliente")} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1">
-              Enviar Pedido
+            <Button type="button" className="flex-1" onClick={handleAddToCarrito}>
+              Añadir al carrito
             </Button>
           </div>
         </form>
 
-        {/* Summary */}
+        {/* Carrito y resumen */}
         <div>
-          <GlassCard className="p-4 sm:p-6 sticky top-8" hover={false} gold>
-            <h3 className="text-base sm:text-lg font-bold text-surface-900 mb-4">Resumen del Pedido</h3>
-            
+          <GlassCard className="p-4 sm:p-6 sticky top-8 mb-6" hover={false} gold>
+            <h3 className="text-base sm:text-lg font-bold text-surface-900 mb-4">Carrito de Pedido</h3>
+            {carrito.length === 0 ? (
+              <p className="text-surface-500">No has añadido productos al carrito.</p>
+            ) : (
+              <ul className="divide-y divide-surface-200 mb-4">
+                {carrito.map((item, idx) => (
+                  <li key={idx} className="py-2 flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-surface-900">{item.nombre}</span>
+                      <span className="text-primary-600 font-bold">€{item.precio}</span>
+                    </div>
+                    <div className="flex gap-4 text-xs text-surface-500">
+                      <span>Servicio: {SERVICIOS.find(s => s.value === item.servicio)?.label || item.servicio}</span>
+                      <span>Cantidad: {item.cantidad}{item.enCaja ? ` cajas (${item.cantidad * (item.tamanoCaja || 50)} uds)` : " uds"}</span>
+                      <span>Entrega: {item.fechaEntrega || "-"}</span>
+                    </div>
+                    <button type="button" className="text-xs text-red-500 mt-1" onClick={() => setCarrito(carrito.filter((_, i) => i !== idx))}>Eliminar</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {carrito.length > 0 && (
+              <Button type="button" className="w-full" onClick={handleEnviarCarrito}>
+                Enviar pedido ({carrito.length} productos)
+              </Button>
+            )}
+          </GlassCard>
+          {/* Resumen del producto actual */}
+          <GlassCard className="p-4 sm:p-6 sticky top-8" hover={false}>
+            <h3 className="text-base sm:text-lg font-bold text-surface-900 mb-4">Resumen del Producto</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-surface-500">Servicio</span>
@@ -418,9 +471,7 @@ export default function ClienteNuevoPedido() {
                 <span className="text-surface-900 font-medium">{formData.fechaEntrega || "-"}</span>
               </div>
             </div>
-
             <hr className="border-surface-200 my-4" />
-
             <div className="flex justify-between items-center">
               <span className="text-surface-500">Precio Estimado</span>
               <span className="text-xl sm:text-2xl font-bold text-primary-600">
@@ -442,16 +493,13 @@ export default function ClienteNuevoPedido() {
                     if (!formData.servicio) {
                       return '€0.00';
                     }
-                    // Si no hay producto final, precio 0
                     return '€0.00';
                   })()
                 }
               </span>
             </div>
-
             <p className="text-xs text-surface-400 mt-4">
-              * El precio final puede variar según los detalles del diseño. 
-              Te contactaremos para confirmar el presupuesto.
+              * El precio final puede variar según los detalles del diseño. Te contactaremos para confirmar el presupuesto.
             </p>
           </GlassCard>
         </div>
