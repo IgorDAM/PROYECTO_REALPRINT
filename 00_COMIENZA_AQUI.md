@@ -43,7 +43,7 @@ PASO 1: Refactorizar frontend (2-3 semanas)
         → Mejorar validaciones
         
 PASO 2: Crear backend (3-4 semanas)
-        → SpringBoot + PostgreSQL
+        → SpringBoot MVC + DAO + PostgreSQL
         → Autenticación segura
         
 PASO 3: Integrar todo (2-3 semanas)
@@ -210,6 +210,7 @@ SEMANA 5: APRENDIZAJE BACKEND
 
 SEMANA 6-8: BACKEND DEVELOPMENT
 ├─ Entities Hibernate
+├─ DAOs (interface + impl)
 ├─ Services/Controllers
 ├─ Autenticación JWT
 └─ Tests básicos

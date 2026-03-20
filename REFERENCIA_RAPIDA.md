@@ -85,12 +85,13 @@ localStorage.setItem('realprint_token', token);
 ### SEMANA 2: Backend (inicio)
 - Proyecto SpringBoot inicializado
 - Entities de Usuario, Pedido
-- Repositorios básicos
+- DAOs básicos (interface + impl)
 
 ### SEMANA 3: Backend (desarrollo)
 - Services de negocio
 - Controllers REST
 - Autenticación JWT
+- Convenciones MVC + DAO cerradas
 
 ### SEMANA 4: Integración
 - Frontend conectado a backend
@@ -213,6 +214,10 @@ realprint-project/
 │
 ├── realprint-backend/           ✨ NUEVO (crear)
 │   ├── src/main/java/...
+│   │   ├── controller/
+│   │   ├── service/
+│   │   ├── dao/
+│   │   └── dao/impl/
 │   ├── src/main/resources/
 │   │   └── application.properties
 │   ├── pom.xml

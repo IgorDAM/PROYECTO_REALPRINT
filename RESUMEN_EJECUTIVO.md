@@ -26,7 +26,7 @@ Tu proyecto **está bien estructurado** como prototipo:
 
 ---
 
-## 📊 ARQUITECTURA PROPUESTA (PostgreSQL + Hibernate + SpringBoot)
+## 📊 ARQUITECTURA PROPUESTA (SpringBoot MVC + DAO + PostgreSQL)
 
 ```
 ┌─────────────────┐
@@ -34,18 +34,19 @@ Tu proyecto **está bien estructurado** como prototipo:
 │  (Puerto 5173)  │
 └────────┬────────┘
          │ HTTP/JSON
-    ┌────▼────────────────────┐
-    │  SpringBoot REST API     │ (NUEVO - Crear)
-    │  (Puerto 8080)           │
-    │  - Controllers           │
-    │  - Services              │
-    │  - Security/JWT          │
-    └────┬──────────┬──────────┘
-         │          │
-    ┌────▼──┐  ┌────▼──────────┐
-    │Hibernate  PostgreSQL DB    │
-    │(ORM)      (Puerto 5432)   │
-    └─────────────────────────┘
+    ┌────▼────────────────────────────┐
+    │  SpringBoot REST API (MVC)      │ (NUEVO - Crear)
+    │  (Puerto 8080)                  │
+    │  - Controllers (capa web)       │
+    │  - Services (negocio)           │
+    │  - DAO (persistencia)           │
+    │  - Security/JWT                 │
+    └───────────────┬─────────────────┘
+                    │ Hibernate/JPA
+             ┌──────▼───────────────┐
+             │ PostgreSQL DB         │
+             │ (Puerto 5432)         │
+             └───────────────────────┘
 ```
 
 ---
@@ -61,10 +62,10 @@ Implementa las **mejoras inmediatas** del documento `MEJORAS_INMEDIATAS.md`:
 - **Resultado: Frontend preparado para backend real**
 
 ### FASE 1 (Semanas 4-5) 🟡
-Crear **estructura SpringBoot básica**:
+Crear **estructura SpringBoot básica con MVC + DAO**:
 - Inicializar proyecto SpringBoot 3.2+
 - Entities Hibernate (Usuario, Pedido, etc.)
-- Repositorios JPA
+- DAOs por entidad (interface + impl)
 - Instalación PostgreSQL local + Docker
 - **Tiempo: 20-30 horas**
 
@@ -132,7 +133,7 @@ He creado 3 documentos completos en tu carpeta:
    - Código de ejemplo para:
      - Entities Hibernate
      - Services y Controllers
-     - Repositorios JPA
+     - DAO por entidad
      - Docker Compose
      - Variables de entorno
 
@@ -256,6 +257,7 @@ Antes de empezar la migración real:
 - [ ] Decidido sobre versión de Java (17 LTS recomendado)
 - [ ] PostgreSQL instalado localmente o Docker
 - [ ] STS/IntelliJ IDEA Community para SpringBoot
+- [ ] Definida convención MVC + DAO (paquetes y responsabilidades)
 - [ ] Creada estructura básica de proyecto SpringBoot
 
 ---
@@ -269,7 +271,7 @@ Antes de empezar la migración real:
 - ✅ Preparado para conectar a API
 
 **Meses 2-3:** Backend con SpringBoot + BD
-- ✅ Entities y Repositorios
+- ✅ Entities y DAOs
 - ✅ Services y Controllers
 - ✅ Autenticación JWT
 - ✅ Tests básicos
@@ -283,7 +285,7 @@ Antes de empezar la migración real:
 ---
 
 **Actualizado:** 2026-03-20  
-**Versión:** 1.0
+**Versión:** 1.1
 
 Para dudas específicas, consulta los documentos detallados incluidos.
 

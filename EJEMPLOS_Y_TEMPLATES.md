@@ -347,73 +347,83 @@ public enum PedidoEstado {
 
 ---
 
-## 3. TEMPLATE: Repository JPA
+## 3. TEMPLATE: DAO (interface + implementación)
 
-**Archivo: repository/PedidoRepository.java**
+**Archivo: dao/PedidoDao.java**
 
 ```java
-package com.realprint.repository;
+package com.realprint.dao;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import com.realprint.entity.Pedido;
 import com.realprint.entity.PedidoEstado;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
+public interface PedidoDao {
+    Page<Pedido> findByClienteId(Long clienteId, Pageable pageable);
+    Optional<Pedido> findById(Long id);
+    Pedido save(Pedido pedido);
+    List<Pedido> findByEstado(PedidoEstado estado);
+    List<Pedido> findPedidosAsignadosA(Long operarioId);
+    List<Pedido> findByFechaEntregaEntre(LocalDate inicio, LocalDate fin);
+    List<Pedido> findPedidosSinAsignar();
+    Page<Pedido> findByServicio(String servicio, Pageable pageable);
+    Long countPedidosPorCliente(Long clienteId, LocalDateTime inicio, LocalDateTime fin);
+}
+```
+
+**Archivo: dao/impl/PedidoDaoImpl.java**
+
+```java
+package com.realprint.dao.impl;
+
+import com.realprint.dao.PedidoDao;
+import com.realprint.entity.Pedido;
+import com.realprint.entity.PedidoEstado;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+public class PedidoDaoImpl implements PedidoDao {
 
-    /**
-     * Obtiene todos los pedidos de un cliente
-     */
-    @Query("SELECT p FROM Pedido p WHERE p.cliente.id = :clienteId ORDER BY p.createdAt DESC")
-    Page<Pedido> findByClienteId(@Param("clienteId") Long clienteId, Pageable pageable);
+    @PersistenceContext
+    private EntityManager em;
 
-    /**
-     * Obtiene pedidos por estado
-     */
-    List<Pedido> findByEstado(PedidoEstado estado);
+    @Override
+    public Page<Pedido> findByClienteId(Long clienteId, Pageable pageable) {
+        List<Pedido> content = em.createQuery(
+                "SELECT p FROM Pedido p WHERE p.cliente.id = :clienteId ORDER BY p.createdAt DESC",
+                Pedido.class
+            )
+            .setParameter("clienteId", clienteId)
+            .setFirstResult((int) pageable.getOffset())
+            .setMaxResults(pageable.getPageSize())
+            .getResultList();
 
-    /**
-     * Obtiene pedidos asignados a un operario
-     */
-    @Query("SELECT p FROM Pedido p WHERE p.operario.id = :operarioId AND p.estado != 'ENTREGADO'")
-    List<Pedido> findPedidosAsignadosA(@Param("operarioId") Long operarioId);
+        Long total = em.createQuery(
+                "SELECT COUNT(p) FROM Pedido p WHERE p.cliente.id = :clienteId",
+                Long.class
+            )
+            .setParameter("clienteId", clienteId)
+            .getSingleResult();
 
-    /**
-     * Obtiene pedidos con fecha de entrega estimada en rango
-     */
-    @Query("SELECT p FROM Pedido p WHERE p.fechaEntregaEstimada BETWEEN :inicio AND :fin")
-    List<Pedido> findByFechaEntregaEntre(
-        @Param("inicio") LocalDate inicio,
-        @Param("fin") LocalDate fin
-    );
+        return new PageImpl<>(content, pageable, total);
+    }
 
-    /**
-     * Obtiene pedidos que necesitan revisión (sin operario asignado)
-     */
-    @Query("SELECT p FROM Pedido p WHERE p.operario IS NULL AND p.estado = 'APROBADO'")
-    List<Pedido> findPedidosSinAsignar();
-
-    /**
-     * Obtiene pedidos por servicio
-     */
-    Page<Pedido> findByServicio(String servicio, Pageable pageable);
-
-    /**
-     * Obtiene total de pedidos por cliente en rango de fechas
-     */
-    @Query("SELECT COUNT(p) FROM Pedido p WHERE p.cliente.id = :clienteId AND p.createdAt BETWEEN :inicio AND :fin")
-    Long countPedidosPorCliente(
-        @Param("clienteId") Long clienteId,
-        @Param("inicio") LocalDateTime inicio,
-        @Param("fin") LocalDateTime fin
-    );
+    // ...resto de metodos DAO siguiendo el mismo patron
 }
 ```
 
@@ -433,8 +443,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.realprint.entity.Pedido;
 import com.realprint.entity.PedidoEstado;
 import com.realprint.entity.Usuario;
-import com.realprint.repository.PedidoRepository;
-import com.realprint.repository.UsuarioRepository;
+import com.realprint.dao.PedidoDao;
+import com.realprint.dao.UsuarioDao;
 import com.realprint.dto.PedidoDTO;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -443,33 +453,33 @@ import java.util.Optional;
 @Transactional
 public class PedidoService {
 
-    private final PedidoRepository pedidoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final PedidoDao pedidoDao;
+    private final UsuarioDao usuarioDao;
 
-    public PedidoService(PedidoRepository pedidoRepository, UsuarioRepository usuarioRepository) {
-        this.pedidoRepository = pedidoRepository;
-        this.usuarioRepository = usuarioRepository;
+    public PedidoService(PedidoDao pedidoDao, UsuarioDao usuarioDao) {
+        this.pedidoDao = pedidoDao;
+        this.usuarioDao = usuarioDao;
     }
 
     /**
      * Obtiene todos los pedidos de un cliente
      */
     public Page<Pedido> obtenerPedidosDelCliente(Long clienteId, Pageable pageable) {
-        return pedidoRepository.findByClienteId(clienteId, pageable);
+        return pedidoDao.findByClienteId(clienteId, pageable);
     }
 
     /**
      * Obtiene un pedido específico
      */
     public Optional<Pedido> obtenerPedido(Long id) {
-        return pedidoRepository.findById(id);
+        return pedidoDao.findById(id);
     }
 
     /**
      * Crea un nuevo pedido
      */
     public Pedido crearPedido(Long clienteId, PedidoDTO pedidoDTO) {
-        Usuario cliente = usuarioRepository.findById(clienteId)
+        Usuario cliente = usuarioDao.findById(clienteId)
             .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
         Pedido pedido = new Pedido();
@@ -480,14 +490,14 @@ public class PedidoService {
         pedido.setPrecioTotal(pedidoDTO.getPrecioTotal());
         pedido.setEstado(PedidoEstado.PENDIENTE);
 
-        return pedidoRepository.save(pedido);
+        return pedidoDao.save(pedido);
     }
 
     /**
      * Actualiza un pedido
      */
     public Pedido actualizarPedido(Long id, PedidoDTO pedidoDTO) {
-        Pedido pedido = pedidoRepository.findById(id)
+        Pedido pedido = pedidoDao.findById(id)
             .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
 
         pedido.setServicio(pedidoDTO.getServicio());
@@ -496,14 +506,14 @@ public class PedidoService {
         pedido.setPrecioTotal(pedidoDTO.getPrecioTotal());
         pedido.setUpdatedAt(LocalDateTime.now());
 
-        return pedidoRepository.save(pedido);
+        return pedidoDao.save(pedido);
     }
 
     /**
      * Cambia el estado de un pedido
      */
     public Pedido cambiarEstado(Long id, PedidoEstado nuevoEstado) {
-        Pedido pedido = pedidoRepository.findById(id)
+        Pedido pedido = pedidoDao.findById(id)
             .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
 
         // Validación de transiciones de estado (según lógica de negocio)

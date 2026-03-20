@@ -79,6 +79,7 @@
 
 **FASE 2: Crear Backend con SpringBoot**
 - Estructura del proyecto
+- Arquitectura MVC + DAO
 - Dependencias Maven
 - Entities con Hibernate
 - Configuración PostgreSQL
@@ -127,9 +128,9 @@
    - Relaciones con otros entities
    - Validaciones JPA
 
-4. **Repository JPA** (repository/PedidoRepository.java)
-   - Query derivadas
-   - Query personalizadas
+4. **DAO de Pedido** (dao/PedidoDao.java + dao/impl/PedidoDaoImpl.java)
+   - Contrato de persistencia
+   - Implementación de consultas
    - Búsquedas avanzadas
 
 5. **Service Layer** (service/PedidoService.java)

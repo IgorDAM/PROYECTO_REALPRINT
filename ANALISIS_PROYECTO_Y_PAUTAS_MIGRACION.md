@@ -197,7 +197,28 @@ Entidades Faltantes:
 - HISTORIAL (para auditoría)
 ```
 
-### FASE 2: CREAR EL BACKEND CON SPRINGBOOT
+### FASE 2: CREAR EL BACKEND CON SPRINGBOOT (MVC + DAO)
+
+#### 2.0 Decisión Arquitectónica (MVC + DAO)
+
+Arquitectura objetivo para backend:
+
+```
+Controller (Capa web/API)
+        ->
+Service (Reglas de negocio y transacciones)
+        ->
+DAO (Acceso a datos, consultas y persistencia)
+        ->
+PostgreSQL (via Hibernate/JPA)
+```
+
+Reglas de diseño recomendadas:
+- `controller` no accede a BD ni `EntityManager` directamente.
+- `service` orquesta casos de uso, validaciones de negocio y seguridad.
+- `dao` define contratos por entidad (`UsuarioDao`, `PedidoDao`, etc.).
+- `dao.impl` implementa consultas (JPQL/Criteria/Native si aplica).
+- `entity` representa el modelo persistente; `dto` el contrato API.
 
 #### 2.1 Estructura del Proyecto SpringBoot
 
@@ -219,9 +240,13 @@ realprint-backend/
 │   │   ├── AuthService.java
 │   │   ├── PedidoService.java
 │   │   └── ...
-│   ├── repository/
-│   │   ├── UsuarioRepository.java
-│   │   ├── PedidoRepository.java
+│   ├── dao/
+│   │   ├── UsuarioDao.java
+│   │   ├── PedidoDao.java
+│   │   └── ...
+│   ├── dao/impl/
+│   │   ├── UsuarioDaoImpl.java
+│   │   ├── PedidoDaoImpl.java
 │   │   └── ...
 │   ├── entity/
 │   │   ├── Usuario.java
@@ -399,24 +424,24 @@ package com.realprint.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.realprint.entity.Usuario;
-import com.realprint.repository.UsuarioRepository;
+import com.realprint.dao.UsuarioDao;
 import com.realprint.security.JwtProvider;
 
 @Service
 public class AuthService {
     
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioDao usuarioDao;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     
-    public AuthService(UsuarioRepository repo, PasswordEncoder encoder, JwtProvider jwt) {
-        this.usuarioRepository = repo;
+    public AuthService(UsuarioDao usuarioDao, PasswordEncoder encoder, JwtProvider jwt) {
+        this.usuarioDao = usuarioDao;
         this.passwordEncoder = encoder;
         this.jwtProvider = jwt;
     }
     
     public String login(String username, String password) {
-        Usuario usuario = usuarioRepository.findByUsername(username)
+        Usuario usuario = usuarioDao.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
         if (!passwordEncoder.matches(password, usuario.getPasswordHash())) {
@@ -427,7 +452,7 @@ public class AuthService {
     }
     
     public void register(String username, String email, String password) {
-        if (usuarioRepository.existsByUsername(username)) {
+        if (usuarioDao.existsByUsername(username)) {
             throw new RuntimeException("Usuario ya existe");
         }
         
@@ -437,7 +462,7 @@ public class AuthService {
         usuario.setPasswordHash(passwordEncoder.encode(password));
         usuario.setRole(UserRole.CLIENTE);
         
-        usuarioRepository.save(usuario);
+        usuarioDao.save(usuario);
     }
 }
 ```
@@ -664,7 +689,7 @@ export function useApi() {
 
 - [ ] Proyecto SpringBoot inicializado
 - [ ] Entidades Hibernate definidas
-- [ ] Repositorios JPA creados
+- [ ] DAOs (interfaces + implementación) creados
 - [ ] Servicios de negocio implementados
 - [ ] Controllers REST documentados
 - [ ] Autenticación JWT configurada
@@ -716,7 +741,7 @@ export function useApi() {
 | Fase | Tarea | Duración |
 |------|-------|----------|
 | 1 | Refactorización frontend | 1-2 semanas |
-| 2 | Estructura SpringBoot + Entities | 1 semana |
+| 2 | Estructura SpringBoot + MVC + DAO | 1 semana |
 | 2 | Servicios y Controllers | 2-3 semanas |
 | 2 | Autenticación JWT | 1 semana |
 | 3 | Migración de datos | 3-5 días |
