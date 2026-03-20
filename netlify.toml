@@ -1,0 +1,4 @@
+[build]
+  base = "App-RealPrint"
+  command = "npm ci && npm run build"
+  publish = "dist"
