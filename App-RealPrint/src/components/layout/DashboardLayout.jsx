@@ -5,7 +5,6 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { useAuth } from "../../context/AuthContext";
 import PropTypes from "prop-types";
 
 /**
@@ -16,7 +15,6 @@ import PropTypes from "prop-types";
  * <DashboardLayout />
  */
 export default function DashboardLayout() {
-  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

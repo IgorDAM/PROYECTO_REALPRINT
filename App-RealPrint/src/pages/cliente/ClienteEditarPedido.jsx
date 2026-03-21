@@ -10,13 +10,18 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useData, SERVICIOS } from "../../context/DataContext";
+import { SERVICIOS } from "../../context/data/uiContracts";
 import { Button, Input, Select, Textarea, GlassCard } from "../../components/ui";
+import { useApiStatus } from "../../hooks/useApiStatus";
+import { usePedidosData } from "../../hooks/usePedidosData";
+import { useProductosData } from "../../hooks/useProductosData";
 
 export default function ClienteEditarPedido() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { pedidos, updatePedido, productosFinales } = useData();
+  const { pedidos, updatePedidoSafe } = usePedidosData();
+  const { productosFinales } = useProductosData();
+  const { loading: guardando, error: errorGuardado, runApi } = useApiStatus();
   const navigate = useNavigate();
 
   const pedido = pedidos.find((p) => String(p.id) === String(id) && p.clienteId === user?.id);
@@ -64,8 +69,6 @@ export default function ClienteEditarPedido() {
   if (!pedido) return null;
 
   // Filtrado de productos finales igual que en nuevo pedido
-  const subservicioSoloSerigrafia = ["solo_serigrafia"];
-  const subservicioSerigrafiaPlanchado = ["serigrafia+planchado", "dtf+planchado"];
   const clientePermitido = productosFinales.some(
     (pf) => Array.isArray(pf.clientesPermitidos) && pf.clientesPermitidos.some(cid => String(cid) === String(user.id))
   );
@@ -157,8 +160,9 @@ export default function ClienteEditarPedido() {
   };
 
   // Guardar cambios (actualiza el pedido con el nuevo carrito)
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
+
     // Calcular total del pedido sumando los totales de cada producto
     let totalPedido = 0;
     const carritoActualizado = carrito.map(item => {
@@ -183,14 +187,17 @@ export default function ClienteEditarPedido() {
         total: precioUnitario * cantidadUnidades,
       };
     });
-    updatePedido(pedido.id, {
-      ...pedido,
-      carrito: carritoActualizado,
-      total: totalPedido,
-      // Para compatibilidad, también dejamos el primer producto como principal
-      ...carritoActualizado[0],
-    });
-    navigate("/cliente");
+
+    await runApi(async () => {
+      await updatePedidoSafe(pedido.id, {
+        ...pedido,
+        carrito: carritoActualizado,
+        total: totalPedido,
+        // Para compatibilidad, también dejamos el primer producto como principal
+        ...carritoActualizado[0],
+      });
+      navigate("/cliente");
+    }, "No se ha podido guardar el pedido");
   };
 
   // Calcular fecha mínima (3 días desde hoy)
@@ -316,7 +323,6 @@ export default function ClienteEditarPedido() {
                 productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
               }
               if (productoFinal && productoFinal.enCaja) {
-                const unidadesPorCaja = formData.tamanoCaja || productoFinal.tamanoCaja || 50;
                 return (
                   <Input
                     label="Cantidad de cajas"
@@ -370,6 +376,11 @@ export default function ClienteEditarPedido() {
         <div>
           <GlassCard className="p-4 sm:p-6 sticky top-8 mb-6" hover={false} gold>
             <h3 className="text-base sm:text-lg font-bold text-surface-900 mb-4">Productos del Pedido</h3>
+            {errorGuardado && (
+              <div className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {errorGuardado}
+              </div>
+            )}
             {carrito.length === 0 ? (
               <p className="text-surface-500">No has añadido productos al pedido.</p>
             ) : (
@@ -391,8 +402,8 @@ export default function ClienteEditarPedido() {
               </ul>
             )}
             {carrito.length > 0 && (
-              <Button type="button" className="w-full" onClick={handleSubmit}>
-                Guardar Cambios ({carrito.length} productos)
+              <Button type="button" className="w-full" onClick={handleSubmit} disabled={guardando}>
+                {guardando ? "Guardando..." : `Guardar Cambios (${carrito.length} productos)`}
               </Button>
             )}
           </GlassCard>

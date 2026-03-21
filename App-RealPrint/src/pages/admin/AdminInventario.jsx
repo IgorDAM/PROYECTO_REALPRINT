@@ -9,7 +9,8 @@
  * - Documenta cada función relevante
  */
 import { useState } from "react";
-import { useData } from "../../context/DataContext";
+import { useApiStatus } from "../../hooks/useApiStatus";
+import { useInventarioData } from "../../hooks/useInventarioData";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
 
 const CATEGORIAS = [
@@ -21,7 +22,8 @@ const CATEGORIAS = [
 ];
 
 export default function AdminInventario() {
-  const { inventario, updateInventario, addInventario, deleteInventario } = useData();
+  const { inventario, updateInventarioSafe, addInventarioSafe, deleteInventarioSafe } = useInventarioData();
+  const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -56,17 +58,32 @@ export default function AdminInventario() {
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    updateInventario(selectedItem.id, selectedItem);
-    setIsModalOpen(false);
+  const handleSave = async () => {
+    const result = await runApi(
+      () => updateInventarioSafe(selectedItem.id, selectedItem),
+      "No se ha podido guardar el producto",
+    );
+    if (result !== null) setIsModalOpen(false);
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newItem.nombre && newItem.categoria) {
-      addInventario(newItem);
-      setNewItem({ nombre: "", categoria: "", stock: 0, stockMinimo: 0, precio: 0, disponibleParaPedidos: false, serviciosDisponibles: [] });
-      setIsAddModalOpen(false);
+      const result = await runApi(
+        () => addInventarioSafe(newItem),
+        "No se ha podido anadir el producto",
+      );
+      if (result !== null) {
+        setNewItem({ nombre: "", categoria: "", stock: 0, stockMinimo: 0, precio: 0, disponibleParaPedidos: false, serviciosDisponibles: [] });
+        setIsAddModalOpen(false);
+      }
     }
+  };
+
+  const handleDelete = async (id) => {
+    await runApi(
+      () => deleteInventarioSafe(id),
+      "No se ha podido eliminar el producto",
+    );
   };
 
   const columns = [
@@ -82,8 +99,8 @@ export default function AdminInventario() {
       )
     },
     { key: "stockMinimo", label: "Stock Mínimo" },
-    { key: "usados", label: "Usados", render: (value) => <span className="text-blue-700 font-semibold">{value ?? 0}</span> },
-    { 
+    { key: "usados", label: "Usados", render: (value) => <span className="text-surface-700 font-semibold">{value ?? 0}</span> },
+    {
       key: "precio", 
       label: "Precio",
       render: (value) => `€${value.toFixed(2)}`
@@ -105,7 +122,7 @@ export default function AdminInventario() {
           <Button size="sm" variant="ghost" onClick={() => handleEdit(row)}>
             Editar
           </Button>
-          <Button size="sm" variant="danger" onClick={() => deleteInventario(row.id)}>
+          <Button size="sm" variant="danger" disabled={isProcessing} onClick={() => handleDelete(row.id)}>
             Eliminar
           </Button>
         </div>
@@ -130,6 +147,12 @@ export default function AdminInventario() {
         </Button>
       </div>
 
+      {apiError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {apiError}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Input
@@ -152,15 +175,15 @@ export default function AdminInventario() {
       </div>
 
       {/* Tabla Serigrafía */}
-      <h2 className="text-lg font-bold mt-8 mb-2 text-primary-700">Inventario Serigrafía</h2>
-      <Table 
+      <h2 className="text-lg font-bold mt-8 mb-2 text-surface-900">Inventario Serigrafía</h2>
+      <Table
         columns={columns} 
         data={inventarioSerigrafia}
         emptyMessage="No se encontraron productos de serigrafía"
       />
       {/* Tabla Rotulación */}
-      <h2 className="text-lg font-bold mt-8 mb-2 text-secondary-700">Inventario Rotulación</h2>
-      <Table 
+      <h2 className="text-lg font-bold mt-8 mb-2 text-surface-900">Inventario Rotulación</h2>
+      <Table
         columns={columns} 
         data={inventarioRotulacion}
         emptyMessage="No se encontraron productos de rotulación"
@@ -239,8 +262,8 @@ export default function AdminInventario() {
               <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave}>
-                Guardar Cambios
+              <Button onClick={handleSave} disabled={isProcessing}>
+                {isProcessing ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </div>
           </div>
@@ -319,8 +342,8 @@ export default function AdminInventario() {
             <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleAdd}>
-              Añadir Producto
+            <Button onClick={handleAdd} disabled={isProcessing}>
+              {isProcessing ? "Anadiendo..." : "Anadir Producto"}
             </Button>
           </div>
         </div>

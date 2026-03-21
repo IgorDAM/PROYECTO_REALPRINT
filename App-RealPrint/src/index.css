@@ -5,21 +5,34 @@
 /* ============================================
    REALPRINT - Premium Design System
    Colors: White, Blue, Gold
+
+   NOTA IMPORTANTE: Estos valores derivados de
+   tailwind.config.js para mantener sincronización.
    ============================================ */
 
 :root {
-  --primary-blue: #2563eb;
-  --primary-blue-light: #3b82f6;
-  --primary-blue-dark: #1d4ed8;
-  --gold: #fbbf24;
-  --gold-dark: #d97706;
+  /* Primary Blue Palette (sync with tailwind primary) */
+  --primary-blue: #2563eb;        /* primary-600 */
+  --primary-blue-light: #3b82f6;  /* primary-500 */
+  --primary-blue-dark: #1d4ed8;   /* primary-700 */
+
+  /* Sidebar Gradient Stops (HARDENED - Single Source of Truth in tailwind.config.js) */
+  --sidebar-start: #1e3a8a;        /* primary-900 (gradient start, 0%) */
+  --sidebar-mid: #1d4ed8;          /* primary-700 (gradient mid, 50%) */
+  --sidebar-end: #2563eb;          /* primary-600 (gradient end, 100%) */
+
+  /* Gold Accents */
+  --gold: #fbbf24;                 /* gold-400 */
+  --gold-dark: #d97706;            /* gold-600 */
+
+  /* Surface/Neutral */
   --surface-white: #ffffff;
-  --surface-light: #f8fafc;
-  --surface-gray: #f1f5f9;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --border-light: #e2e8f0;
+  --surface-light: #f8fafc;        /* surface-50 */
+  --surface-gray: #f1f5f9;         /* surface-100 */
+  --text-primary: #0f172a;         /* surface-900 */
+  --text-secondary: #475569;       /* surface-600 */
+  --text-muted: #94a3b8;           /* surface-400 */
+  --border-light: #e2e8f0;         /* surface-200 */
 }
 
 /* Base Styles */
@@ -43,9 +56,9 @@ body {
   transform: translateY(-2px);
 }
 
-/* Modern Sidebar */
+/* Modern Sidebar (Legacy - prefer .glass-sidebar) */
 .sidebar {
-  background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+  background: linear-gradient(180deg, var(--sidebar-start) 0%, var(--sidebar-mid) 50%, var(--sidebar-end) 100%);
   box-shadow: 4px 0 20px rgba(30, 58, 138, 0.15);
 }
 
@@ -73,7 +86,7 @@ body {
 }
 
 .glass-sidebar {
-  background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+  background: linear-gradient(180deg, var(--sidebar-start) 0%, var(--sidebar-mid) 50%, var(--sidebar-end) 100%);
   border-right: none;
   box-shadow: 4px 0 25px rgba(30, 58, 138, 0.2);
 }
@@ -152,7 +165,7 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   color: #fbbf24;
-  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  background: linear-gradient(135deg, var(--sidebar-mid), var(--sidebar-end));
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
 }
@@ -179,9 +192,9 @@ body {
   border: 2px solid #fbbf24;
 }
 
-/* Blue Gradient Backgrounds */
+/* Blue Gradient Backgrounds (hardened variables) */
 .bg-gradient-blue {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--sidebar-start) 0%, var(--sidebar-end) 50%, var(--primary-blue-light) 100%);
 }
 
 .bg-gradient-blue-soft {
@@ -257,15 +270,15 @@ select option {
   padding: 0.5rem;
 }
 
-/* Button Hover Effects */
+/* Button Hover Effects (hardened to use variables) */
 .btn-primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
   color: white;
   transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: linear-gradient(135deg, var(--primary-blue-dark), #1e40af);
   box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.4);
   transform: translateY(-2px);
 }
@@ -318,5 +331,5 @@ select option {
 }
 
 .stat-card.blue::before {
-  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  background: linear-gradient(180deg, var(--primary-blue-light), var(--primary-blue));
 }

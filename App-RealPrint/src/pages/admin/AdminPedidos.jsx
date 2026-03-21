@@ -9,11 +9,18 @@
  * - Documenta cada función relevante
  */
 import { useState } from "react";
-import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
+import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
+import { useApiStatus } from "../../hooks/useApiStatus";
+import { useInventarioData } from "../../hooks/useInventarioData";
+import { usePedidosData } from "../../hooks/usePedidosData";
+import { useProductosData } from "../../hooks/useProductosData";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
 
 export default function AdminPedidos() {
-  const { pedidos, updatePedido, deletePedido, productosFinales, inventario, updateInventario } = useData();
+  const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
+  const { inventario } = useInventarioData();
+  const { productosFinales } = useProductosData();
+  const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedPedido, setSelectedPedido] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,51 +44,21 @@ export default function AdminPedidos() {
     setIsModalOpen(true);
   };
 
-  const handleUpdateEstado = (id, nuevoEstado) => {
-    const pedido = pedidos.find(p => p.id === id);
-    if (!pedido) {
-      updatePedido(id, { estado: nuevoEstado });
-      if (selectedPedido?.id === id) setSelectedPedido({ ...selectedPedido, estado: nuevoEstado });
-      return;
-    }
-    // Si pasa a 'en_proceso', descontar stock y sumar usados
-    if (nuevoEstado === 'en_proceso') {
-      if (pedido.productoFinalId) {
-        const pf = productosFinales.find(p => p.id == pedido.productoFinalId);
-        if (pf && pf.productosInventario && Array.isArray(pf.productosInventario)) {
-          pf.productosInventario.forEach(matId => {
-            const prod = inventario.find(i => i.id == matId);
-            if (prod) {
-              updateInventario(prod.id, {
-                stock: Math.max(0, prod.stock - (pedido.cantidad || 1)),
-                usados: (prod.usados || 0) + (pedido.cantidad || 1)
-              });
-            }
-          });
-        }
+  const handleUpdateEstado = async (id, nuevoEstado) => {
+    await runApi(async () => {
+      await updatePedidoSafe(id, { estado: nuevoEstado });
+      if (selectedPedido?.id === id) {
+        setSelectedPedido({ ...selectedPedido, estado: nuevoEstado });
       }
-    }
-    // Si vuelve a 'pendiente' desde 'en_proceso', restaurar stock y restar usados
-    if (nuevoEstado === 'pendiente' && pedido.estado === 'en_proceso') {
-      if (pedido.productoFinalId) {
-        const pf = productosFinales.find(p => p.id == pedido.productoFinalId);
-        if (pf && pf.productosInventario && Array.isArray(pf.productosInventario)) {
-          pf.productosInventario.forEach(matId => {
-            const prod = inventario.find(i => i.id == matId);
-            if (prod) {
-              updateInventario(prod.id, {
-                stock: prod.stock + (pedido.cantidad || 1),
-                usados: Math.max(0, (prod.usados || 0) - (pedido.cantidad || 1))
-              });
-            }
-          });
-        }
-      }
-    }
-    updatePedido(id, { estado: nuevoEstado });
-    if (selectedPedido?.id === id) {
-      setSelectedPedido({ ...selectedPedido, estado: nuevoEstado });
-    }
+    }, "No se ha podido actualizar el estado del pedido");
+  };
+
+  const handleDeletePedido = async (id) => {
+    const result = await runApi(
+      () => deletePedidoSafe(id),
+      "No se ha podido eliminar el pedido",
+    );
+    if (result !== null) setIsModalOpen(false);
   };
 
   const columns = [
@@ -122,6 +99,12 @@ export default function AdminPedidos() {
           <p className="text-surface-500 mt-1">{pedidos.length} pedidos en total</p>
         </div>
       </div>
+
+      {apiError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {apiError}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -237,6 +220,7 @@ export default function AdminPedidos() {
                     key={key}
                     variant={selectedPedido.estado === key ? "primary" : "secondary"}
                     size="sm"
+                    disabled={isProcessing}
                     onClick={() => handleUpdateEstado(selectedPedido.id, key)}
                   >
                     {label}
@@ -246,9 +230,8 @@ export default function AdminPedidos() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-surface-200">
-              <Button variant="danger" onClick={() => {
-                deletePedido(selectedPedido.id);
-                setIsModalOpen(false);
+              <Button variant="danger" disabled={isProcessing} onClick={() => {
+                handleDeletePedido(selectedPedido.id);
               }}>
                 Eliminar Pedido
               </Button>

@@ -9,7 +9,8 @@
  * - Documenta cada función relevante
  */
 import { useState } from "react";
-import { useData } from "../../context/DataContext";
+import { useApiStatus } from "../../hooks/useApiStatus";
+import { useUsuariosData } from "../../hooks/useUsuariosData";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
 
 const ROLES = [
@@ -22,7 +23,7 @@ export default function AdminUsuarios() {
   // Estado para modal de catálogo
   const [catalogoModal, setCatalogoModal] = useState({ open: false, usuario: null });
   // Acceso a catálogo de empresa
-  const { catalogosEmpresa, setCatalogoEmpresa, getCatalogoEmpresa } = useData();
+  const { setCatalogoEmpresa, getCatalogoEmpresa } = useUsuariosData();
   // Servicios disponibles para catálogo
   const SERVICIOS_CATALOGO = [
     { value: "dtf", label: "DTF" },
@@ -31,12 +32,6 @@ export default function AdminUsuarios() {
   // Estado para edición de catálogo
   const [servicioCatalogo, setServicioCatalogo] = useState("dtf");
   const [prendasCatalogo, setPrendasCatalogo] = useState([]);
-  // Abrir modal de catálogo
-  const handleEditCatalogo = (usuario) => {
-    setServicioCatalogo("dtf");
-    setPrendasCatalogo(getCatalogoEmpresa(usuario.id, "dtf"));
-    setCatalogoModal({ open: true, usuario });
-  };
   // Guardar catálogo
   const handleSaveCatalogo = () => {
     setCatalogoEmpresa(catalogoModal.usuario.id, servicioCatalogo, prendasCatalogo.filter(p => p.trim() !== ""));
@@ -60,7 +55,8 @@ export default function AdminUsuarios() {
   const handleRemovePrenda = (idx) => {
     setPrendasCatalogo(prev => prev.filter((_, i) => i !== idx));
   };
-  const { usuarios, updateUsuario, addUsuario, deleteUsuario } = useData();
+  const { usuarios, updateUsuarioSafe, addUsuarioSafe, deleteUsuarioSafe } = useUsuariosData();
+  const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedUsuario, setSelectedUsuario] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -88,21 +84,40 @@ export default function AdminUsuarios() {
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    updateUsuario(selectedUsuario.id, selectedUsuario);
-    setIsModalOpen(false);
+  const handleSave = async () => {
+    const result = await runApi(
+      () => updateUsuarioSafe(selectedUsuario.id, selectedUsuario),
+      "No se ha podido guardar el usuario",
+    );
+    if (result !== null) setIsModalOpen(false);
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newUsuario.username && newUsuario.password && newUsuario.nombre && newUsuario.email && newUsuario.role) {
-      addUsuario(newUsuario);
-      setNewUsuario({ username: "", password: "", nombre: "", email: "", role: "", empresa: "" });
-      setIsAddModalOpen(false);
+      const result = await runApi(
+        () => addUsuarioSafe(newUsuario),
+        "No se ha podido anadir el usuario",
+      );
+      if (result !== null) {
+        setNewUsuario({ username: "", password: "", nombre: "", email: "", role: "", empresa: "" });
+        setIsAddModalOpen(false);
+      }
     }
   };
 
-  const handleToggleActive = (usuario) => {
-    updateUsuario(usuario.id, { activo: !usuario.activo });
+  const handleToggleActive = async (usuario) => {
+    await runApi(
+      () => updateUsuarioSafe(usuario.id, { activo: !usuario.activo }),
+      "No se ha podido actualizar el estado del usuario",
+    );
+  };
+
+  const handleDeleteUsuario = async (usuario) => {
+    if (!window.confirm(`¿Seguro que quieres eliminar a ${usuario.nombre}?`)) return;
+    await runApi(
+      () => deleteUsuarioSafe(usuario.id),
+      "No se ha podido eliminar el usuario",
+    );
   };
 
   const columns = [
@@ -131,9 +146,13 @@ export default function AdminUsuarios() {
           <Button 
             size="sm" 
             variant={row.activo ? "danger" : "success"} 
+            disabled={isProcessing}
             onClick={() => handleToggleActive(row)}
           >
             {row.activo ? "Desactivar" : "Activar"}
+          </Button>
+          <Button size="sm" variant="danger" disabled={isProcessing} onClick={() => handleDeleteUsuario(row)}>
+            Eliminar
           </Button>
           {/* Botón Catálogo eliminado */}
         </div>
@@ -157,6 +176,12 @@ export default function AdminUsuarios() {
           Añadir Usuario
         </Button>
       </div>
+
+      {apiError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {apiError}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -292,8 +317,8 @@ export default function AdminUsuarios() {
               <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave}>
-                Guardar Cambios
+              <Button onClick={handleSave} disabled={isProcessing}>
+                {isProcessing ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </div>
           </div>
@@ -355,8 +380,8 @@ export default function AdminUsuarios() {
             <Button variant="secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleAdd}>
-              Añadir Usuario
+            <Button onClick={handleAdd} disabled={isProcessing}>
+              {isProcessing ? "Anadiendo..." : "Anadir Usuario"}
             </Button>
           </div>
         </div>

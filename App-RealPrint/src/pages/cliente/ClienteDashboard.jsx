@@ -14,20 +14,21 @@
  */
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
+import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
+import { usePedidosData } from "../../hooks/usePedidosData";
 import { StatCard, Button, Badge, Table } from "../../components/ui";
 
 export default function ClienteDashboard() {
   const { user } = useAuth();
-  const { pedidos, deletePedido } = useData();
+  const { pedidos, deletePedidoSafe } = usePedidosData();
 
   // Filtra los pedidos del cliente actual
   const misPedidos = pedidos.filter((p) => p.clienteId === user?.id);
   const pedidosActivos = misPedidos.filter((p) => ["pendiente", "en_proceso"].includes(p.estado));
 
-  const handleEliminarPedido = (id) => {
+  const handleEliminarPedido = async (id) => {
     if (window.confirm("¿Seguro que quieres eliminar este pedido?")) {
-      deletePedido(id);
+      await deletePedidoSafe(id);
     }
   };
 

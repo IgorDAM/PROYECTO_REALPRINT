@@ -47,6 +47,13 @@ export default {
           800: "#1e293b",
           900: "#0f172a",
         },
+        // Sidebar theme colors (hardened single source of truth)
+        sidebar: {
+          // Gradient stops for glass-sidebar: 180deg from #1e3a8a → #1d4ed8 → #2563eb
+          light: "#2563eb",      // primary-600 (gradient end)
+          mid: "#1d4ed8",         // primary-700 (gradient middle)
+          dark: "#1e3a8a",        // primary-900 (gradient start)
+        },
       },
       fontFamily: {
         display: ["Manrope", "sans-serif"],
@@ -64,6 +71,8 @@ export default {
         'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.04)',
         'gold': '0 4px 20px -2px rgba(251, 191, 36, 0.3)',
         'blue': '0 4px 20px -2px rgba(59, 130, 246, 0.3)',
+        // Sidebar shadow (hardened to match sidebar.dark color)
+        'sidebar': '4px 0 25px rgba(30, 58, 138, 0.2)',
       },
       animation: {
         gradient: "gradientBG 25s ease infinite",

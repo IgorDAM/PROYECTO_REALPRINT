@@ -8,11 +8,12 @@
  * - Documenta cada función relevante
  */
 import { useState } from "react";
-import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
+import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
+import { usePedidosData } from "../../hooks/usePedidosData";
 import { Table, Button, Badge, Input, Select } from "../../components/ui";
 
 export default function AdminHistorial() {
-  const { pedidos } = useData();
+  const { pedidos } = usePedidosData();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
   const [filterFechaDesde, setFilterFechaDesde] = useState("");

@@ -1,6 +1,10 @@
 /**
- * Ruta protegida por autenticación y roles.
- * Redirige según el estado de sesión y el rol del usuario.
+ * Guard de rutas por autenticacion y roles.
+ *
+ * Flujo:
+ * 1) espera hidratacion de sesion,
+ * 2) si no hay login, envia a /login,
+ * 3) si el rol no esta permitido, redirige a su dashboard base.
  */
 import React from "react";
 import PropTypes from "prop-types";
@@ -8,15 +12,11 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 /**
- * Ruta protegida por autenticación y roles.
- * Redirige según el estado de sesión y el rol del usuario.
+ * Componente contenedor para rutas privadas.
  *
- * Props:
- * - children: JSX.Element (contenido protegido)
- * - allowedRoles: array de roles permitidos
- *
- * Ejemplo de uso:
- * <ProtectedRoute allowedRoles={["admin"]}><ComponentePrivado /></ProtectedRoute>
+ * Diseno:
+ * - encapsula reglas de acceso en un unico punto,
+ * - evita repetir validaciones de rol en cada pagina.
  */
 export default function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading, isAuthenticated } = useAuth();
@@ -31,11 +31,12 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   }
 
   if (!isAuthenticated) {
+    // Conserva ruta origen para futuros flujos "volver a donde estabas".
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirige al dashboard correspondiente según el rol
+    // Fallback seguro: cada rol vuelve a su home autorizada.
     const redirectPath = `/${user.role}`;
     return <Navigate to={redirectPath} replace />;
   }

@@ -7,11 +7,16 @@
  * - Usa componentes UI reutilizables
  * - Documenta cada función relevante
  */
-import { useData, ESTADOS_PEDIDO, SERVICIOS } from "../../context/DataContext";
+import { ESTADOS_PEDIDO, SERVICIOS } from "../../context/data/uiContracts";
+import { useInventarioData } from "../../hooks/useInventarioData";
+import { usePedidosData } from "../../hooks/usePedidosData";
+import { useProductosData } from "../../hooks/useProductosData";
 import { StatCard, GlassCard } from "../../components/ui";
 
 export default function AdminReportes() {
-  const { pedidos, inventario, usuarios, getEstadisticas, productosFinales } = useData();
+  const { pedidos, getEstadisticas } = usePedidosData();
+  const { inventario } = useInventarioData();
+  const { productosFinales } = useProductosData();
   const stats = getEstadisticas();
 
   // Calcular estadísticas por servicio

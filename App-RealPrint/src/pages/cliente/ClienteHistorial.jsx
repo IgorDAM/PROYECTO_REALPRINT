@@ -8,12 +8,13 @@
  * - Documenta cada función relevante
  */
 import { useAuth } from "../../context/AuthContext";
-import { useData, ESTADOS_PEDIDO } from "../../context/DataContext";
+import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
+import { usePedidosData } from "../../hooks/usePedidosData";
 import { Table, Badge } from "../../components/ui";
 
 export default function ClienteHistorial() {
   const { user } = useAuth();
-  const { pedidos } = useData();
+  const { pedidos } = usePedidosData();
 
   // Filtra pedidos finalizados, enviados o cancelados
   const historial = pedidos.filter(

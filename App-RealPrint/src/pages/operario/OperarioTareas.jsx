@@ -8,44 +8,28 @@
  * - Documenta cada función relevante
  */
 import { useAuth } from "../../context/AuthContext";
-import { useData } from "../../context/DataContext";
+import { useApiStatus } from "../../hooks/useApiStatus";
+import { usePedidosData } from "../../hooks/usePedidosData";
+import { useTareasData } from "../../hooks/useTareasData";
 import { Table, Badge, Button } from "../../components/ui";
 
 export default function OperarioTareas() {
   const { user } = useAuth();
-  const { tareas, pedidos, updateTarea, updatePedido, inventario, updateInventario, productosFinales } = useData();
+  const { tareas, updateTarea } = useTareasData();
+  const { pedidos, updatePedidoSafe } = usePedidosData();
+  const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
 
   const misTareas = tareas.filter((t) => t.operarioId === user?.id);
 
-  const handleCambiarEstado = (tareaId, nuevoEstado) => {
+  const handleCambiarEstado = async (tareaId, nuevoEstado) => {
     updateTarea(tareaId, { estado: nuevoEstado });
-    // Buscar la tarea y actualizar el estado del pedido asociado
-    const tarea = tareas.find((t) => t.id === tareaId);
-    if (tarea && tarea.pedidoId) {
-      updatePedido(tarea.pedidoId, { estado: nuevoEstado });
-      // Si se completa, actualizar inventario y usados
-      if (nuevoEstado === "completado") {
-        const pedido = pedidos.find((p) => p.id === tarea.pedidoId);
-        if (pedido && pedido.productoFinalId) {
-          // Buscar el producto final y descontar del inventario
-          const productoFinal = productosFinales.find(pf => pf.id === pedido.productoFinalId);
-          // Si el producto final tiene productos de inventario asociados
-          if (productoFinal && productoFinal.productosInventario) {
-            productoFinal.productosInventario.forEach(id => {
-              const prod = inventario.find(i => i.id === id);
-              if (prod) {
-                // Descontar la cantidad producida (por defecto, cantidad o unidadesPorCaja)
-                const cantidad = pedido.cantidad || pedido.unidadesPorCaja || 1;
-                updateInventario(id, {
-                  stock: Math.max(0, prod.stock - cantidad),
-                  usados: (prod.usados || 0) + cantidad
-                });
-              }
-            });
-          }
-        }
+    await runApi(async () => {
+      // Buscar la tarea y actualizar el estado del pedido asociado
+      const tarea = tareas.find((t) => t.id === tareaId);
+      if (tarea && tarea.pedidoId) {
+        await updatePedidoSafe(tarea.pedidoId, { estado: nuevoEstado });
       }
-    }
+    }, "No se ha podido actualizar la tarea");
   };
 
   const getEstadoBadge = (estado) => {
@@ -89,12 +73,12 @@ export default function OperarioTareas() {
       render: (_, row) => (
         <div className="flex gap-2">
           {row.estado === "pendiente" && (
-            <Button size="sm" variant="secondary" onClick={() => handleCambiarEstado(row.id, "en_proceso")}>
+            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => handleCambiarEstado(row.id, "en_proceso")}>
               Iniciar
             </Button>
           )}
           {row.estado === "en_proceso" && (
-            <Button size="sm" variant="success" onClick={() => handleCambiarEstado(row.id, "completado")}>
+            <Button size="sm" variant="success" disabled={isProcessing} onClick={() => handleCambiarEstado(row.id, "completado")}>
               Completar
             </Button>
           )}
@@ -112,6 +96,12 @@ export default function OperarioTareas() {
         <h1 className="text-2xl lg:text-3xl font-bold text-surface-900">Mis Tareas</h1>
         <p className="text-surface-500 mt-1">{misTareas.length} tareas asignadas</p>
       </div>
+
+      {apiError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {apiError}
+        </div>
+      )}
 
       <Table 
         columns={columns} 

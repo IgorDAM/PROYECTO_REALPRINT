@@ -9,11 +9,15 @@
  * - Documenta cada función relevante
  */
 import { useState } from "react";
-import { useData } from "../../context/DataContext";
+import { useInventarioData } from "../../hooks/useInventarioData";
+import { useProductosData } from "../../hooks/useProductosData";
+import { useUsuariosData } from "../../hooks/useUsuariosData";
 import { Table, Button, Modal, Input, Select } from "../../components/ui";
 
 export default function AdminProductosFinales() {
-  const { productosFinales, addProductoFinal, updateProductoFinal, deleteProductoFinal, inventario, usuarios } = useData();
+  const { productosFinales, addProductoFinal, updateProductoFinal, deleteProductoFinal } = useProductosData();
+  const { inventario } = useInventarioData();
+  const { usuarios } = useUsuariosData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -98,15 +102,15 @@ export default function AdminProductosFinales() {
     });
 
     return (
-      <div className="max-w-5xl mx-auto py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Gestión de Productos Finales</h1>
-          <Button onClick={handleNuevo}>Nuevo Producto Final</Button>
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold text-surface-900">Gestión de Productos Finales</h1>
+          <Button onClick={handleNuevo} className="w-full sm:w-auto">Nuevo Producto Final</Button>
         </div>
         {/* Visualización agrupada */}
         {Object.entries(agrupados).map(([grupo, productos]) => (
           <div key={grupo} className="mb-8">
-            <h2 className="text-lg font-bold text-primary-700 mb-2">{grupo}</h2>
+            <h2 className="text-lg font-bold text-surface-900 mb-2">{grupo}</h2>
             <div className="overflow-x-auto md:overflow-x-visible">
               <Table columns={columns} data={productos} emptyMessage="No hay productos finales en este grupo" />
             </div>

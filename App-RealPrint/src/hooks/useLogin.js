@@ -1,19 +1,17 @@
 /**
- * Hook personalizado para gestionar el login de usuario.
+ * Hook de login para desacoplar formulario y autenticacion.
  *
- * Devuelve:
- * - username, password: estados y setters
- * - handleSubmit: función para manejar el envío del formulario
- * - error, loading: estados de error y carga
- *
- * Buenas prácticas:
- * - Separa la lógica de login del componente
- * - Usa el contexto de autenticación
- * - Documenta cada función relevante
+ * Responsabilidades:
+ * - controlar estado del formulario,
+ * - validar campos minimos,
+ * - ejecutar login asincrono,
+ * - redirigir por rol al dashboard correspondiente.
  */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getReadableErrorMessage } from "../utils/errorHandler";
+import { validateLoginForm } from "../utils/validators";
 
 export function useLogin() {
   const [username, setUsername] = useState("");
@@ -23,23 +21,34 @@ export function useLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    // Validacion temprana para evitar llamadas innecesarias a authService.
+    const validation = validateLoginForm({ username, password });
+    if (!validation.isValid) {
+      setError(validation.errors.username || validation.errors.password);
+      return;
+    }
+
     setLoading(true);
 
-    // Simula delay de red y realiza login
-    setTimeout(() => {
-      const result = login(username, password);
+    try {
+      const result = await login(username.trim(), password);
       if (result.success) {
-        // Redirige según el rol
+        // Regla actual: cada rol tiene su ruta base /admin, /cliente, /operario.
         const redirectPath = `/${result.user.role}`;
         navigate(redirectPath);
       } else {
-        setError(result.error);
+        setError(getReadableErrorMessage(result.error));
       }
+    } catch (error) {
+      setError(getReadableErrorMessage(error, "No se ha podido iniciar sesion"));
+    } finally {
+      // Se ejecuta siempre (exito o error) para desbloquear el boton.
       setLoading(false);
-    }, 500);
+    }
   }
 
   return { username, password, setUsername, setPassword, handleSubmit, error, loading };

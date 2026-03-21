@@ -15,15 +15,17 @@
  */
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useData } from "../../context/DataContext";
+import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
+import { useInventarioData } from "../../hooks/useInventarioData";
+import { usePedidosData } from "../../hooks/usePedidosData";
 import { StatCard, GlassCard, Button, Badge, Table } from "../../components/ui";
-import { ESTADOS_PEDIDO } from "../../context/DataContext";
 
 export default function AdminDashboard() {
   // Recibe el estado de la sidebar desde el layout
   const { sidebarOpen } = useOutletContext() || {};
   const { user } = useAuth();
-  const { pedidos, inventario, getEstadisticas } = useData();
+  const { pedidos, getEstadisticas } = usePedidosData();
+  const { inventario } = useInventarioData();
   const stats = getEstadisticas();
 
   // Últimos 5 pedidos

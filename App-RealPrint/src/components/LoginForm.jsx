@@ -1,7 +1,16 @@
+/**
+ * Formulario de autenticacion (solo UI).
+ *
+ * Por que esta separado asi:
+ * - el componente renderiza campos/estilos,
+ * - la logica de estado y submit vive en useLogin,
+ * - facilita pruebas y futuras migraciones a API real.
+ */
 import FloatingInput from "./FloatingInput";
 import { useLogin } from "../hooks/useLogin";
 
 export default function LoginForm() {
+  // useLogin centraliza validacion, llamada a auth y redireccion por rol.
   const { username, password, setUsername, setPassword, handleSubmit, error, loading } = useLogin();
 
   return (
@@ -31,7 +40,7 @@ export default function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      {/* Recordarme y link */}
+      {/* Recordarme y link (placeholder visual, sin logica de recuperacion todavia) */}
       <div className="flex items-center justify-between text-sm">
         <label className="flex items-center cursor-pointer text-surface-600">
           <input type="checkbox" className="mr-2 w-4 h-4 accent-primary-600 rounded" />
@@ -59,7 +68,7 @@ export default function LoginForm() {
         ) : "Iniciar sesión"}
       </button>
 
-      {/* Usuarios de prueba */}
+      {/* Usuarios demo para acelerar pruebas manuales de UI/roles */}
       <div className="text-center text-xs mt-6 p-4 bg-surface-50 rounded-xl border border-surface-200">
         <p className="text-surface-500 mb-2">Usuarios de prueba:</p>
         <div className="flex flex-wrap justify-center gap-2">

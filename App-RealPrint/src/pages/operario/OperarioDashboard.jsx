@@ -8,12 +8,14 @@
  * - Documenta cada función relevante
  */
 import { useAuth } from "../../context/AuthContext";
-import { useData } from "../../context/DataContext";
+import { usePedidosData } from "../../hooks/usePedidosData";
+import { useTareasData } from "../../hooks/useTareasData";
 import { StatCard, GlassCard, Badge, Table } from "../../components/ui";
 
 export default function OperarioDashboard() {
   const { user } = useAuth();
-  const { tareas, pedidos, updateTarea } = useData();
+  const { tareas, updateTarea } = useTareasData();
+  const { pedidos } = usePedidosData();
 
   // Filtrar tareas del operario actual
   const misTareas = tareas.filter((t) => t.operarioId === user?.id);

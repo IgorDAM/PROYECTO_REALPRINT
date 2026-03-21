@@ -9,12 +9,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useData, SERVICIOS } from "../../context/DataContext";
+import { SERVICIOS } from "../../context/data/uiContracts";
 import { Button, Input, Select, Textarea, GlassCard } from "../../components/ui";
+import { useApiStatus } from "../../hooks/useApiStatus";
+import { usePedidosData } from "../../hooks/usePedidosData";
+import { useProductosData } from "../../hooks/useProductosData";
 
 export default function ClienteNuevoPedido() {
   const { user } = useAuth();
-  const { addPedido, inventario, productosFinales } = useData();
+  const { createPedidoSafe } = usePedidosData();
+  const { productosFinales } = useProductosData();
+  const { loading: enviando, error: errorEnvio, runApi } = useApiStatus();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -92,14 +97,13 @@ export default function ClienteNuevoPedido() {
   };
 
   // Enviar todos los productos del carrito como pedidos
-  const handleEnviarCarrito = () => {
-    carrito.forEach(item => {
+  const handleEnviarCarrito = async () => {
+    await runApi(async () => {
+      for (const item of carrito) {
       let productoFinal = item.productoFinal;
       let precioUnitario = productoFinal.precio;
-      let cantidadUnidades = item.cantidad;
       const unidadesPorCaja = productoFinal.enCaja ? (item.tamanoCaja || productoFinal.tamanoCaja || 50) : 1;
       if (productoFinal.enCaja) {
-        cantidadUnidades = item.cantidad * unidadesPorCaja;
         for (let i = 0; i < item.cantidad; i++) {
           const nombrePedido = `Caja ${i + 1} de ${item.cantidad} - ${productoFinal.nombre} ${new Date().toISOString().split("T")[0]}`;
           const pedidoCaja = {
@@ -119,7 +123,7 @@ export default function ClienteNuevoPedido() {
             boxIndex: i + 1,
             boxTotal: item.cantidad,
           };
-          addPedido(pedidoCaja);
+          await createPedidoSafe(pedidoCaja);
         }
       } else {
         const nombreProducto = productoFinal.nombre;
@@ -140,11 +144,13 @@ export default function ClienteNuevoPedido() {
           total: precioUnitario * item.cantidad,
           tamanoCaja: item.tamanoCaja,
         };
-        addPedido(nuevoPedido);
+        await createPedidoSafe(nuevoPedido);
       }
-    });
-    setCarrito([]);
-    navigate("/cliente");
+      }
+
+      setCarrito([]);
+      navigate("/cliente");
+    }, "No se ha podido enviar el pedido");
   };
 
   // Productos finales filtrados por servicio y permisos (más flexible)
@@ -152,9 +158,6 @@ export default function ClienteNuevoPedido() {
   const clientePermitido = productosFinales.some(
     (pf) => Array.isArray(pf.clientesPermitidos) && pf.clientesPermitidos.some(cid => String(cid) === String(user.id))
   );
-  // Permitir valores antiguos y nuevos para subservicio
-  const subservicioSoloSerigrafia = ["solo_serigrafia"];
-  const subservicioSerigrafiaPlanchado = ["serigrafia+planchado"];
 
   if (clientePermitido) {
     productosFinalesFiltrados = productosFinales.filter((pf) => {
@@ -288,7 +291,6 @@ export default function ClienteNuevoPedido() {
                       <input
                         type="number"
                         name="tamanoCaja"
-                        min="1"
                         value={
                           formData.tamanoCaja && formData.tamanoCaja > 0
                             ? formData.tamanoCaja
@@ -412,6 +414,11 @@ export default function ClienteNuevoPedido() {
         <div>
           <GlassCard className="p-4 sm:p-6 sticky top-8 mb-6" hover={false} gold>
             <h3 className="text-base sm:text-lg font-bold text-surface-900 mb-4">Carrito de Pedido</h3>
+            {errorEnvio && (
+              <div className="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {errorEnvio}
+              </div>
+            )}
             {carrito.length === 0 ? (
               <p className="text-surface-500">No has añadido productos al carrito.</p>
             ) : (
@@ -433,8 +440,8 @@ export default function ClienteNuevoPedido() {
               </ul>
             )}
             {carrito.length > 0 && (
-              <Button type="button" className="w-full" onClick={handleEnviarCarrito}>
-                Enviar pedido ({carrito.length} productos)
+              <Button type="button" className="w-full" onClick={handleEnviarCarrito} disabled={enviando}>
+                {enviando ? "Enviando..." : `Enviar pedido (${carrito.length} productos)`}
               </Button>
             )}
           </GlassCard>
