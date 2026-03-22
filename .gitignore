@@ -1,0 +1,11 @@
+# Workspace/IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App artifacts
+App-RealPrint/test-results/
+App-RealPrint/playwright-report/
+
