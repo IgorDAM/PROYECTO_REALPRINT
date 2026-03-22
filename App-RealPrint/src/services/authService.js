@@ -1,6 +1,7 @@
 import { httpClient } from "./httpClient";
 import { ApiError, normalizeApiError } from "./errors";
 import { clearSession, getStoredUser, setStoredUser, setToken } from "./tokenStorage";
+import { logger } from "./logger";
 
 /**
  * Fuente de usuarios para entorno local/demo.
@@ -58,12 +59,15 @@ function sanitizeUser(user) {
  * Mantiene el contrato de respuesta de la version API ({ user, token }).
  */
 async function loginLocal(username, password) {
+  logger.info('Login attempt (local)', { username });
+
   const users = readUsersFromStorage();
   const foundUser = users.find(
     (u) => u.username === username && u.password === password && u.activo !== false,
   );
 
   if (!foundUser) {
+    logger.warn('Login failed: invalid credentials', { username });
     throw new ApiError("Credenciales incorrectas", {
       status: 401,
       code: "INVALID_CREDENTIALS",
@@ -75,6 +79,8 @@ async function loginLocal(username, password) {
 
   setStoredUser(user);
   setToken(token);
+
+  logger.info('Login successful', { username, userId: user.id, role: user.role });
 
   return { user, token };
 }
@@ -112,6 +118,8 @@ export const authService = {
 
   /** Cierra sesion limpiando token y usuario persistido. */
   logout() {
+    const currentUser = getStoredUser();
+    logger.info('Logout', { username: currentUser?.username });
     clearSession();
   },
 

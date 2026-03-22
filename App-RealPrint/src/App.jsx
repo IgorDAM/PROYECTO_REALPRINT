@@ -4,6 +4,8 @@ import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { ErrorFallback } from "./components/ErrorFallback";
 import Login from "./pages/Login";
 import Configuracion from "./pages/Configuracion";
 
@@ -35,24 +37,25 @@ import OperarioPedidos from "./pages/operario/OperarioPedidos";
  */
 export default function App() {
   return (
-    <BrowserRouter>
-      <DataProvider>
-        <AuthProvider>
-          <Routes>
-            {/* Rutas públicas */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
+    <ErrorBoundary name="App" fallback={<ErrorFallback error={null} resetErrorBoundary={() => window.location.reload()} />}>
+      <BrowserRouter>
+        <DataProvider>
+          <AuthProvider>
+            <Routes>
+              {/* Rutas públicas */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
 
-            {/* Rutas de administrador */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
+              {/* Rutas de administrador */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {/* ...existing routes... */}
               <Route path="pedidos" element={<AdminPedidos />} />
               <Route path="historial" element={<AdminHistorial />} />
               <Route path="inventario" element={<AdminInventario />} />
@@ -103,5 +106,6 @@ export default function App() {
         </AuthProvider>
       </DataProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }

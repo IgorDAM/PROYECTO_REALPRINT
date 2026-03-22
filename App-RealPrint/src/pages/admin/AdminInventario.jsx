@@ -142,7 +142,12 @@ export default function AdminInventario() {
             {inventario.length} productos | <span className="text-amber-600 font-semibold">{stockBajo} con stock bajo</span>
           </p>
         </div>
-        <Button icon="add" onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
+        <Button
+          icon="add"
+          data-testid="inventario-add-button"
+          onClick={() => setIsAddModalOpen(true)}
+          className="w-full sm:w-auto"
+        >
           Añadir Producto
         </Button>
       </div>
@@ -156,11 +161,13 @@ export default function AdminInventario() {
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Input
+          id="inventario-search"
           placeholder="Buscar producto..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <Select
+          id="inventario-filter-categoria"
           options={CATEGORIAS}
           value={filterCategoria}
           onChange={(e) => setFilterCategoria(e.target.value)}
@@ -198,11 +205,13 @@ export default function AdminInventario() {
         {selectedItem && (
           <div className="space-y-4">
             <Input
+              id="edit-nombre"
               label="Nombre"
               value={selectedItem.nombre}
               onChange={(e) => setSelectedItem({ ...selectedItem, nombre: e.target.value })}
             />
             <Select
+              id="edit-categoria"
               label="Categoría"
               options={CATEGORIAS}
               value={selectedItem.categoria}
@@ -210,18 +219,21 @@ export default function AdminInventario() {
             />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Input
+                id="edit-stock"
                 label="Stock"
                 type="number"
                 value={selectedItem.stock}
                 onChange={(e) => setSelectedItem({ ...selectedItem, stock: parseInt(e.target.value) || 0 })}
               />
               <Input
+                id="edit-stock-minimo"
                 label="Stock Mínimo"
                 type="number"
                 value={selectedItem.stockMinimo}
                 onChange={(e) => setSelectedItem({ ...selectedItem, stockMinimo: parseInt(e.target.value) || 0 })}
               />
               <Input
+                id="edit-precio"
                 label="Precio (€)"
                 type="number"
                 step="0.01"
@@ -278,11 +290,13 @@ export default function AdminInventario() {
       >
         <div className="space-y-4">
           <Input
+            id="add-nombre"
             label="Nombre"
             value={newItem.nombre}
             onChange={(e) => setNewItem({ ...newItem, nombre: e.target.value })}
           />
           <Select
+            id="add-categoria"
             label="Categoría"
             options={CATEGORIAS}
             value={newItem.categoria}
@@ -290,18 +304,21 @@ export default function AdminInventario() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
+              id="add-stock"
               label="Stock"
               type="number"
               value={newItem.stock}
               onChange={(e) => setNewItem({ ...newItem, stock: parseInt(e.target.value) || 0 })}
             />
             <Input
+              id="add-stock-minimo"
               label="Stock Mínimo"
               type="number"
               value={newItem.stockMinimo}
               onChange={(e) => setNewItem({ ...newItem, stockMinimo: parseInt(e.target.value) || 0 })}
             />
             <Input
+              id="add-precio"
               label="Precio (€)"
               type="number"
               step="0.01"

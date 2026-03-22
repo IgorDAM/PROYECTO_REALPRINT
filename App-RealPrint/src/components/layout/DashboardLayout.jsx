@@ -5,6 +5,8 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import ErrorBoundary from "../ErrorBoundary";
+import { ErrorFallback } from "../ErrorFallback";
 import PropTypes from "prop-types";
 
 /**
@@ -49,8 +51,14 @@ export default function DashboardLayout() {
         </div>
 
         <div className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-          {/* Pasar prop sidebarOpen solo a AdminDashboard */}
-          <Outlet context={{ sidebarOpen }} />
+          {/* ErrorBoundary para proteger el contenido del dashboard */}
+          <ErrorBoundary
+            name="DashboardContent"
+            fallback={<ErrorFallback error={null} resetErrorBoundary={() => window.location.reload()} />}
+          >
+            {/* Pasar prop sidebarOpen solo a AdminDashboard */}
+            <Outlet context={{ sidebarOpen }} />
+          </ErrorBoundary>
         </div>
       </main>
     </div>

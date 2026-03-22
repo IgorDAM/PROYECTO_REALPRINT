@@ -11,3 +11,4 @@ export { pedidosService } from "./pedidosService";
 export { usuariosService } from "./usuariosService";
 export { httpClient } from "./httpClient";
 export { ApiError, normalizeApiError } from "./errors";
+export { logger } from "./logger";

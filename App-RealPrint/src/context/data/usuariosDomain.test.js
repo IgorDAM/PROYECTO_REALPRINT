@@ -1,5 +1,4 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { describe, it, expect } from 'vitest';
 import { createUsuariosDomain } from "./usuariosDomain.js";
 
 function createMockService(shouldFail = false) {
@@ -19,84 +18,86 @@ function createMockService(shouldFail = false) {
   };
 }
 
-test("usuariosDomain: addUsuarioSafe usa fallback local cuando servicio falla", async () => {
-  let usuarios = [
-    { id: 1, username: "admin", nombre: "Admin", activo: true },
-  ];
+describe('usuariosDomain', () => {
+  it("addUsuarioSafe usa fallback local cuando servicio falla", async () => {
+    let usuarios = [
+      { id: 1, username: "admin", nombre: "Admin", activo: true },
+    ];
 
-  const setUsuarios = (next) => {
-    usuarios = typeof next === "function" ? next(usuarios) : next;
-  };
+    const setUsuarios = (next) => {
+      usuarios = typeof next === "function" ? next(usuarios) : next;
+    };
 
-  const mockService = createMockService(true);
+    const mockService = createMockService(true);
 
-  const domain = createUsuariosDomain({
-    usuarios,
-    setUsuarios,
-    usuariosService: mockService,
-    useCreateService: true,
-    useUpdateService: false,
-    useDeleteService: false,
+    const domain = createUsuariosDomain({
+      usuarios,
+      setUsuarios,
+      usuariosService: mockService,
+      useCreateService: true,
+      useUpdateService: false,
+      useDeleteService: false,
+    });
+
+    const result = await domain.addUsuarioSafe({ username: "newuser", nombre: "Nuevo Usuario" });
+
+    expect(usuarios.length).toBe(2);
+    expect(result.username).toBe("newuser");
+    expect(result.nombre).toBe("Nuevo Usuario");
+    expect(result.activo).toBe(true);
   });
 
-  const result = await domain.addUsuarioSafe({ username: "newuser", nombre: "Nuevo Usuario" });
+  it("updateUsuarioSafe usa fallback local cuando servicio falla", async () => {
+    let usuarios = [
+      { id: 1, username: "admin", nombre: "Admin", activo: true },
+    ];
 
-  assert.strictEqual(usuarios.length, 2);
-  assert.strictEqual(result.username, "newuser");
-  assert.strictEqual(result.nombre, "Nuevo Usuario");
-  assert.strictEqual(result.activo, true);
-});
+    const setUsuarios = (next) => {
+      usuarios = typeof next === "function" ? next(usuarios) : next;
+    };
 
-test("usuariosDomain: updateUsuarioSafe usa fallback local cuando servicio falla", async () => {
-  let usuarios = [
-    { id: 1, username: "admin", nombre: "Admin", activo: true },
-  ];
+    const mockService = createMockService(true);
 
-  const setUsuarios = (next) => {
-    usuarios = typeof next === "function" ? next(usuarios) : next;
-  };
+    const domain = createUsuariosDomain({
+      usuarios,
+      setUsuarios,
+      usuariosService: mockService,
+      useCreateService: false,
+      useUpdateService: true,
+      useDeleteService: false,
+    });
 
-  const mockService = createMockService(true);
+    await domain.updateUsuarioSafe(1, { nombre: "Admin Actualizado", activo: false });
 
-  const domain = createUsuariosDomain({
-    usuarios,
-    setUsuarios,
-    usuariosService: mockService,
-    useCreateService: false,
-    useUpdateService: true,
-    useDeleteService: false,
+    expect(usuarios[0].nombre).toBe("Admin Actualizado");
+    expect(usuarios[0].activo).toBe(false);
   });
 
-  await domain.updateUsuarioSafe(1, { nombre: "Admin Actualizado", activo: false });
+  it("deleteUsuarioSafe usa fallback local cuando servicio falla", async () => {
+    let usuarios = [
+      { id: 1, username: "admin", nombre: "Admin", activo: true },
+      { id: 2, username: "cliente", nombre: "Cliente", activo: true },
+    ];
 
-  assert.strictEqual(usuarios[0].nombre, "Admin Actualizado");
-  assert.strictEqual(usuarios[0].activo, false);
-});
+    const setUsuarios = (next) => {
+      usuarios = typeof next === "function" ? next(usuarios) : next;
+    };
 
-test("usuariosDomain: deleteUsuarioSafe usa fallback local cuando servicio falla", async () => {
-  let usuarios = [
-    { id: 1, username: "admin", nombre: "Admin", activo: true },
-    { id: 2, username: "cliente", nombre: "Cliente", activo: true },
-  ];
+    const mockService = createMockService(true);
 
-  const setUsuarios = (next) => {
-    usuarios = typeof next === "function" ? next(usuarios) : next;
-  };
+    const domain = createUsuariosDomain({
+      usuarios,
+      setUsuarios,
+      usuariosService: mockService,
+      useCreateService: false,
+      useUpdateService: false,
+      useDeleteService: true,
+    });
 
-  const mockService = createMockService(true);
+    await domain.deleteUsuarioSafe(1);
 
-  const domain = createUsuariosDomain({
-    usuarios,
-    setUsuarios,
-    usuariosService: mockService,
-    useCreateService: false,
-    useUpdateService: false,
-    useDeleteService: true,
+    expect(usuarios.length).toBe(1);
+    expect(usuarios[0].id).toBe(2);
   });
-
-  await domain.deleteUsuarioSafe(1);
-
-  assert.strictEqual(usuarios.length, 1);
-  assert.strictEqual(usuarios[0].id, 2);
 });
 
