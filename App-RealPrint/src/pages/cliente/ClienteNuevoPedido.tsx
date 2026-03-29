@@ -138,7 +138,7 @@ export default function ClienteNuevoPedido() {
   };
 
   // Productos finales filtrados por servicio y permisos (más flexible)
-  let productosFinalesFiltrados = [];
+  let productosFinalesFiltrados;
   const clientePermitido = productosFinales.some(
     (pf) => Array.isArray(pf.clientesPermitidos) && pf.clientesPermitidos.some(cid => String(cid) === String(user.id))
   );
@@ -151,8 +151,7 @@ export default function ClienteNuevoPedido() {
       if (formData.servicio === "serigrafia") {
         if (formData.subservicio === "solo_serigrafia") {
           // Solo coinciden los de subservicio solo_serigrafia
-          if (pf.subservicio !== "solo_serigrafia") return false;
-          return true;
+          return pf.subservicio === "solo_serigrafia";
         } else if (formData.subservicio === "serigrafia+planchado") {
           // Coinciden subservicio y quienRopa (o ambas)
           if (pf.subservicio !== "serigrafia+planchado") return false;
@@ -256,7 +255,7 @@ export default function ClienteNuevoPedido() {
               }
               const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
               const fechaCreacion = new Date().toISOString().split("T")[0];
-              let nombrePedido = "";
+              let nombrePedido;
               if (productoFinal && productoFinal.enCaja && formData.opcion !== "realprint_ropa") {
                 nombrePedido = `${formData.cantidad} caja ${nombreProducto} ${fechaCreacion}`;
               } else {
@@ -300,6 +299,7 @@ export default function ClienteNuevoPedido() {
           </div>
 
           <Textarea
+            id="descripcion"
             label="Descripción del Pedido (opcional)"
             name="descripcion"
             placeholder="Detalles sobre el diseño, materiales, colores, dimensiones, etc."
@@ -353,6 +353,7 @@ export default function ClienteNuevoPedido() {
           </div>
 
           <Textarea
+            id="instrucciones"
             label="Instrucciones Especiales (Opcional)"
             name="instrucciones"
             placeholder="Cualquier detalle adicional o preferencia específica"
