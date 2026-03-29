@@ -100,35 +100,17 @@ export default function ClienteNuevoPedido() {
   const handleEnviarCarrito = async () => {
     await runApi(async () => {
       for (const item of carrito) {
-      let productoFinal = item.productoFinal;
-      let precioUnitario = productoFinal.precio;
-      const unidadesPorCaja = productoFinal.enCaja ? (item.tamanoCaja || productoFinal.tamanoCaja || 50) : 1;
-      if (productoFinal.enCaja) {
-        for (let i = 0; i < item.cantidad; i++) {
-          const nombrePedido = `Caja ${i + 1} de ${item.cantidad} - ${productoFinal.nombre} ${new Date().toISOString().split("T")[0]}`;
-          const pedidoCaja = {
-            clienteId: user.id,
-            cliente: user.name,
-            servicio: item.servicio,
-            subservicio: item.subservicio,
-            opcion: item.opcion,
-            productoFinalId: productoFinal.id,
-            pedido: nombrePedido,
-            descripcion: item.descripcion + (item.instrucciones ? `\n\nInstrucciones: ${item.instrucciones}` : ""),
-            cantidad: 1,
-            cantidadUnidades: unidadesPorCaja,
-            fechaEntrega: item.fechaEntrega,
-            total: precioUnitario * unidadesPorCaja,
-            tamanoCaja: item.tamanoCaja,
-            boxIndex: i + 1,
-            boxTotal: item.cantidad,
-          };
-          await createPedidoSafe(pedidoCaja);
-        }
-      } else {
-        const nombreProducto = productoFinal.nombre;
+        const productoFinal = item.productoFinal;
+        const precioUnitario = productoFinal.precio;
+        const cantidad = Number(item.cantidad) || 1;
+        const unidadesPorCaja = productoFinal.enCaja ? (item.tamanoCaja || productoFinal.tamanoCaja || 50) : 1;
+        const cantidadUnidades = productoFinal.enCaja ? cantidad * unidadesPorCaja : cantidad;
+
         const fechaCreacion = new Date().toISOString().split("T")[0];
-        const nombrePedido = `${item.cantidad} ${nombreProducto} ${fechaCreacion}`;
+        const nombrePedido = productoFinal.enCaja
+          ? `${productoFinal.nombre} - ${cantidad} caja(s) ${fechaCreacion}`
+          : `${cantidad} ${productoFinal.nombre} ${fechaCreacion}`;
+
         const nuevoPedido = {
           clienteId: user.id,
           cliente: user.name,
@@ -138,14 +120,16 @@ export default function ClienteNuevoPedido() {
           productoFinalId: productoFinal.id,
           pedido: nombrePedido,
           descripcion: item.descripcion + (item.instrucciones ? `\n\nInstrucciones: ${item.instrucciones}` : ""),
-          cantidad: parseInt(item.cantidad),
-          cantidadUnidades: item.cantidad,
+          cantidad,
+          cantidadUnidades,
           fechaEntrega: item.fechaEntrega,
-          total: precioUnitario * item.cantidad,
-          tamanoCaja: item.tamanoCaja,
+          total: precioUnitario * cantidadUnidades,
+          tamanoCaja: productoFinal.enCaja ? unidadesPorCaja : item.tamanoCaja,
+          boxTotal: productoFinal.enCaja ? cantidad : 1,
+          cajasCompletadas: 0,
         };
+
         await createPedidoSafe(nuevoPedido);
-      }
       }
 
       setCarrito([]);

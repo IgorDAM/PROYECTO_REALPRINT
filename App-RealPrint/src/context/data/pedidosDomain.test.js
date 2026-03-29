@@ -129,4 +129,43 @@ describe('pedidosDomain', () => {
     expect(pedidos.some((p) => p.cliente === "Cliente A")).toBe(true);
     expect(pedidos.some((p) => p.cliente === "Cliente B")).toBe(true);
   });
+
+  it("producto en caja con cantidad > 1 crea un único pedido con boxTotal", () => {
+    let pedidos = [];
+    const inventario = [{ id: 10, stock: 100, usados: 0 }];
+    const productosFinales = [{ id: "pf-caja", enCaja: true, tamanoCaja: 50, productosInventario: [10] }];
+
+    const setPedidos = (next) => {
+      pedidos = typeof next === "function" ? next(pedidos) : next;
+    };
+
+    const domain = createPedidosDomain({
+      pedidos,
+      setPedidos,
+      tareas: [],
+      setTareas: () => {},
+      productosFinales,
+      inventario,
+      updateInventario: () => {},
+      addTareaPorPedido: () => {},
+      pedidosService: { create: async () => {}, update: async () => {}, remove: async () => {} },
+      useCreateService: false,
+      useUpdateService: false,
+      useDeleteService: false,
+    });
+
+    domain.addPedido({
+      cliente: "Cliente Caja",
+      productoFinalId: "pf-caja",
+      cantidad: 3,
+      cantidadUnidades: 150,
+      total: 1500,
+      tamanoCaja: 50,
+    });
+
+    expect(pedidos).toHaveLength(1);
+    expect(pedidos[0].boxTotal).toBe(3);
+    expect(pedidos[0].cajasCompletadas).toBe(0);
+    expect(pedidos[0].cantidad).toBe(3);
+  });
 });

@@ -96,32 +96,18 @@ export function createPedidosDomain({
   const addPedido = (pedido) => {
     const productoFinal = productosFinales.find((pf) => pf.id == pedido.productoFinalId);
 
-    if (productoFinal && productoFinal.enCaja && pedido.cantidad > 1) {
-      const pedidosPorCaja = [];
-      for (let i = 0; i < pedido.cantidad; i++) {
-        const boxId = `${Date.now()}_${i}`;
-        const pedidoCaja = {
-          ...pedido,
-          id: boxId,
-          fecha: new Date().toISOString().split("T")[0],
-          estado: "pendiente",
-          boxIndex: i + 1,
-          boxTotal: pedido.cantidad,
-        };
-
-        pedidosPorCaja.push(pedidoCaja);
-        addTareaPorPedido(pedidoCaja);
-      }
-
-      setPedidos((prev) => [...pedidosPorCaja, ...prev]);
-      return pedidosPorCaja;
-    }
+    const cantidad = Number(pedido?.cantidad) || 1;
+    const unidadesPorCaja = Number(pedido?.tamanoCaja || productoFinal?.tamanoCaja || 50) || 50;
 
     const newPedido = {
       ...pedido,
       id: Date.now().toString(),
       fecha: new Date().toISOString().split("T")[0],
       estado: "pendiente",
+      // Si el producto va en caja, mantener metadata de cajas en un único pedido.
+      boxTotal: productoFinal?.enCaja ? (Number(pedido?.boxTotal) || cantidad) : 1,
+      cajasCompletadas: Number(pedido?.cajasCompletadas) || 0,
+      tamanoCaja: productoFinal?.enCaja ? unidadesPorCaja : pedido?.tamanoCaja,
     };
 
     setPedidos((prev) => [newPedido, ...prev]);
