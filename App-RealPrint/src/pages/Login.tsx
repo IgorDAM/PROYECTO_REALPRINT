@@ -4,14 +4,8 @@
  */
 import LoginForm from "../components/LoginForm";
 import Logo from "../components/Logo";
-import { useEffect } from "react";
 
 export default function Login() {
-  useEffect(() => {
-    // Mostrar inventario y productos finales en la consola
-    console.log("INVENTARIO ACTUAL:", localStorage.getItem("realprint_inventario"));
-    console.log("PRODUCTOS FINALES ACTUALES:", localStorage.getItem("realprint_productos_finales"));
-  }, []);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 relative overflow-hidden p-4">
       {/* Elementos decorativos de fondo */}
@@ -35,4 +29,3 @@ export default function Login() {
     </div>
   );
 }
-

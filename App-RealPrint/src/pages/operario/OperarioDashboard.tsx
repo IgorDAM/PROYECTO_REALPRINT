@@ -8,6 +8,7 @@
  * - Documenta cada función relevante
  */
 import { useAuth } from "../../context/AuthContext";
+import { useApiStatus } from "../../hooks/useApiStatus";
 import { usePedidosData } from "../../hooks/usePedidosData";
 import { useTareasData } from "../../hooks/useTareasData";
 import { StatCard, GlassCard, Badge, Table } from "../../components/ui";
@@ -15,15 +16,23 @@ import { StatCard, GlassCard, Badge, Table } from "../../components/ui";
 export default function OperarioDashboard() {
   const { user } = useAuth();
   const { tareas, updateTarea } = useTareasData();
-  const { pedidos } = usePedidosData();
+  const { pedidos, updatePedidoSafe } = usePedidosData();
+  const { runApi } = useApiStatus();
 
   // Filtrar tareas del operario actual
   const misTareas = tareas.filter((t) => t.operarioId === user?.id);
   const tareasPendientes = misTareas.filter((t) => t.estado === "pendiente");
   const tareasEnProceso = misTareas.filter((t) => t.estado === "en_proceso");
 
-  const handleCambiarEstado = (tareaId, nuevoEstado) => {
+  const handleCambiarEstado = async (tareaId, nuevoEstado) => {
     updateTarea(tareaId, { estado: nuevoEstado });
+
+    await runApi(async () => {
+      const tarea = tareas.find((t) => t.id === tareaId);
+      if (tarea?.pedidoId) {
+        await updatePedidoSafe(tarea.pedidoId, { estado: nuevoEstado });
+      }
+    }, "No se ha podido sincronizar el estado del pedido");
   };
 
   const getEstadoBadge = (estado) => {
@@ -73,7 +82,7 @@ export default function OperarioDashboard() {
         <div className="flex gap-2">
           {row.estado === "pendiente" && (
             <button
-              onClick={() => handleCambiarEstado(row.id, "en_proceso")}
+              onClick={() => void handleCambiarEstado(row.id, "en_proceso")}
               className="text-xs px-3 py-1.5 rounded-lg bg-primary-100 text-primary-700 font-medium hover:bg-primary-200 transition-colors"
             >
               Iniciar
@@ -81,7 +90,7 @@ export default function OperarioDashboard() {
           )}
           {row.estado === "en_proceso" && (
             <button
-              onClick={() => handleCambiarEstado(row.id, "completado")}
+              onClick={() => void handleCambiarEstado(row.id, "completado")}
               className="text-xs px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-medium hover:bg-emerald-200 transition-colors"
             >
               Completar
@@ -141,7 +150,7 @@ export default function OperarioDashboard() {
                       </p>
                     </div>
                     <button
-                      onClick={() => handleCambiarEstado(tarea.id, "en_proceso")}
+                      onClick={() => void handleCambiarEstado(tarea.id, "en_proceso")}
                       className="px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium hover:from-primary-700 hover:to-primary-800 transition-all shadow-blue"
                     >
                       Iniciar
@@ -164,7 +173,7 @@ export default function OperarioDashboard() {
                   <p className="font-semibold text-sm text-surface-900">{tarea.tarea}</p>
                   <p className="text-xs text-surface-500 mt-1">Pedido #{tarea.pedidoId}</p>
                   <button
-                    onClick={() => handleCambiarEstado(tarea.id, "completado")}
+                    onClick={() => void handleCambiarEstado(tarea.id, "completado")}
                     className="mt-2 w-full text-xs px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-medium transition-colors"
                   >
                     Marcar Completado

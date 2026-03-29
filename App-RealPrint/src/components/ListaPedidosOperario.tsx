@@ -30,27 +30,13 @@ function ListaPedidosOperario() {
   const { pedidos, updatePedido } = usePedidosData();
   const { productosFinales } = useProductosData();
 
-  // DEBUG: Logs para entender qué pasa
-  console.log('=== DEBUG ListaPedidosOperario ===');
-  console.log('Usuario:', user);
-  console.log('Especialidad del usuario:', user?.especialidad);
-  console.log('Total de pedidos en contexto:', (pedidos || []).length);
-  console.log('Todos los pedidos:', pedidos);
-  console.log('Servicios de pedidos:', (pedidos || []).map((p: any) => ({ id: p.id, servicio: p.servicio, cliente: p.cliente })));
-
   // Filtrar pedidos que correspondan a este operario
   // Según su especialidad (servicio del pedido)
   const pedidosDelOperario = (pedidos || []).filter((p: any) => {
-    // Filtrar por especialidad del operario
     const esDelServicio = p.servicio === user?.especialidad;
-    // Solo mostrar pedidos activos (no completados, cancelados, etc.)
     const esActivo = p.estado === "pendiente" || p.estado === "en_proceso";
-    console.log(`Pedido ${p.id}: servicio=${p.servicio}, especialidad=${user?.especialidad}, match=${esDelServicio}, estado=${p.estado}, activo=${esActivo}`);
     return esDelServicio && esActivo;
   });
-
-  console.log('Pedidos después de filtrar:', pedidosDelOperario.length);
-  console.log('=====================================');
 
   // Mapear pedidos a formato para mostrar
   const pedidosFormateados: PedidoOperarioItem[] = pedidosDelOperario.map((p: any) => {

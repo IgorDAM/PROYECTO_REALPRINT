@@ -28,17 +28,6 @@ interface TableColumn {
 export default function AdminPedidos() {
   const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
   const { inventario } = useInventarioData();
-
-  // DEBUG AGRESIVO
-  console.log('='.repeat(50));
-  console.log('ADMIN PEDIDOS - DATOS RECIBIDOS');
-  console.log('='.repeat(50));
-  console.log('typeof pedidos:', typeof pedidos);
-  console.log('Array.isArray(pedidos):', Array.isArray(pedidos));
-  console.log('pedidos.length:', (pedidos as any)?.length);
-  console.log('pedidos:', pedidos);
-  console.log('localStorage realprint_pedidos:', localStorage.getItem('realprint_pedidos'));
-  console.log('='.repeat(50));
   const { productosFinales } = useProductosData();
   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedPedido, setSelectedPedido] = useState<PedidoItem | null>(null);
@@ -58,13 +47,6 @@ export default function AdminPedidos() {
       const matchesFilter = !filterEstado || pedido.estado === filterEstado;
       return matchesSearch && matchesFilter;
     });
-
-  // DEBUG
-  console.log('=== DEBUG AdminPedidos ===');
-  console.log('Total pedidos:', (pedidos as PedidoItem[]).length);
-  console.log('Todos los pedidos:', pedidos);
-  console.log('Pedidos válidos (con id y cliente):', (pedidos as PedidoItem[]).filter(p => p && typeof p === "object" && p.id && p.cliente).length);
-  console.log('===============================');
 
   const handleViewDetails = (pedido: PedidoItem) => {
     setSelectedPedido(pedido);
