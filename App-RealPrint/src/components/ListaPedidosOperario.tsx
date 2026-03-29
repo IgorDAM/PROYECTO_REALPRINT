@@ -43,7 +43,11 @@ function ListaPedidosOperario() {
     const productoFinal = productosFinales.find((pf: any) => pf.id == p.productoFinalId);
     const unidadesPorCaja = p.tamanoCaja || productoFinal?.tamanoCaja || 50;
     const cantidadCajas = p.boxTotal || 1;
-    const cajasCompletadas = p.estado === "completado" ? cantidadCajas : 0;
+    const cajasCompletadas = typeof p.cajasCompletadas === "number"
+      ? Math.min(Math.max(p.cajasCompletadas, 0), cantidadCajas)
+      : p.estado === "completado"
+        ? cantidadCajas
+        : 0;
 
     return {
       id: p.id,
@@ -59,16 +63,24 @@ function ListaPedidosOperario() {
   });
 
   const actualizarCajas = (pedidoId: string | number, nuevasCajasCompletadas: number) => {
-    // Actualizar estado del pedido según progreso de cajas
     const pedidoActual = pedidosDelOperario.find((p: any) => p.id === pedidoId);
-    if (pedidoActual) {
-      const totalCajas = pedidoActual.boxTotal || 1;
-      let nuevoEstado = "en_proceso";
-      if (nuevasCajasCompletadas >= totalCajas) {
-        nuevoEstado = "completado";
-      }
-      updatePedido(pedidoId, { estado: nuevoEstado });
+    if (!pedidoActual) return;
+
+    const totalCajas = pedidoActual.boxTotal || 1;
+    const cajasCompletadas = Math.min(Math.max(nuevasCajasCompletadas, 0), totalCajas);
+
+    let nuevoEstado = "pendiente";
+    if (cajasCompletadas > 0 && cajasCompletadas < totalCajas) {
+      nuevoEstado = "en_proceso";
     }
+    if (cajasCompletadas >= totalCajas) {
+      nuevoEstado = "completado";
+    }
+
+    updatePedido(pedidoId, {
+      estado: nuevoEstado,
+      cajasCompletadas,
+    });
   };
 
   if (pedidosFormateados.length === 0) {

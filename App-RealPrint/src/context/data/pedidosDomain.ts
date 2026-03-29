@@ -33,7 +33,6 @@ interface PedidosDomainOps {
 export function createPedidosDomain({
   pedidos,
   setPedidos,
-  tareas,
   setTareas,
   productosFinales,
   inventario,
@@ -114,7 +113,7 @@ export function createPedidosDomain({
         addTareaPorPedido(pedidoCaja);
       }
 
-      setPedidos([...pedidosPorCaja, ...pedidos]);
+      setPedidos((prev) => [...pedidosPorCaja, ...prev]);
       return pedidosPorCaja;
     }
 
@@ -125,7 +124,7 @@ export function createPedidosDomain({
       estado: "pendiente",
     };
 
-    setPedidos([newPedido, ...pedidos]);
+    setPedidos((prev) => [newPedido, ...prev]);
     addTareaPorPedido(newPedido);
     return newPedido;
   };
@@ -145,7 +144,7 @@ export function createPedidosDomain({
   const updatePedido = (id, updates) => {
     const currentPedido = pedidos.find((p) => p.id === id);
     applyInventoryForEstadoTransition(currentPedido, updates);
-    setPedidos(pedidos.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    setPedidos((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
   };
 
   const updatePedidoSafe = async (id, updates) => {
@@ -163,8 +162,8 @@ export function createPedidosDomain({
   };
 
   const deletePedido = (id) => {
-    setPedidos(pedidos.filter((p) => p.id !== id));
-    setTareas(tareas.filter((t) => t.pedidoId !== id));
+    setPedidos((prev) => prev.filter((p) => p.id !== id));
+    setTareas((prev) => prev.filter((t) => t.pedidoId !== id));
   };
 
   const deletePedidoSafe = async (id) => {
@@ -190,5 +189,3 @@ export function createPedidosDomain({
     deletePedidoSafe,
   };
 }
-
-

@@ -96,7 +96,20 @@ function PedidoOperario({ pedido, onActualizarCajas }: PedidoOperarioProps) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
         {Array.from({ length: pedido.cajasTotales }).map((_, idx) => {
           const isCompleted = idx < pedido.cajasCompletadas;
-          const isDisabled = idx > pedido.cajasCompletadas && pedido.cajasCompletadas > 0;
+          const isNextBox = idx === pedido.cajasCompletadas;
+          const isLastCompleted = idx === pedido.cajasCompletadas - 1;
+          const canRollback = isCompleted && isLastCompleted;
+
+          // Reglas:
+          // - Se puede marcar solo la siguiente caja
+          // - Se puede desmarcar solo la ultima completada
+          // - El resto queda bloqueado
+          const isDisabled = (!isCompleted && !isNextBox) || (isCompleted && !canRollback);
+
+          const handleToggleCaja = () => {
+            const nuevasCajasCompletadas = isCompleted ? idx : idx + 1;
+            onActualizarCajas(pedido.id, nuevasCajasCompletadas);
+          };
 
           return (
             <label
@@ -114,7 +127,7 @@ function PedidoOperario({ pedido, onActualizarCajas }: PedidoOperarioProps) {
               <input
                 type="checkbox"
                 checked={isCompleted}
-                onChange={() => onActualizarCajas(pedido.id, idx + 1)}
+                onChange={handleToggleCaja}
                 disabled={isDisabled}
                 className="sr-only"
               />

@@ -102,5 +102,31 @@ describe('pedidosDomain', () => {
     expect(harness.inventario[0].usados).toBe(3);
     expect(harness.getPedidos()[0].estado).toBe("completado");
   });
-});
 
+  it("agregar varios pedidos seguidos conserva todos los pedidos en estado", () => {
+    const harness = createHarness("pendiente");
+
+    harness.domain.addPedido({
+      cliente: "Cliente A",
+      productoFinalId: "pf-1",
+      cantidad: 1,
+      cantidadUnidades: 10,
+      total: 10,
+    });
+
+    harness.domain.addPedido({
+      cliente: "Cliente B",
+      productoFinalId: "pf-1",
+      cantidad: 1,
+      cantidadUnidades: 20,
+      total: 20,
+    });
+
+    const pedidos = harness.getPedidos();
+
+    // p1 inicial + 2 nuevos pedidos
+    expect(pedidos).toHaveLength(3);
+    expect(pedidos.some((p) => p.cliente === "Cliente A")).toBe(true);
+    expect(pedidos.some((p) => p.cliente === "Cliente B")).toBe(true);
+  });
+});
