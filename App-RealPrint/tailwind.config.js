@@ -49,10 +49,10 @@ export default {
         },
         // Sidebar theme colors (hardened single source of truth)
         sidebar: {
-          // Gradient stops for glass-sidebar: 180deg from #1e3a8a → #1d4ed8 → #2563eb
-          light: "#2563eb",      // primary-600 (gradient end)
-          mid: "#1d4ed8",         // primary-700 (gradient middle)
-          dark: "#1e3a8a",        // primary-900 (gradient start)
+          // Gradient stops for glass-sidebar: 180deg from #4A90E2 → #4A90E2 → #4A90E2
+          light: "#4A90E2",      // custom blue (gradient end)
+          mid: "#4A90E2",         // custom blue (gradient middle)
+          dark: "#4A90E2",        // custom blue (gradient start)
         },
       },
       fontFamily: {

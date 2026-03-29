@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { usePagination } from './usePagination.jsx';
+import { usePagination } from './usePagination';
 
 describe('usePagination', () => {
   const mockItems = Array.from({ length: 100 }, (_, i) => ({

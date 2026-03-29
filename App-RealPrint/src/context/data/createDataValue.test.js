@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createDataValue } from "./createDataValue.js";
+import { createDataValue } from "./createDataValue";
 
 function fn() {
   return undefined;

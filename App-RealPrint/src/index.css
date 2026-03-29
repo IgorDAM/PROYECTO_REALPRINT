@@ -17,9 +17,9 @@
   --primary-blue-dark: #1d4ed8;   /* primary-700 */
 
   /* Sidebar Gradient Stops (HARDENED - Single Source of Truth in tailwind.config.js) */
-  --sidebar-start: #1e3a8a;        /* primary-900 (gradient start, 0%) */
-  --sidebar-mid: #1d4ed8;          /* primary-700 (gradient mid, 50%) */
-  --sidebar-end: #2563eb;          /* primary-600 (gradient end, 100%) */
+  --sidebar-start: #4A90E2;        /* Custom blue (gradient start, 0%) */
+  --sidebar-mid: #4A90E2;          /* Custom blue (gradient mid, 50%) */
+  --sidebar-end: #4A90E2;          /* Custom blue (gradient end, 100%) */
 
   /* Gold Accents */
   --gold: #fbbf24;                 /* gold-400 */

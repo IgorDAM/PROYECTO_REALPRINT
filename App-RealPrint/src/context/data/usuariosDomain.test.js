@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createUsuariosDomain } from "./usuariosDomain.js";
+import { createUsuariosDomain } from "./usuariosDomain";
 
 function createMockService(shouldFail = false) {
   return {

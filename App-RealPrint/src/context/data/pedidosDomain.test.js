@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createPedidosDomain } from "./pedidosDomain.js";
+import { createPedidosDomain } from "./pedidosDomain";
 
 function createHarness(initialEstado = "pendiente") {
   let pedidos = [
