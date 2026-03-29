@@ -78,6 +78,7 @@ function sanitizeUser(user: Record<string, any>): AuthUser {
     username: user.username,
     name: user.nombre || user.name,
     role: user.role,
+    especialidad: user.especialidad,
   };
 }
 

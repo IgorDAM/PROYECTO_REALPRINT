@@ -48,6 +48,13 @@ export default function AdminPedidos() {
       return matchesSearch && matchesFilter;
     });
 
+  // DEBUG
+  console.log('=== DEBUG AdminPedidos ===');
+  console.log('Total pedidos:', (pedidos as PedidoItem[]).length);
+  console.log('Todos los pedidos:', pedidos);
+  console.log('Pedidos válidos (con id y cliente):', (pedidos as PedidoItem[]).filter(p => p && typeof p === "object" && p.id && p.cliente).length);
+  console.log('===============================');
+
   const handleViewDetails = (pedido: PedidoItem) => {
     setSelectedPedido(pedido);
     setIsModalOpen(true);
