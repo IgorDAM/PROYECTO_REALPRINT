@@ -1,7 +1,12 @@
 /**
- * Gestión de pedidos para el administrador.
- * Permite filtrar, buscar, ver detalles, cambiar estado y eliminar pedidos.
- * Aplica lógica de inventario según el estado del pedido.
+ * Gestión de pedidos consolidada para el administrador.
+ * Vista unificada que reemplaza las anteriores AdminPedidos y AdminHistorial.
+ * Permite filtrar por estado, buscar, ver detalles, cambiar estado y eliminar pedidos.
+ *
+ * Tabulaciones:
+ * - "Activos": pendiente, en_proceso
+ * - "Completados": completado, enviado
+ * - "Cancelados": cancelado
  *
  * Buenas prácticas:
  * - Modulariza lógica de filtrado y actualización de estado
@@ -83,7 +88,43 @@ export default function AdminPedidos() {
   const [filterEstado, setFilterEstado] = useState("");
   const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
 
-  const filteredPedidos = (pedidos as PedidoItem[])
+  // Nueva funcionalidad: tabulaciones para consolidar vistas
+  const [activeTab, setActiveTab] = useState<"activos" | "completados" | "cancelados">("activos");
+
+  /**
+   * Mapeo de tabulaciones a los estados que incluyen.
+   * Esto consolida AdminPedidos + AdminHistorial en una sola vista.
+   */
+  const tabsConfig = {
+    activos: {
+      label: "Activos",
+      states: ["pendiente", "en_proceso"],
+      countLabel: "en progreso",
+    },
+    completados: {
+      label: "Completados",
+      states: ["completado", "enviado"],
+      countLabel: "finalizados",
+    },
+    cancelados: {
+      label: "Cancelados",
+      states: ["cancelado"],
+      countLabel: "cancelados",
+    },
+  };
+
+  /**
+   * Filtra pedidos según la pestaña activa.
+   */
+  const getPedidosByTab = (tab: typeof activeTab): PedidoItem[] => {
+    return (pedidos as PedidoItem[]).filter((p) =>
+      tabsConfig[tab].states.includes(p.estado)
+    );
+  };
+
+  const tabPedidos = getPedidosByTab(activeTab);
+
+  const filteredPedidos = (tabPedidos as PedidoItem[])
     .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente)
     .filter((pedido) => {
       const matchesSearch =
@@ -185,9 +226,13 @@ export default function AdminPedidos() {
     },
   ];
 
-  const estadoOptions = Object.entries(ESTADOS_PEDIDO).map(([value, { label }]) => ({
-    value,
-    label,
+  /**
+   * Opciones de filtrado según la pestaña activa.
+   * Solo muestra los estados disponibles en la pestaña actual.
+   */
+  const estadoOptions = tabsConfig[activeTab].states.map((state) => ({
+    value: state,
+    label: ESTADOS_PEDIDO[state]?.label || state,
   }));
 
   return (
@@ -196,7 +241,7 @@ export default function AdminPedidos() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 lg:mb-8">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-surface-900">Gestión de Pedidos</h1>
-          <p className="text-surface-500 mt-1">{pedidos.length} pedidos en total</p>
+          <p className="text-surface-500 mt-1">{filteredPedidos.length} {tabsConfig[activeTab].countLabel}</p>
         </div>
       </div>
 
@@ -205,6 +250,32 @@ export default function AdminPedidos() {
           {apiError}
         </div>
       )}
+
+      {/* Tabulaciones consolidadas */}
+      <div className="flex gap-2 mb-6 border-b border-surface-200">
+        {(Object.entries(tabsConfig) as [typeof activeTab, typeof tabsConfig["activos"]][]).map(([tab, config]) => {
+          const count = getPedidosByTab(tab).length;
+          const isActive = activeTab === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => {
+                setActiveTab(tab);
+                setSearchTerm("");
+                setFilterEstado("");
+              }}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                isActive
+                  ? "border-primary-600 text-primary-600"
+                  : "border-transparent text-surface-600 hover:text-surface-900"
+              }`}
+            >
+              {config.label} <span className="text-sm text-surface-500">({count})</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

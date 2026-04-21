@@ -44,24 +44,10 @@ export default function AdminDashboard() {
 
   const pedidosActivos = pedidos.filter((p: any) => p.estado === "pendiente" || p.estado === "en_proceso");
 
-  const getTotalCajas = (pedido: any) => {
-    if (typeof pedido?.boxTotal === "number" && pedido.boxTotal > 0) return pedido.boxTotal;
-    const qty = Number(pedido?.cantidad) || Number(pedido?.cantidadUnidades) || 1;
-    return Math.max(1, qty);
-  };
-
-  const getCajasCompletadas = (pedido: any) => {
-    const total = getTotalCajas(pedido);
-    const current = Number(pedido?.cajasCompletadas) || 0;
-    return Math.min(Math.max(current, 0), total);
-  };
-
-  const getEstadoByCajas = (cajasCompletadas: number, totalCajas: number) => {
-    if (cajasCompletadas <= 0) return "pendiente";
-    if (cajasCompletadas >= totalCajas) return "completado";
-    return "en_proceso";
-  };
-
+  /**
+   * Cambia el estado de un pedido.
+   * Estados disponibles: pendiente, en_proceso, completado, enviado, cancelado
+   */
   const handleCambiarEstado = async (pedidoId: string | number, nuevoEstado: string) => {
     await runApi(
       async () => {
@@ -71,22 +57,6 @@ export default function AdminDashboard() {
     );
   };
 
-  const handleActualizarCajas = async (pedido: any, nextCajas: number) => {
-    const totalCajas = getTotalCajas(pedido);
-    const cajasCompletadas = Math.min(Math.max(nextCajas, 0), totalCajas);
-    const nuevoEstado = getEstadoByCajas(cajasCompletadas, totalCajas);
-
-    await runApi(
-      async () => {
-        await updatePedidoSafe(pedido.id, {
-          cajasCompletadas,
-          boxTotal: totalCajas,
-          estado: nuevoEstado,
-        });
-      },
-      "No se ha podido actualizar el progreso del pedido"
-    );
-  };
 
   const pedidosColumns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-mono text-primary-600">#{value}</span> },
@@ -107,47 +77,22 @@ export default function AdminDashboard() {
   const pedidosOperativosColumns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "cliente", label: "Cliente" },
-    { key: "pedido", label: "Pedido", render: (value) => value || "-" },
+    { key: "servicio", label: "Servicio" },
     {
       key: "estado",
       label: "Estado",
       render: (value) => <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>,
     },
     {
-      key: "cajasCompletadas",
-      label: "Cajas",
-      render: (_, row) => {
-        const total = getTotalCajas(row);
-        const current = getCajasCompletadas(row);
-
-        return (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="w-7 h-7 rounded border border-surface-300 text-surface-700 disabled:opacity-50"
-              disabled={isProcessing || current <= 0}
-              onClick={() => void handleActualizarCajas(row, current - 1)}
-            >
-              -
-            </button>
-            <span className="text-sm font-medium min-w-[56px] text-center">{current}/{total}</span>
-            <button
-              type="button"
-              className="w-7 h-7 rounded border border-surface-300 text-surface-700 disabled:opacity-50"
-              disabled={isProcessing || current >= total}
-              onClick={() => void handleActualizarCajas(row, current + 1)}
-            >
-              +
-            </button>
-          </div>
-        );
-      },
+      key: "total",
+      label: "Total",
+      render: (value) => <span className="font-semibold text-surface-900">€{typeof value === "number" ? value.toFixed(2) : "0.00"}</span>,
     },
     {
       key: "acciones",
       label: "Acciones",
       render: (_, row) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {row.estado !== "pendiente" ? (
             <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "pendiente")}>
               Pendiente
@@ -161,6 +106,11 @@ export default function AdminDashboard() {
           {row.estado !== "completado" ? (
             <Button size="sm" variant="success" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "completado")}>
               Completar
+            </Button>
+          ) : null}
+          {row.estado !== "enviado" ? (
+            <Button size="sm" variant="primary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "enviado")}>
+              Enviar
             </Button>
           ) : null}
         </div>
