@@ -1,41 +1,68 @@
+/**
+ * OrderLayoutPreview.tsx
+ * Propósito: Visualización en tiempo real de cómo se distribuyen las unidades en el paño (60×100 cm).
+ * 
+ * Funcionalidad:
+ * - Muestra un paño con las unidades distribuidas usando layout metrics (filas × columnas).
+ * - Escala responsive: 100% del ancho, aspect ratio 3:5 (60×100 cm).
+ * - Calcula distribución en tiempo real según quantity, spacing y dimensiones.
+ * - Muestra información:
+ *   • Cálculo de metros lineales (total real + facturable).
+ *   • Configuración: cantidad, dimensiones, distribución.
+ *   • Unidades ocultas o fuera del área visible si necesario.
+ * - Archivos adjuntos con sus dimensiones (cada uno puede tener medidas diferentes).
+ * 
+ * Referencia: Se alimenta de datos en tiempo real del formulario padre (Step2Details).
+ * No modifica datos, solo visualiza. Usa calculateLayoutMetrics de pricing.ts.
+ */
+
 import { calculateLayoutMetrics, MATERIAL_WIDTH_CM } from './pricing';
 
+/** Alto material del paño en centímetros (constante de negocio). */
 const MATERIAL_HEIGHT_CM = 100;
 
+/** Información de un archivo adjunto al pedido. */
 interface FileWithDimensions {
   id: string;
   name: string;
   url?: string;
-  widthCm?: number;
-  heightCm?: number;
+  widthCm?: number; // Ancho de la unidad en cm
+  heightCm?: number; // Alto de la unidad en cm
 }
 
+/** Props para OrderLayoutPreview. */
 interface OrderLayoutPreviewProps {
-  filesWithDimensions?: FileWithDimensions[];
-  quantity?: number;
-  spacingCm?: number;
-  className?: string;
+  filesWithDimensions?: FileWithDimensions[]; // Archivos + dimensiones por archivo
+  quantity?: number; // Cantidad total de unidades
+  spacingCm?: number; // Separación entre unidades
+  className?: string; // Clases CSS adicionales
 }
 
+/** Formatea etiqueta de archivo, truncando si es largo. */
 function formatFileLabel(fileUrl: string | undefined, fileName: string, index: number) {
   const name = fileName || fileUrl?.split('/').pop() || `Archivo ${index + 1}`;
   return name.length > 20 ? name.substring(0, 17) + '...' : name;
 }
 
+/** Visualiza distribución de unidades en paño 60×100 cm con información de cálculo. */
 export function OrderLayoutPreview({
   filesWithDimensions = [],
   quantity = 1,
   spacingCm = 0,
   className = '',
 }: OrderLayoutPreviewProps) {
+  // Normalizar entradas defensivamente.
   const safeQuantity = Math.max(1, Number(quantity) || 1);
   const safeSpacingCm = Math.max(0, Number(spacingCm) || 0);
+
+  // Validar archivos: solo aquellos con dimensiones positivas.
   const validFiles = filesWithDimensions.filter((file) => Number(file.widthCm) > 0 && Number(file.heightCm) > 0);
 
-  // Tomamos la huella máxima para evitar subestimar metros lineales con múltiples archivos.
+  // Usar máxima huella para evitar subestimar con múltiples archivos de tamaños diferentes.
   const unitWidthCm = validFiles.length ? Math.max(...validFiles.map((file) => Number(file.widthCm))) : 0;
   const unitHeightCm = validFiles.length ? Math.max(...validFiles.map((file) => Number(file.heightCm))) : 0;
 
+  // Calcular distribución: cuántas filas/columnas, cuántos metros lineales totales.
   const layout = calculateLayoutMetrics({
     quantity: safeQuantity,
     spacingCm: safeSpacingCm,
@@ -43,6 +70,7 @@ export function OrderLayoutPreview({
     unitHeightCm,
   });
 
+  // Convertir dimensiones a porcentajes del paño para escala responsive (aspect ratio 3:5).
   const unitWidthPercent = layout.unitWidthCm ? (layout.unitWidthCm / MATERIAL_WIDTH_CM) * 100 : 0;
   const unitHeightPercent = layout.unitHeightCm ? (layout.unitHeightCm / MATERIAL_HEIGHT_CM) * 100 : 0;
   const spacingXPercent = (layout.spacingCm / MATERIAL_WIDTH_CM) * 100;

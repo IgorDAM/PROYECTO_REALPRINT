@@ -1,3 +1,36 @@
+/**
+ * Componente Button - Botón reutilizable con múltiples variantes.
+ *
+ * **Variantes de color:**
+ * - `primary` (azul) - CTA principal
+ * - `secondary` (blanco/borde) - Acciones secundarias
+ * - `success` (verde) - Confirmación/éxito
+ * - `danger` (rojo) - Peligrosas/destructivas
+ * - `ghost` (sin fondo) - Acciones discretas
+ * - `gold` (dorado) - Acciones especiales/premium
+ *
+ * **Tamaños:**
+ * - `sm` - Botones compactos en tablas
+ * - `md` (default) - Formularios, UI general
+ * - `lg` - CTAs principales, finales
+ *
+ * **Características:**
+ * - Soporta iconos de Material Symbols Outlined
+ * - Animación hover (eleva y sombra)
+ * - Completamente tipado con TypeScript
+ *
+ * @example
+ * // Botón primario grande con ícono
+ * <Button variant="primary" size="lg" icon="check">
+ *   Guardar Pedido
+ * </Button>
+ *
+ * @example
+ * // Botón de peligro pequeño
+ * <Button variant="danger" size="sm" icon="delete">
+ *   Eliminar
+ * </Button>
+ */
 import PropTypes from "prop-types";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
@@ -5,10 +38,15 @@ type ButtonVariant = "primary" | "secondary" | "success" | "danger" | "ghost" | 
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Contenido del botón (texto o elementos) */
   children?: ReactNode;
+  /** Esquema de color y estilo */
   variant?: ButtonVariant;
+  /** Tamaño del botón */
   size?: ButtonSize;
+  /** Nombre del ícono (Material Symbols Outlined) */
   icon?: string;
+  /** Clases CSS adicionales */
   className?: string;
 }
 
@@ -60,8 +98,4 @@ Button.propTypes = {
   className: PropTypes.string,
 };
 
-/**
- * Ejemplo de uso:
- * <Button variant="success" size="lg">Guardar</Button>
- */
 

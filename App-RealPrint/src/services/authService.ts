@@ -115,16 +115,21 @@ async function loginLocal(username: string, password: string): Promise<AuthRespo
 
 /**
  * Login contra backend.
- * Espera un endpoint /auth/login que devuelva user y token.
+ * Espera un endpoint /auth/login que devuelva { token, user: { id, username, name, role } }.
  */
 async function loginApi(username: string, password: string): Promise<AuthResponse> {
   const response = await httpClient.post("/auth/login", { username, password });
-  const user = sanitizeUser((response as any).user || {});
+
+  // El backend devuelve: { token: string, user: { id, username, name, role } }
+  const backendResponse = response as any;
+
+  // Extrae el usuario del objeto anidado
+  const user = sanitizeUser((backendResponse?.user) || {});
 
   setStoredUser(user);
-  if ((response as any).token) setToken((response as any).token);
+  if (backendResponse?.token) setToken(backendResponse.token);
 
-  return { user, token: (response as any).token };
+  return { user, token: backendResponse?.token };
 }
 
 /**

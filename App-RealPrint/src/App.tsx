@@ -50,9 +50,7 @@ export default function App() {
                 <Route path="historial" element={<AdminHistorial />} />
                 <Route path="usuarios" element={<AdminUsuarios />} />
                 <Route path="configuracion" element={<Configuracion />} />
-                {/* Compatibilidad temporal para enlaces antiguos */}
-                <Route path="inventario" element={<Navigate to="/admin" replace />} />
-                <Route path="productos-finales" element={<Navigate to="/admin" replace />} />
+
               </Route>
 
               {/* Rutas de cliente */}

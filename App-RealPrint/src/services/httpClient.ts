@@ -1,3 +1,37 @@
+/**
+ * Cliente HTTP centralizado de RealPrint.
+ *
+ * **Responsabilidades:**
+ * 1. Construir URLs hacia el backend (configurable por VITE_API_URL)
+ * 2. Inyectar token JWT automáticamente en cada request
+ * 3. Manejar timeouts con AbortController (evita bloqueos en UI)
+ * 4. Parsear respuestas según Content-Type
+ * 5. Normalizar errores para que la UI siempre reciba ApiError
+ *
+ * **Autenticación:**
+ * - Si hay token guardado en localStorage, lo incluye como Bearer token
+ * - No incluye token si no hay sesión activa (rutas públicas)
+ *
+ * **Manejo de errores:**
+ * - Todos los errores (red, timeout, HTTP) se convierten a ApiError
+ * - Preserva información de estado y código para debugging
+ *
+ * **Ejemplo de uso:**
+ * ```typescript
+ * try {
+ *   const datos = await httpClient.get('/pedidos');
+ *   // ...
+ * } catch (error) {
+ *   if (error instanceof ApiError) {
+ *     console.error(error.message, error.details);
+ *   }
+ * }
+ * ```
+ *
+ * @see tokenStorage.ts para saber cómo se guarda/recupera el token
+ * @see errors.ts para entender normalizeApiError
+ * @see authService.ts para flow de login que provee el token
+ */
 import { ApiError, normalizeApiError } from "./errors";
 import { getToken } from "./tokenStorage";
 

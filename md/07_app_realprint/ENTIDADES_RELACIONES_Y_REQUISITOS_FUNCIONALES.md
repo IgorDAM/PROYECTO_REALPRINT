@@ -158,7 +158,26 @@ Con base en backend Java actual + documentacion:
 
 ---
 
-## 6) Referencias utilizadas
+## 6) Cambios Implementados en Este Ciclo (2026-04-21)
+
+### Frontend Enhancements
+- **pricing.ts:** Función centralizada de cálculo de distribución + precios con soporte dual (dimensiones vs. legacy).
+- **OrderLayoutPreview.tsx:** Preview responsive del paño 60×100 cm con distribución visual en tiempo real.
+- **Step2Details.tsx:** Flujo de carga de archivos + definición de ancho/alto POR unidad (NEW).
+- **pricing.test.ts:** Suite de 7 tests unitarios validando cálculos en casos frontera.
+
+### Código & Documentación
+- Comentarios didácticos agregados a `pricing.ts` y `OrderLayoutPreview.tsx`.
+- Test coverage para distribución, legacy fallback y redondeo facturable.
+- `.gitignore` actualizado para ignorar `realprint-backend/` como repo embebido.
+
+### Documentación del Proyecto
+- `VALIDACION_BACKEND_FRONTEND_CONSISTENCY.md` creado: matriz de mapping Pedido ↔ FormData.
+- Estructura de archivos validada: no hay archivos sobrantes, código limpio.
+
+---
+
+## 7) Referencias Utilizadas
 
 - `realprint-backend/src/main/java/com/realprint/realprintbackend/entity/Usuario.java`
 - `realprint-backend/src/main/java/com/realprint/realprintbackend/entity/Pedido.java`
@@ -172,4 +191,7 @@ Con base en backend Java actual + documentacion:
 - `DIAGRAMAS/DiagramaEntidadRelacion.md`
 - `md/07_app_realprint/ANALISIS_REQUISITOS_FUNCIONALES_PRIORIZADOS.md`
 - `md/07_app_realprint/BACKEND_SPECIFICATION.md`
+- `App-RealPrint/src/components/CreateOrderForm/pricing.ts` (actualizado con didácticos)
+- `App-RealPrint/src/components/CreateOrderForm/OrderLayoutPreview.tsx` (actualizado con didácticos)
+- `App-RealPrint/src/components/CreateOrderForm/pricing.test.ts` (7 tests, 100% passing)
 

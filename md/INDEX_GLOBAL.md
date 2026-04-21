@@ -2,7 +2,10 @@
 
 Indice maestro de toda la documentacion organizada en `md/`.
 
+**Última actualización:** 2026-04-21 - Auditoría completa, coherencia backend-frontend validada y corregida.
+
 - Onboarding rapido: [INDEX_ONBOARDING](INDEX_ONBOARDING.md)
+- **Validación de coherencia:** [VALIDACION_BACKEND_FRONTEND_CONSISTENCY](VALIDACION_BACKEND_FRONTEND_CONSISTENCY.md) ✅ ACTUALIZADO
 
 ## 00_inicio
 
