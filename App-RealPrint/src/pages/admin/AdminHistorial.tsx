@@ -93,8 +93,8 @@ export default function AdminHistorial() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      {/* Filters - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         <Input
           placeholder="Buscar por ID o cliente..."
           value={searchTerm}
@@ -131,12 +131,16 @@ export default function AdminHistorial() {
         </Button>
       </div>
 
-      {/* Table */}
-      <Table
-        columns={columns}
-        data={filteredPedidos}
-        emptyMessage="No hay pedidos en el historial"
-      />
+      {/* Table - Responsive */}
+      <div className="overflow-x-auto -mx-4 sm:mx-0 sm:overflow-x-visible">
+        <div className="px-4 sm:px-0">
+          <Table
+            columns={columns}
+            data={filteredPedidos}
+            emptyMessage="No hay pedidos en el historial"
+          />
+        </div>
+      </div>
     </div>
   );
 }

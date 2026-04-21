@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   const pedidosOperativosColumns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "cliente", label: "Cliente" },
-    { key: "servicio", label: "Servicio" },
+    { key: "servicio", label: "Servicio", render: (value) => <span className="truncate">{value}</span> },
     {
       key: "estado",
       label: "Estado",
@@ -92,25 +92,25 @@ export default function AdminDashboard() {
       key: "acciones",
       label: "Acciones",
       render: (_, row) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1 lg:gap-2">
           {row.estado !== "pendiente" ? (
-            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "pendiente")}>
-              Pendiente
+            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "pendiente")} title="Marcar como pendiente">
+              P
             </Button>
           ) : null}
           {row.estado !== "en_proceso" ? (
-            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "en_proceso")}>
-              En proceso
+            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "en_proceso")} title="Marcar en proceso">
+              EP
             </Button>
           ) : null}
           {row.estado !== "completado" ? (
-            <Button size="sm" variant="success" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "completado")}>
-              Completar
+            <Button size="sm" variant="success" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "completado")} title="Completar">
+              ✓
             </Button>
           ) : null}
           {row.estado !== "enviado" ? (
-            <Button size="sm" variant="primary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "enviado")}>
-              Enviar
+            <Button size="sm" variant="primary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "enviado")} title="Enviar">
+              E
             </Button>
           ) : null}
         </div>
@@ -178,25 +178,30 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Operativa de Producción */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg lg:text-xl font-bold text-surface-900">Operativa de Producción</h2>
-          <Badge variant="info">{pedidosActivos.length} activos</Badge>
-        </div>
+       {/* Operativa de Producción */}
+       <div className="mt-8">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+           <h2 className="text-lg lg:text-xl font-bold text-surface-900">Operativa de Producción</h2>
+           <Badge variant="info">{pedidosActivos.length} activos</Badge>
+         </div>
 
-        {apiError ? (
-          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {apiError}
-          </div>
-        ) : null}
+         {apiError ? (
+           <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+             {apiError}
+           </div>
+         ) : null}
 
-        <Table
-          columns={pedidosOperativosColumns}
-          data={pedidosActivos}
-          emptyMessage="No hay pedidos activos"
-        />
-      </div>
+         {/* Tabla con scroll horizontal en mobile */}
+         <div className="overflow-x-auto -mx-4 sm:mx-0 sm:overflow-x-visible">
+           <div className="px-4 sm:px-0">
+             <Table
+               columns={pedidosOperativosColumns}
+               data={pedidosActivos}
+               emptyMessage="No hay pedidos activos"
+             />
+           </div>
+         </div>
+       </div>
     </div>
   );
 }

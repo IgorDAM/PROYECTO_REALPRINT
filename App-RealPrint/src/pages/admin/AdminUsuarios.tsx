@@ -157,42 +157,61 @@ export default function AdminUsuarios() {
   };
 
   const columns: TableColumn[] = [
-    { key: "nombre", label: "Nombre", render: (value) => <span className="font-medium">{value}</span> },
-    { key: "username", label: "Usuario" },
-    { key: "email", label: "Email" },
-    { key: "empresa", label: "Empresa", render: (value) => value || "-" },
+    { key: "nombre", label: "Nombre", render: (value) => <span className="font-medium truncate">{value}</span> },
+    { key: "username", label: "Usuario", render: (value) => <span className="text-sm truncate">{value}</span> },
+    { key: "email", label: "Email", render: (value) => <span className="text-sm truncate">{value}</span> },
     { key: "role", label: "Rol", render: (value) => (
-        <Badge variant={value === "admin" ? "info" : "success"}>
+        <Badge variant={value === "admin" ? "info" : "success"} className="text-xs">
           {String(value).charAt(0).toUpperCase() + String(value).slice(1)}
         </Badge>
       )
     },
-    { key: "password", label: "Contraseña", render: () => <span>••••••</span> },
     { key: "activo", label: "Estado", render: (value) => (
-        <Badge variant={value ? "success" : "danger"}>
+        <Badge variant={value ? "success" : "danger"} className="text-xs">
           {value ? "Activo" : "Inactivo"}
         </Badge>
       ),
     },
     { key: "acciones", label: "Acciones", render: (_, row) => (
-        <div className="flex flex-wrap gap-2 min-w-[180px]">
-          <Button size="sm" variant="ghost" onClick={() => handleEdit(row)}>
-            Editar
+        <div className="flex flex-wrap gap-1 min-w-[140px]">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => handleEdit(row)}
+            className="text-xs px-2"
+            title="Editar usuario"
+          >
+            ✎
           </Button>
           <Button
             size="sm"
             variant={row.activo ? "danger" : "success"}
             disabled={isProcessing}
             onClick={() => handleToggleActive(row)}
+            className="text-xs px-2"
+            title={row.activo ? "Desactivar" : "Activar"}
           >
-            {row.activo ? "Desactivar" : "Activar"}
+            {row.activo ? "✕" : "✓"}
           </Button>
-          <Button size="sm" variant="danger" disabled={isProcessing} onClick={() => handleDeleteUsuario(row)}>
-            Eliminar
+          <Button
+            size="sm"
+            variant="danger"
+            disabled={isProcessing}
+            onClick={() => handleDeleteUsuario(row)}
+            className="text-xs px-2"
+            title="Eliminar usuario"
+          >
+            🗑
           </Button>
           {row.role === "cliente" ? (
-            <Button size="sm" variant="secondary" onClick={() => openCatalogoModal(row)}>
-              Catalogo
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => openCatalogoModal(row)}
+              className="text-xs px-2"
+              title="Gestionar catálogo"
+            >
+              ⚙
             </Button>
           ) : null}
         </div>

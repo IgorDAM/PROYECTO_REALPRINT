@@ -251,8 +251,8 @@ export default function AdminPedidos() {
         </div>
       )}
 
-      {/* Tabulaciones consolidadas */}
-      <div className="flex gap-2 mb-6 border-b border-surface-200">
+      {/* Tabulaciones consolidadas - Responsive */}
+      <div className="flex gap-1 sm:gap-2 mb-6 border-b border-surface-200 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         {(Object.entries(tabsConfig) as [typeof activeTab, typeof tabsConfig["activos"]][]).map(([tab, config]) => {
           const count = getPedidosByTab(tab).length;
           const isActive = activeTab === tab;
@@ -265,22 +265,22 @@ export default function AdminPedidos() {
                 setSearchTerm("");
                 setFilterEstado("");
               }}
-              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              className={`px-3 sm:px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap text-sm sm:text-base ${
                 isActive
                   ? "border-primary-600 text-primary-600"
                   : "border-transparent text-surface-600 hover:text-surface-900"
               }`}
             >
-              {config.label} <span className="text-sm text-surface-500">({count})</span>
+              {config.label} <span className="text-xs sm:text-sm text-surface-500">({count})</span>
             </button>
           );
         })}
       </div>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {/* Filters - Responsive stacking */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
         <Input
-          placeholder="Buscar por ID, cliente o pedido..."
+          placeholder="Buscar por ID, cliente..."
           value={searchTerm}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
@@ -290,24 +290,24 @@ export default function AdminPedidos() {
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterEstado(e.target.value)}
           placeholder="Filtrar por estado"
         />
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => { setSearchTerm(""); setFilterEstado(""); }}
-            className="flex-1"
-          >
-            Limpiar filtros
-          </Button>
-        </div>
+        <Button
+          variant="secondary"
+          onClick={() => { setSearchTerm(""); setFilterEstado(""); }}
+          className="w-full"
+        >
+          Limpiar filtros
+        </Button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto md:overflow-x-visible">
-        <Table
-          columns={columns}
-          data={filteredPedidos}
-          emptyMessage="No se encontraron pedidos"
-        />
+      {/* Table - Responsive */}
+      <div className="overflow-x-auto -mx-4 sm:mx-0 sm:overflow-x-visible">
+        <div className="px-4 sm:px-0">
+          <Table
+            columns={columns}
+            data={filteredPedidos}
+            emptyMessage="No se encontraron pedidos"
+          />
+        </div>
       </div>
 
       {/* Detail Modal */}
@@ -421,22 +421,23 @@ export default function AdminPedidos() {
               })()}
             </div>
 
-            <div>
-              <p className="text-surface-500 text-sm mb-2">Cambiar Estado</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(ESTADOS_PEDIDO).map(([key, { label }]) => (
-                  <Button
-                    key={key}
-                    variant={selectedPedido.estado === key ? "primary" : "secondary"}
-                    size="sm"
-                    disabled={isProcessing}
-                    onClick={() => handleUpdateEstado(selectedPedido.id, key)}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-            </div>
+             <div>
+               <p className="text-surface-500 text-sm mb-2">Cambiar Estado</p>
+               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                 {Object.entries(ESTADOS_PEDIDO).map(([key, { label }]) => (
+                   <Button
+                     key={key}
+                     variant={selectedPedido.estado === key ? "primary" : "secondary"}
+                     size="sm"
+                     disabled={isProcessing}
+                     onClick={() => handleUpdateEstado(selectedPedido.id, key)}
+                     className="text-xs sm:text-sm"
+                   >
+                     {label}
+                   </Button>
+                 ))}
+               </div>
+             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-surface-200">
               <Button variant="danger" disabled={isProcessing} onClick={() => {
