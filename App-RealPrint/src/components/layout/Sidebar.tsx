@@ -12,7 +12,7 @@ interface MenuItem {
   icon: string;
 }
 
-type RoleKey = "admin" | "cliente" | "operario";
+type RoleKey = "admin" | "cliente";
 
 /**
  * Menú de navegación lateral según el rol del usuario.
@@ -30,20 +30,12 @@ const menuItems: Record<RoleKey, MenuItem[]> = {
     { path: "/admin", label: "Dashboard", icon: "dashboard" },
     { path: "/admin/pedidos", label: "Pedidos", icon: "package_2" },
     { path: "/admin/historial", label: "Historial", icon: "history" },
-    { path: "/admin/inventario", label: "Inventario", icon: "inventory_2" },
-    { path: "/admin/productos-finales", label: "Productos Finales", icon: "checkroom" },
     { path: "/admin/usuarios", label: "Usuarios", icon: "group" },
-    { path: "/admin/reportes", label: "Reportes", icon: "monitoring" },
   ],
   cliente: [
     { path: "/cliente", label: "Mis Pedidos", icon: "package_2" },
     { path: "/cliente/nuevo-pedido", label: "Nuevo Pedido", icon: "add_circle" },
     { path: "/cliente/historial", label: "Historial", icon: "history" },
-  ],
-  operario: [
-    { path: "/operario", label: "Panel", icon: "dashboard" },
-    { path: "/operario/tareas", label: "Mis Tareas", icon: "task" },
-    { path: "/operario/pedidos", label: "Pedidos", icon: "package_2" },
   ],
 };
 
@@ -51,8 +43,9 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const role = user?.role;
-  const roleKey: RoleKey | null = role === "admin" || role === "cliente" || role === "operario" ? role : null;
+  const roleKey: RoleKey | null = role === "admin" || role === "cliente" ? role : null;
   const items = roleKey ? menuItems[roleKey] : [];
+  const configPath = roleKey ? `/${roleKey}/configuracion` : "/login";
 
   const handleLogout = () => {
     logout();
@@ -102,7 +95,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           <div>
             <p className="text-white font-semibold text-sm">{user?.name}</p>
             <p className="text-white/70 text-xs capitalize">
-              {user?.role === "admin" ? "Administrador" : user?.role === "cliente" ? "Cliente" : "Operario"}
+              {user?.role === "admin" ? "Administrador" : user?.role === "cliente" ? "Cliente" : "Usuario"}
             </p>
           </div>
         </div>
@@ -115,7 +108,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           <NavLink
             key={item.path}
             to={item.path}
-            end={item.path === "/admin" || item.path === "/cliente" || item.path === "/operario"}
+            end={item.path === "/admin" || item.path === "/cliente"}
             onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
@@ -134,7 +127,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       {/* Footer */}
       <div className="px-3 lg:px-4 py-4 lg:py-5 border-t border-white/10 space-y-1">
         <NavLink
-          to={`/${user?.role}/configuracion`}
+          to={configPath}
           onClick={handleNavClick}
           className={({ isActive }) =>
             `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
@@ -159,4 +152,3 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   );
 
 }
-

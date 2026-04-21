@@ -14,27 +14,13 @@ interface TareasDomainOps {
 
 /**
  * Construye operaciones del dominio tareas.
- * Mantiene reglas de asignacion de operario desacopladas de DataContext.
+ * NOTA: La asignación automática de tareas fue eliminada después de unificar operarios con administradores.
  */
 export function createTareasDomain({ tareas, setTareas, usuarios }: TareasDomainConfig): TareasDomainOps {
   const addTareaPorPedido = (pedido) => {
-    const servicioKey = (pedido.servicio || "").toLowerCase();
-    const operario = usuarios.find(
-      (u) => u.role === "operario" && (u.especialidad || "").toLowerCase() === servicioKey,
-    );
-
-    if (!operario) return;
-
-    const nuevaTarea = {
-      id: Date.now(),
-      operarioId: operario.id,
-      pedidoId: pedido.id,
-      tarea: `Atender pedido de ${pedido.servicio}`,
-      estado: "pendiente",
-      fechaCreacion: new Date().toISOString(),
-    };
-
-    setTareas((prev) => [nuevaTarea, ...prev]);
+    // Funcionalidad de asignación de operarios removida
+    // Los administradores ahora manejan todas las operativas de producción
+    return;
   };
 
   const updateTarea = (id, updates) => {

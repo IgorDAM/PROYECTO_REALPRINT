@@ -16,9 +16,4 @@ test.describe('E2E Auth por roles', () => {
     await loginAsRole(page, 'cliente');
     await expect(page.getByText(/panel de cliente/i)).toBeVisible();
   });
-
-  test('login de operario redirige a /operario', async ({ page }) => {
-    await loginAsRole(page, 'operario');
-    await expect(page.getByText(/panel de operaciones/i)).toBeVisible();
-  });
 });

@@ -45,8 +45,6 @@ interface AuthServiceApi {
 const DEFAULT_DEMO_USERS: DemoUser[] = [
   { id: 1, username: "admin", password: "admin123", nombre: "Administrador", role: "admin", activo: true },
   { id: 2, username: "cliente", password: "cliente123", nombre: "Cliente Demo", role: "cliente", activo: true },
-  { id: 3, username: "operario_demo_serigrafia", password: "operario123", nombre: "Operario Demo Serigrafia", role: "operario", activo: true, especialidad: "serigrafia" },
-  { id: 4, username: "operario_demo_rotulacion", password: "operario123", nombre: "Operario Demo Rotulacion", role: "operario", activo: true, especialidad: "rotulacion" },
 ];
 
 /**

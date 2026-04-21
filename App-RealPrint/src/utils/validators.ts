@@ -62,7 +62,7 @@ export function isDate(value) {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(value)) return false;
   const date = new Date(value);
-  return date instanceof Date && !isNaN(date);
+  return date instanceof Date && !isNaN(date.getTime());
 }
 
 export function isUsername(value) {
@@ -116,7 +116,7 @@ export function isValidPrice(value) {
 // ============================================================================
 
 export function validateLoginForm({ username, password }) {
-  const errors = {};
+  const errors: Record<string, string> = {};
 
   if (!isRequired(username)) {
     errors.username = "El usuario es obligatorio";
@@ -137,7 +137,7 @@ export function validateLoginForm({ username, password }) {
 }
 
 export function validatePedidoForm(data) {
-  const errors = {};
+  const errors: Record<string, string> = {};
 
   if (!isRequired(data.cliente)) {
     errors.cliente = "El cliente es obligatorio";
@@ -162,7 +162,7 @@ export function validatePedidoForm(data) {
 }
 
 export function validateUsuarioForm(data) {
-  const errors = {};
+  const errors: Record<string, string> = {};
 
   if (!isRequired(data.username)) {
     errors.username = "El username es obligatorio";
@@ -178,8 +178,8 @@ export function validateUsuarioForm(data) {
 
   if (!isRequired(data.role)) {
     errors.role = "El rol es obligatorio";
-  } else if (!isEnum(data.role, ['admin', 'cliente', 'operario'])) {
-    errors.role = "El rol debe ser admin, cliente u operario";
+  } else if (!isEnum(data.role, ['admin', 'cliente'])) {
+    errors.role = "El rol debe ser admin o cliente";
   }
 
   return {
@@ -189,7 +189,7 @@ export function validateUsuarioForm(data) {
 }
 
 export function validateInventarioForm(data) {
-  const errors = {};
+  const errors: Record<string, string> = {};
 
   if (!isRequired(data.nombre)) {
     errors.nombre = "El nombre es obligatorio";

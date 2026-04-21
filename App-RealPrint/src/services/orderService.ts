@@ -1,10 +1,12 @@
+import { getToken } from './tokenStorage';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 export const orderService = {
   // Crear orden
   createOrder: async (orderData) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: {
@@ -29,7 +31,7 @@ export const orderService = {
   // Obtener todas las órdenes del cliente
   getOrders: async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_BASE}/orders`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -47,7 +49,7 @@ export const orderService = {
   // Obtener orden por ID
   getOrderById: async (id) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_BASE}/orders/${id}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -65,10 +67,12 @@ export const orderService = {
   // Subir archivo
   uploadFile: async (file) => {
     try {
+      // Comentario didáctico: en multipart no enviamos Content-Type manual,
+      // el navegador lo calcula con el boundary correcto.
       const formData = new FormData();
       formData.append('file', file);
 
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {

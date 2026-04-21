@@ -18,7 +18,7 @@ export default function ClienteHistorial() {
 
   // Filtra pedidos finalizados, enviados o cancelados
   const historial = pedidos.filter(
-    (p) => p.clienteId === user?.id && ["completado", "enviado", "cancelado"].includes(p.estado)
+    (p) => String(p.clienteId) === String(user?.id) && ["completado", "enviado", "cancelado"].includes(p.estado)
   );
 
   const columns = [

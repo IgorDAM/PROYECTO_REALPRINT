@@ -23,7 +23,7 @@ export default function ClienteDashboard() {
   const { pedidos, deletePedidoSafe } = usePedidosData();
 
   // Filtra los pedidos del cliente actual
-  const misPedidos = pedidos.filter((p) => p.clienteId === user?.id);
+  const misPedidos = pedidos.filter((p) => String(p.clienteId) === String(user?.id));
   const pedidosActivos = misPedidos.filter((p) => ["pendiente", "en_proceso"].includes(p.estado));
 
   const handleEliminarPedido = async (id) => {

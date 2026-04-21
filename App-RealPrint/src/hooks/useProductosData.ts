@@ -3,25 +3,18 @@ import type { DataContextValue } from "../context/data/dataContext.types";
 
 type ProductosData = Pick<
   DataContextValue,
-  "productosFinales" | "addProductoFinal" | "updateProductoFinal" | "deleteProductoFinal"
+  "productosFinales"
 >;
 
 /**
- * Hook de dominio para productos finales.
+ * Hook de dominio para el catálogo de prendas.
+ * Mantiene nombres legacy (`productosFinales`) por compatibilidad de contrato.
  */
 export function useProductosData(): ProductosData {
-  const {
-    productosFinales,
-    addProductoFinal,
-    updateProductoFinal,
-    deleteProductoFinal,
-  } = useData();
+  const { productosFinales } = useData();
 
   return {
     productosFinales,
-    addProductoFinal,
-    updateProductoFinal,
-    deleteProductoFinal,
   };
 }
 

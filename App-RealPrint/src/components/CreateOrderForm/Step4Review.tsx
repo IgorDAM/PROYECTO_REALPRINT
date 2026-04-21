@@ -2,6 +2,7 @@ import { Button, GlassCard } from '../ui';
 
 interface Step4ReviewProps {
   items: any[];
+  currentItem?: any;
   formData: any;
   onChange: (field: string, value: any) => void;
   onSubmit: () => void;
@@ -11,40 +12,53 @@ interface Step4ReviewProps {
 
 export function Step4Review({
   items,
+  currentItem,
   formData,
   onChange,
   onSubmit,
   onPrev,
   loading = false,
 }: Step4ReviewProps) {
-  const subtotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
+  const reviewItems = items.length > 0 ? items : currentItem ? [currentItem] : [];
+  const subtotal = reviewItems.reduce(
+    (sum, item) =>
+      sum +
+      (item.totalPrice || ((item.price || item.unitPrice || 0) * (item.quantity || 1))),
+    0
+  );
   const taxRate = 0.21; // IVA 21%
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Revisión y Confirmación</h2>
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Revisión y Confirmación</h2>
+        <p className="text-gray-600">Verifica los datos y acepta los términos</p>
+      </div>
 
       {/* Items Summary */}
       <GlassCard className="p-6">
         <h3 className="font-semibold text-lg mb-4">Resumen de Items</h3>
         <div className="space-y-3">
-          {items.map((item, idx) => (
+          {reviewItems.map((item, idx) => (
             <div key={idx} className="pb-3 border-b last:border-b-0">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <p className="font-medium">
-                    {item.type === 'SCREENPRINTING' ? 'Serigrafía Simple' : 'Serigrafía + Planchado'}
+                    Solo Serigrafía
                   </p>
                   <p className="text-sm text-gray-600">
                     {item.quantity} unidades
-                    {item.measurementCm && ` • ${item.measurementCm}cm`}
-                    {item.clothingType && ` • ${item.clothingType}`}
-                    {item.locationPlacement && ` • ${item.locationPlacement}`}
+                    {item.unitWidthCm && item.unitHeightCm && ` • unidad ${Number(item.unitWidthCm).toFixed(1)}x${Number(item.unitHeightCm).toFixed(1)} cm`}
+                    {item.linearMeters && ` • ${Number(item.linearMeters).toFixed(2)} m lineales/unidad`}
+                    {item.linearMetersRaw && ` • ${Number(item.linearMetersRaw).toFixed(2)} m reales`}
+                    {item.spacingCm ? ` • separación ${item.spacingCm} cm` : ''}
+                    {item.billableLinearMeters ? ` • ${item.billableLinearMeters} m facturables` : ''}
+                    {Array.isArray(item.fileUrls) && item.fileUrls.length > 0 && ` • ${item.fileUrls.length} archivo(s)`}
                   </p>
                 </div>
-                <p className="font-semibold">€{(item.price || 0).toFixed(2)}</p>
+                <p className="font-semibold">€{(item.totalPrice || ((item.price || item.unitPrice || 0) * (item.quantity || 1))).toFixed(2)}</p>
               </div>
             </div>
           ))}
@@ -109,7 +123,7 @@ export function Step4Review({
       </GlassCard>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-4 border-t">
         <Button
           onClick={onPrev}
           variant="secondary"

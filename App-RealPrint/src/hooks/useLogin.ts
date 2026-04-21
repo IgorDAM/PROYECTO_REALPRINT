@@ -39,7 +39,8 @@ export function useLogin(): UseLoginResult {
     // Validacion temprana para evitar llamadas innecesarias a authService.
     const validation = validateLoginForm({ username, password });
     if (!validation.isValid) {
-      setError(validation.errors.username || validation.errors.password);
+      const errors = validation.errors as Record<string, string>;
+      setError(errors.username || errors.password || "Formulario inválido");
       return;
     }
 
@@ -48,8 +49,12 @@ export function useLogin(): UseLoginResult {
     try {
       const result = await login(username.trim(), password);
       if (result.success) {
-        // Regla actual: cada rol tiene su ruta base /admin, /cliente, /operario.
-        const redirectPath = `/${result.user.role}`;
+        // Solo se soportan dashboards de admin y cliente.
+        const redirectPath = result.user.role === "admin"
+          ? "/admin"
+          : result.user.role === "cliente"
+            ? "/cliente"
+            : "/login";
         navigate(redirectPath);
       } else {
         const errorMessage = "error" in result ? result.error : "No se ha podido iniciar sesion";

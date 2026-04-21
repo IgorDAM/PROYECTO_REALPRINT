@@ -1,3 +1,72 @@
+import {
+  DEFAULT_PRICING_CONFIG,
+  getRangeForLinearMeters,
+  type PricingConfig,
+} from "../../utils/pricingConfig";
+
+export const MATERIAL_WIDTH_CM = 60;
+
+export interface LayoutMetricsInput {
+  quantity?: number;
+  spacingCm?: number;
+  linearMeters?: number;
+  unitWidthCm?: number;
+  unitHeightCm?: number;
+}
+
+export interface LayoutMetricsResult {
+  quantity: number;
+  spacingCm: number;
+  unitWidthCm?: number;
+  unitHeightCm?: number;
+  unitsPerRow: number;
+  rows: number;
+  linearMetersPerUnit: number;
+  totalLinearMetersRaw: number;
+  billableLinearMeters: number;
+}
+
+export function calculateLayoutMetrics({
+  quantity,
+  spacingCm,
+  linearMeters,
+  unitWidthCm,
+  unitHeightCm,
+}: LayoutMetricsInput): LayoutMetricsResult {
+  const safeQuantity = Math.max(1, Number(quantity) || 1);
+  const safeSpacingCm = Math.max(0, Number(spacingCm) || 0);
+  const safeUnitWidthCm = Number(unitWidthCm) > 0 ? Number(unitWidthCm) : undefined;
+  const safeUnitHeightCm = Number(unitHeightCm) > 0 ? Number(unitHeightCm) : undefined;
+
+  const canUseLayoutByDimensions = Boolean(safeUnitWidthCm && safeUnitHeightCm);
+  const unitsPerRow = canUseLayoutByDimensions
+    ? Math.max(1, Math.floor((MATERIAL_WIDTH_CM + safeSpacingCm) / (safeUnitWidthCm! + safeSpacingCm)))
+    : 1;
+  const rows = Math.max(1, Math.ceil(safeQuantity / unitsPerRow));
+
+  const linearMetersPerUnit = canUseLayoutByDimensions
+    ? safeUnitHeightCm! / 100
+    : Math.max(0, Number(linearMeters) || 0);
+
+  const totalLinearMetersRaw = canUseLayoutByDimensions
+    ? (rows * safeUnitHeightCm! + Math.max(0, rows - 1) * safeSpacingCm) / 100
+    : linearMetersPerUnit * safeQuantity + (safeQuantity > 1 ? ((safeQuantity - 1) * safeSpacingCm) / 100 : 0);
+
+  const billableLinearMeters = Math.max(1, Math.ceil(totalLinearMetersRaw));
+
+  return {
+    quantity: safeQuantity,
+    spacingCm: safeSpacingCm,
+    unitWidthCm: safeUnitWidthCm,
+    unitHeightCm: safeUnitHeightCm,
+    unitsPerRow,
+    rows,
+    linearMetersPerUnit,
+    totalLinearMetersRaw,
+    billableLinearMeters,
+  };
+}
+
 export interface PricingBreakdownItem {
   label: string;
   price: number;
@@ -6,51 +75,68 @@ export interface PricingBreakdownItem {
 export interface PricingInput {
   orderType?: string;
   quantity?: number;
-  clientProvidedClothing?: boolean | null;
+  linearMeters?: number;
+  spacingCm?: number;
+  unitWidthCm?: number;
+  unitHeightCm?: number;
   selectedProductPrice?: number;
   selectedProductLabel?: string;
+  pricingConfig?: PricingConfig;
 }
 
 export interface PricingResult {
   unitPrice: number;
   quantity: number;
+  linearMetersPerUnit: number;
+  rows: number;
+  unitsPerRow: number;
+  totalLinearMetersRaw: number;
+  totalLinearMeters: number;
   totalPrice: number;
   breakdown: PricingBreakdownItem[];
 }
 
-const BASE_SCREENPRINTING_PRICE = 3.5;
-const BASE_PRESSING_PRICE = 2.0;
-
 export function calculateOrderPricing({
   orderType,
   quantity,
-  clientProvidedClothing,
-  selectedProductPrice = 0,
-  selectedProductLabel = "Prenda",
+  linearMeters,
+  spacingCm,
+  unitWidthCm,
+  unitHeightCm,
+  pricingConfig = DEFAULT_PRICING_CONFIG,
 }: PricingInput): PricingResult {
   let unitPrice = 0;
   const breakdown: PricingBreakdownItem[] = [];
+  const layout = calculateLayoutMetrics({
+    quantity,
+    linearMeters,
+    spacingCm,
+    unitWidthCm,
+    unitHeightCm,
+  });
+  const billableLinearMeters = layout.billableLinearMeters;
+  const activeRange = getRangeForLinearMeters(billableLinearMeters, pricingConfig);
 
-  if (orderType === "SCREENPRINTING") {
-    unitPrice = BASE_SCREENPRINTING_PRICE;
-    breakdown.push({ label: "Serigrafia base", price: BASE_SCREENPRINTING_PRICE });
-  } else if (orderType === "SCREENPRINTING_PRESSING") {
-    unitPrice = BASE_SCREENPRINTING_PRICE + BASE_PRESSING_PRICE;
-    breakdown.push({ label: "Serigrafia", price: BASE_SCREENPRINTING_PRICE });
-    breakdown.push({ label: "Planchado", price: BASE_PRESSING_PRICE });
-
-    if (clientProvidedClothing === false && selectedProductPrice > 0) {
-      unitPrice += selectedProductPrice;
-      breakdown.push({ label: selectedProductLabel, price: selectedProductPrice });
-    }
+  const isOnlyScreenPrinting = orderType === "SCREENPRINTING" || !orderType;
+  if (isOnlyScreenPrinting) {
+    unitPrice = activeRange?.pricePerLinearMeter || 0;
+    breakdown.push({
+      label: activeRange
+        ? `${activeRange.label} (${billableLinearMeters} m lineales)`
+        : `Metros lineales fuera de rango (${billableLinearMeters} m)`,
+      price: unitPrice * billableLinearMeters,
+    });
   }
-
-  const safeQuantity = Math.max(1, Number(quantity) || 1);
 
   return {
     unitPrice,
-    quantity: safeQuantity,
-    totalPrice: unitPrice * safeQuantity,
+    quantity: layout.quantity,
+    linearMetersPerUnit: layout.linearMetersPerUnit,
+    rows: layout.rows,
+    unitsPerRow: layout.unitsPerRow,
+    totalLinearMetersRaw: layout.totalLinearMetersRaw,
+    totalLinearMeters: billableLinearMeters,
+    totalPrice: unitPrice * billableLinearMeters,
     breakdown,
   };
 }

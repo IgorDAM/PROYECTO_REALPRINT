@@ -7,6 +7,7 @@ interface PedidosDomainConfig {
   setPedidos: SetState<Entity[]>;
   tareas: Entity[];
   setTareas: SetState<Entity[]>;
+  // Nombre legacy por compatibilidad del contrato actual del DataContext.
   productosFinales: Entity[];
   inventario: Entity[];
   updateInventario: (id: number | string, updates: Record<string, any>) => void;
@@ -51,27 +52,39 @@ export function createPedidosDomain({
   };
 
   const applyInventarioMovement = (pedido: Entity, direction: Direction): void => {
-    const productoFinal = productosFinales.find((pf) => pf.id == pedido?.productoFinalId);
-    if (!productoFinal?.productosInventario) return;
+    // `productoFinalId` se conserva como clave legacy en pedidos persistidos.
+    const prendaCatalogo = productosFinales.find((pf) => pf.id == pedido?.productoFinalId);
+    if (!prendaCatalogo) return;
 
     const cantidad = getCantidadMovimiento(pedido);
+    const materialMovements = Array.isArray(prendaCatalogo.materiales)
+      ? prendaCatalogo.materiales
+          .filter((m) => m && m.id !== undefined)
+          .map((m) => ({ id: m.id, cantidad: Number(m.cantidad) || 1 }))
+      : Array.isArray(prendaCatalogo.productosInventario)
+        ? prendaCatalogo.productosInventario.map((id) => ({ id, cantidad: 1 }))
+        : [];
 
-    productoFinal.productosInventario.forEach((id) => {
+    if (!materialMovements.length) return;
+
+    materialMovements.forEach(({ id, cantidad: materialQty }) => {
       const prod = inventario.find((item) => item.id == id);
       if (!prod) return;
 
+      const movementQty = cantidad * materialQty;
+
       if (direction === "consume") {
         updateInventario(id, {
-          stock: Math.max(0, prod.stock - cantidad),
-          usados: (prod.usados || 0) + cantidad,
+          stock: Math.max(0, prod.stock - movementQty),
+          usados: (prod.usados || 0) + movementQty,
         });
         return;
       }
 
       if (direction === "restore") {
         updateInventario(id, {
-          stock: prod.stock + cantidad,
-          usados: Math.max(0, (prod.usados || 0) - cantidad),
+          stock: prod.stock + movementQty,
+          usados: Math.max(0, (prod.usados || 0) - movementQty),
         });
       }
     });
@@ -94,10 +107,11 @@ export function createPedidosDomain({
   };
 
   const addPedido = (pedido) => {
-    const productoFinal = productosFinales.find((pf) => pf.id == pedido.productoFinalId);
+    // `productoFinalId` se conserva por compatibilidad con pedidos previos.
+    const prendaCatalogo = productosFinales.find((pf) => pf.id == pedido.productoFinalId);
 
     const cantidad = Number(pedido?.cantidad) || 1;
-    const unidadesPorCaja = Number(pedido?.tamanoCaja || productoFinal?.tamanoCaja || 50) || 50;
+    const unidadesPorCaja = Number(pedido?.tamanoCaja || prendaCatalogo?.tamanoCaja || 50) || 50;
 
     const newPedido = {
       ...pedido,
@@ -105,9 +119,9 @@ export function createPedidosDomain({
       fecha: new Date().toISOString().split("T")[0],
       estado: "pendiente",
       // Si el producto va en caja, mantener metadata de cajas en un único pedido.
-      boxTotal: productoFinal?.enCaja ? (Number(pedido?.boxTotal) || cantidad) : 1,
+      boxTotal: prendaCatalogo?.enCaja ? (Number(pedido?.boxTotal) || cantidad) : 1,
       cajasCompletadas: Number(pedido?.cajasCompletadas) || 0,
-      tamanoCaja: productoFinal?.enCaja ? unidadesPorCaja : pedido?.tamanoCaja,
+      tamanoCaja: prendaCatalogo?.enCaja ? unidadesPorCaja : pedido?.tamanoCaja,
     };
 
     setPedidos((prev) => [newPedido, ...prev]);

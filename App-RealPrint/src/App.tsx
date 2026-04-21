@@ -12,22 +12,14 @@ import Configuracion from "./pages/Configuracion";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPedidos from "./pages/admin/AdminPedidos";
 import AdminHistorial from "./pages/admin/AdminHistorial";
-import AdminInventario from "./pages/admin/AdminInventario";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
-import AdminReportes from "./pages/admin/AdminReportes";
-import AdminProductosFinales from "./pages/admin/AdminProductosFinales";
 
 // Paginas de cliente
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
-import ClienteNuevoPedido from "./pages/cliente/ClienteNuevoPedido";
 import ClienteHistorial from "./pages/cliente/ClienteHistorial";
+import { CreateOrderForm } from "./components/CreateOrderForm";
 import React, { Suspense, lazy } from "react";
 const ClienteEditarPedido = lazy(() => import("./pages/cliente/ClienteEditarPedido"));
-
-// Paginas de operario
-import OperarioDashboard from "./pages/operario/OperarioDashboard";
-import OperarioTareas from "./pages/operario/OperarioTareas";
-import OperarioPedidos from "./pages/operario/OperarioPedidos";
 
 /**
  * Componente principal de la aplicacion.
@@ -56,11 +48,11 @@ export default function App() {
                 <Route index element={<AdminDashboard />} />
                 <Route path="pedidos" element={<AdminPedidos />} />
                 <Route path="historial" element={<AdminHistorial />} />
-                <Route path="inventario" element={<AdminInventario />} />
                 <Route path="usuarios" element={<AdminUsuarios />} />
-                <Route path="productos-finales" element={<AdminProductosFinales />} />
-                <Route path="reportes" element={<AdminReportes />} />
                 <Route path="configuracion" element={<Configuracion />} />
+                {/* Compatibilidad temporal para enlaces antiguos */}
+                <Route path="inventario" element={<Navigate to="/admin" replace />} />
+                <Route path="productos-finales" element={<Navigate to="/admin" replace />} />
               </Route>
 
               {/* Rutas de cliente */}
@@ -73,7 +65,8 @@ export default function App() {
                 }
               >
                 <Route index element={<ClienteDashboard />} />
-                <Route path="nuevo-pedido" element={<ClienteNuevoPedido />} />
+                <Route path="nuevo-pedido" element={<CreateOrderForm />} />
+                <Route path="crear-pedido" element={<CreateOrderForm />} />
                 <Route
                   path="editar-pedido/:id"
                   element={
@@ -86,21 +79,6 @@ export default function App() {
                 <Route path="configuracion" element={<Configuracion />} />
               </Route>
 
-              {/* Rutas de operario */}
-              <Route
-                path="/operario"
-                element={
-                  <ProtectedRoute allowedRoles={["operario"]}>
-                    <DashboardLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<OperarioDashboard />} />
-                <Route path="tareas" element={<OperarioTareas />} />
-                <Route path="pedidos" element={<OperarioPedidos />} />
-                <Route path="configuracion" element={<Configuracion />} />
-              </Route>
-
               {/* Ruta catch-all para redireccion */}
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
@@ -110,4 +88,3 @@ export default function App() {
     </ErrorBoundary>
   );
 }
-

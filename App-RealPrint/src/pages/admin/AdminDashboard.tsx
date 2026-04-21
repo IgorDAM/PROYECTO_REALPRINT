@@ -16,7 +16,7 @@
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
-import { useInventarioData } from "../../hooks/useInventarioData";
+import { useApiStatus } from "../../hooks/useApiStatus";
 import { usePedidosData } from "../../hooks/usePedidosData";
 import { StatCard, GlassCard, Button, Badge, Table } from "../../components/ui";
 
@@ -27,7 +27,7 @@ interface DashboardOutletContext {
 interface TableColumn {
   key: string;
   label: string;
-  render?: (value: any) => JSX.Element;
+  render?: (value: any, row?: any) => JSX.Element | string;
 }
 
 export default function AdminDashboard() {
@@ -35,14 +35,58 @@ export default function AdminDashboard() {
   const { sidebarOpen } = (useOutletContext() as DashboardOutletContext) || {};
   const { user } = useAuth();
   const { pedidos, getEstadisticas } = usePedidosData();
-  const { inventario } = useInventarioData();
+  const { updatePedidoSafe } = usePedidosData();
+  const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const stats = getEstadisticas();
 
   // Últimos 5 pedidos
   const ultimosPedidos = pedidos.slice(0, 5);
 
-  // Productos con stock bajo
-  const stockBajo = inventario.filter((item) => item.stock <= item.stockMinimo);
+  const pedidosActivos = pedidos.filter((p: any) => p.estado === "pendiente" || p.estado === "en_proceso");
+
+  const getTotalCajas = (pedido: any) => {
+    if (typeof pedido?.boxTotal === "number" && pedido.boxTotal > 0) return pedido.boxTotal;
+    const qty = Number(pedido?.cantidad) || Number(pedido?.cantidadUnidades) || 1;
+    return Math.max(1, qty);
+  };
+
+  const getCajasCompletadas = (pedido: any) => {
+    const total = getTotalCajas(pedido);
+    const current = Number(pedido?.cajasCompletadas) || 0;
+    return Math.min(Math.max(current, 0), total);
+  };
+
+  const getEstadoByCajas = (cajasCompletadas: number, totalCajas: number) => {
+    if (cajasCompletadas <= 0) return "pendiente";
+    if (cajasCompletadas >= totalCajas) return "completado";
+    return "en_proceso";
+  };
+
+  const handleCambiarEstado = async (pedidoId: string | number, nuevoEstado: string) => {
+    await runApi(
+      async () => {
+        await updatePedidoSafe(pedidoId, { estado: nuevoEstado });
+      },
+      "No se ha podido actualizar el estado del pedido"
+    );
+  };
+
+  const handleActualizarCajas = async (pedido: any, nextCajas: number) => {
+    const totalCajas = getTotalCajas(pedido);
+    const cajasCompletadas = Math.min(Math.max(nextCajas, 0), totalCajas);
+    const nuevoEstado = getEstadoByCajas(cajasCompletadas, totalCajas);
+
+    await runApi(
+      async () => {
+        await updatePedidoSafe(pedido.id, {
+          cajasCompletadas,
+          boxTotal: totalCajas,
+          estado: nuevoEstado,
+        });
+      },
+      "No se ha podido actualizar el progreso del pedido"
+    );
+  };
 
   const pedidosColumns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-mono text-primary-600">#{value}</span> },
@@ -57,6 +101,70 @@ export default function AdminDashboard() {
       key: "total",
       label: "Total",
       render: (value) => <span className="font-semibold text-surface-900">€{typeof value === "number" ? value.toFixed(2) : "0.00"}</span>,
+    },
+  ];
+
+  const pedidosOperativosColumns: TableColumn[] = [
+    { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
+    { key: "cliente", label: "Cliente" },
+    { key: "pedido", label: "Pedido", render: (value) => value || "-" },
+    {
+      key: "estado",
+      label: "Estado",
+      render: (value) => <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>,
+    },
+    {
+      key: "cajasCompletadas",
+      label: "Cajas",
+      render: (_, row) => {
+        const total = getTotalCajas(row);
+        const current = getCajasCompletadas(row);
+
+        return (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="w-7 h-7 rounded border border-surface-300 text-surface-700 disabled:opacity-50"
+              disabled={isProcessing || current <= 0}
+              onClick={() => void handleActualizarCajas(row, current - 1)}
+            >
+              -
+            </button>
+            <span className="text-sm font-medium min-w-[56px] text-center">{current}/{total}</span>
+            <button
+              type="button"
+              className="w-7 h-7 rounded border border-surface-300 text-surface-700 disabled:opacity-50"
+              disabled={isProcessing || current >= total}
+              onClick={() => void handleActualizarCajas(row, current + 1)}
+            >
+              +
+            </button>
+          </div>
+        );
+      },
+    },
+    {
+      key: "acciones",
+      label: "Acciones",
+      render: (_, row) => (
+        <div className="flex gap-2">
+          {row.estado !== "pendiente" ? (
+            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "pendiente")}>
+              Pendiente
+            </Button>
+          ) : null}
+          {row.estado !== "en_proceso" ? (
+            <Button size="sm" variant="secondary" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "en_proceso")}>
+              En proceso
+            </Button>
+          ) : null}
+          {row.estado !== "completado" ? (
+            <Button size="sm" variant="success" disabled={isProcessing} onClick={() => void handleCambiarEstado(row.id, "completado")}>
+              Completar
+            </Button>
+          ) : null}
+        </div>
+      ),
     },
   ];
 
@@ -94,22 +202,6 @@ export default function AdminDashboard() {
                 <p className="font-semibold text-surface-900 text-xs">Gestionar Pedidos</p>
               </GlassCard>
             </Link>
-            <Link to="/admin/inventario">
-              <GlassCard className="p-4 text-center group">
-                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-gradient-to-br from-gold-400 to-gold-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-lg text-white">inventory_2</span>
-                </div>
-                <p className="font-semibold text-surface-900 text-xs">Gestionar Inventario</p>
-              </GlassCard>
-            </Link>
-            <Link to="/admin/productos-finales">
-              <GlassCard className="p-4 text-center group">
-                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-lg text-white">checkroom</span>
-                </div>
-                <p className="font-semibold text-surface-900 text-xs">Productos Finales</p>
-              </GlassCard>
-            </Link>
             <Link to="/admin/usuarios">
               <GlassCard className="p-4 text-center group">
                 <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -123,9 +215,9 @@ export default function AdminDashboard() {
       )}
 
       {/* Contenido principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:gap-6">
         {/* Últimos pedidos */}
-        <div className="lg:col-span-2">
+        <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg lg:text-xl font-bold text-surface-900">Últimos Pedidos</h2>
             <Link to="/admin/pedidos">
@@ -134,41 +226,26 @@ export default function AdminDashboard() {
           </div>
           <Table columns={pedidosColumns} data={ultimosPedidos} />
         </div>
+      </div>
 
-        {/* Alertas de stock */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-surface-900">Alertas de Stock</h2>
-            <Badge variant={stockBajo.length > 0 ? "warning" : "success"}>
-              {stockBajo.length} alertas
-            </Badge>
-          </div>
-          <GlassCard className="p-4" hover={false}>
-            {stockBajo.length === 0 ? (
-              <div className="text-center py-6">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-emerald-600">check_circle</span>
-                </div>
-                <p className="text-surface-500">Todo el inventario está en niveles normales</p>
-              </div>
-            ) : (
-              <ul className="space-y-3">
-                {stockBajo.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-200">
-                    <div>
-                      <p className="font-semibold text-surface-900">{item.nombre}</p>
-                      <p className="text-sm text-surface-500">{item.categoria}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-amber-600">{item.stock}</p>
-                      <p className="text-xs text-surface-500">Mín: {item.stockMinimo}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </GlassCard>
+      {/* Operativa de Producción */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg lg:text-xl font-bold text-surface-900">Operativa de Producción</h2>
+          <Badge variant="info">{pedidosActivos.length} activos</Badge>
         </div>
+
+        {apiError ? (
+          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {apiError}
+          </div>
+        ) : null}
+
+        <Table
+          columns={pedidosOperativosColumns}
+          data={pedidosActivos}
+          emptyMessage="No hay pedidos activos"
+        />
       </div>
     </div>
   );

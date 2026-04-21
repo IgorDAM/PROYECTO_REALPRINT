@@ -4,11 +4,8 @@ import type { DataContextValue } from "../context/data/dataContext.types";
 type PedidosData = Pick<
   DataContextValue,
   | "pedidos"
-  | "addPedido"
   | "createPedidoSafe"
-  | "updatePedido"
   | "updatePedidoSafe"
-  | "deletePedido"
   | "deletePedidoSafe"
   | "getEstadisticas"
 >;
@@ -20,22 +17,16 @@ type PedidosData = Pick<
 export function usePedidosData(): PedidosData {
   const {
     pedidos,
-    addPedido,
     createPedidoSafe,
-    updatePedido,
     updatePedidoSafe,
-    deletePedido,
     deletePedidoSafe,
     getEstadisticas,
   } = useData();
 
   return {
     pedidos,
-    addPedido,
     createPedidoSafe,
-    updatePedido,
     updatePedidoSafe,
-    deletePedido,
     deletePedidoSafe,
     getEstadisticas,
   };

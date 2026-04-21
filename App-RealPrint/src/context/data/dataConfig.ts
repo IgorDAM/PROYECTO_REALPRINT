@@ -11,7 +11,6 @@ interface ServiceFlags {
 
 interface DataConfig {
   pedidos: ServiceFlags;
-  inventario: ServiceFlags;
   usuarios: ServiceFlags;
 }
 
@@ -20,11 +19,6 @@ export const dataConfig: DataConfig = {
     useCreateService: import.meta.env.VITE_USE_PEDIDOS_SERVICE_CREATE === "true",
     useUpdateService: import.meta.env.VITE_USE_PEDIDOS_SERVICE_UPDATE === "true",
     useDeleteService: import.meta.env.VITE_USE_PEDIDOS_SERVICE_DELETE === "true",
-  },
-  inventario: {
-    useCreateService: import.meta.env.VITE_USE_INVENTARIO_SERVICE_CREATE === "true",
-    useUpdateService: import.meta.env.VITE_USE_INVENTARIO_SERVICE_UPDATE === "true",
-    useDeleteService: import.meta.env.VITE_USE_INVENTARIO_SERVICE_DELETE === "true",
   },
   usuarios: {
     useCreateService: import.meta.env.VITE_USE_USUARIOS_SERVICE_CREATE === "true",

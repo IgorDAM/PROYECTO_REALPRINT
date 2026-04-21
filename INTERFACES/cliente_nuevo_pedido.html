@@ -92,23 +92,25 @@
                         </div>
                         <div class="space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium">Servicio</span>
+                                    <div class="glass-card w-full rounded-lg h-12 px-4 flex items-center text-white/90 font-semibold">
+                                        Serigrafía
+                                    </div>
+                                </div>
                                 <label class="flex flex-col gap-2">
-                                    <span class="text-sm font-medium">Tipo de Servicio</span>
+                                    <span class="text-sm font-medium">Rango de medida</span>
                                     <select class="glass-input w-full rounded-lg h-12 px-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition text-white">
-                                        <option class="text-gray-800">Selecciona un servicio</option>
-                                        <option value="rotulacion" class="text-gray-800">Rotulación</option>
-                                        <option value="serigrafia" class="text-gray-800">Serigrafía DTF</option>
-                                        <option value="planchado" class="text-gray-800">Planchado</option>
+                                        <option class="text-gray-800">Selecciona un rango</option>
+                                        <option value="small" class="text-gray-800">Pequeño (hasta 10x10 cm)</option>
+                                        <option value="medium" class="text-gray-800">Mediano (hasta 15x15 cm)</option>
+                                        <option value="large" class="text-gray-800">Grande (hasta 25x30 cm)</option>
                                     </select>
-                                </label>
-                                <label class="flex flex-col gap-2">
-                                    <span class="text-sm font-medium">Nombre del Proyecto</span>
-                                    <input class="glass-input w-full rounded-lg h-12 px-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Ej. Rotulación de Vehículo" type="text"/>
                                 </label>
                             </div>
                             <label class="flex flex-col gap-2">
-                                <span class="text-sm font-medium">Descripción del Proyecto</span>
-                                <textarea class="glass-input w-full rounded-lg min-h-28 p-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Detalles sobre el diseño, materiales, dimensiones, etc."></textarea>
+                                <span class="text-sm font-medium">Descripción del Diseño</span>
+                                <textarea class="glass-input w-full rounded-lg min-h-28 p-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Detalles del diseño, colores, ubicación de impresión y cualquier indicación importante."></textarea>
                             </label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <label class="flex flex-col gap-2">
@@ -122,7 +124,7 @@
                             </div>
                             <label class="flex flex-col gap-2">
                                 <span class="text-sm font-medium">Instrucciones Especiales</span>
-                                <textarea class="glass-input w-full rounded-lg min-h-28 p-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Cualquier detalle adicional o preferencia específica"></textarea>
+                                <textarea class="glass-input w-full rounded-lg min-h-28 p-4 focus:outline-none focus:ring-2 focus:ring-white/50 transition placeholder:text-white/70" placeholder="Indica cualquier detalle adicional o preferencia específica"></textarea>
                             </label>
                             <div>
                                 <h3 class="text-lg font-bold">Archivos de Diseño</h3>
@@ -152,11 +154,11 @@
                             <div class="mt-6 space-y-4">
                                 <div class="flex justify-between border-t border-white/20 pt-4">
                                     <p class="text-sm text-white/80">Tipo de Servicio</p>
-                                    <p class="text-sm font-medium">Rotulación</p>
+                                    <p class="text-sm font-medium">Serigrafía</p>
                                 </div>
                                 <div class="flex justify-between border-t border-white/20 pt-4">
-                                    <p class="text-sm text-white/80">Nombre del Proyecto</p>
-                                    <p class="text-sm font-medium">Rotulación de Vehículo</p>
+                                    <p class="text-sm text-white/80">Rango de Medida</p>
+                                    <p class="text-sm font-medium">Mediano (hasta 15x15 cm)</p>
                                 </div>
                                 <div class="flex justify-between border-t border-white/20 pt-4">
                                     <p class="text-sm text-white/80">Cantidad</p>
@@ -165,6 +167,10 @@
                                 <div class="flex justify-between border-t border-white/20 pt-4">
                                     <p class="text-sm text-white/80">Fecha de Entrega</p>
                                     <p class="text-sm font-medium">20/07/2024</p>
+                                </div>
+                                <div class="flex justify-between border-t border-white/20 pt-4">
+                                    <p class="text-sm text-white/80">Archivos</p>
+                                    <p class="text-sm font-medium">1 archivo o más</p>
                                 </div>
                             </div>
                             <div class="mt-8 border-t border-white/20 pt-6">

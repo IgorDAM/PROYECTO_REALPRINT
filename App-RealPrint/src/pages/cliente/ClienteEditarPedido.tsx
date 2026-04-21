@@ -15,12 +15,13 @@ import { Button, Input, Select, Textarea, GlassCard } from "../../components/ui"
 import { useApiStatus } from "../../hooks/useApiStatus";
 import { usePedidosData } from "../../hooks/usePedidosData";
 import { useProductosData } from "../../hooks/useProductosData";
+import LinearPedidoEditor from "./LinearPedidoEditor";
 
 export default function ClienteEditarPedido() {
   const { id } = useParams();
   const { user } = useAuth();
   const { pedidos, updatePedidoSafe } = usePedidosData();
-  const { productosFinales } = useProductosData();
+  const { productosFinales: catalogoPrendas } = useProductosData();
   const { loading: guardando, error: errorGuardado, runApi } = useApiStatus();
   const navigate = useNavigate();
 
@@ -34,6 +35,7 @@ export default function ClienteEditarPedido() {
           servicio: pedido.servicio,
           subservicio: pedido.subservicio || "",
           opcion: pedido.opcion || "",
+          // Mantener clave legacy para compatibilidad de pedidos existentes.
           producto: pedido.productoFinalId || pedido.producto || "",
           prendaCatalogo: pedido.prendaCatalogo || "",
           pedido: pedido.pedido || "",
@@ -68,40 +70,29 @@ export default function ClienteEditarPedido() {
 
   if (!pedido) return null;
 
-  // Filtrado de productos finales igual que en nuevo pedido
-  const clientePermitido = productosFinales.some(
+  const esPedidoLineal =
+    pedido &&
+    typeof pedido.linearMeters === "number" &&
+    pedido.linearMeters > 0;
+
+  if (esPedidoLineal) {
+    return <LinearPedidoEditor pedido={pedido} onCancel={() => navigate("/cliente")} />;
+  }
+
+  // Filtrado de prendas igual que en nuevo pedido
+  const clientePermitido = catalogoPrendas.some(
     (pf) => Array.isArray(pf.clientesPermitidos) && pf.clientesPermitidos.some(cid => String(cid) === String(user.id))
   );
-  let productosFinalesFiltrados = [];
-  if (clientePermitido) {
-    productosFinalesFiltrados = productosFinales.filter((pf) => {
+  const prendasFiltradas = clientePermitido ? (
+    catalogoPrendas.filter((pf) => {
       if (!Array.isArray(pf.clientesPermitidos) || !pf.clientesPermitidos.some(cid => String(cid) === String(user.id))) return false;
       if (pf.servicio !== formData.servicio) return false;
       if (formData.servicio === "serigrafia") {
-        if (formData.subservicio === "solo_serigrafia") {
-          if (pf.subservicio !== "solo_serigrafia") return false;
-          return true;
-        } else if (formData.subservicio === "serigrafia+planchado" || formData.subservicio === "dtf+planchado") {
-          if (pf.subservicio !== formData.subservicio) return false;
-          if (!formData.opcion) return false;
-          const quienRopaNorm = (pf.quienRopa || "").toLowerCase().replace(/\s+/g, "");
-          if (formData.opcion === "cliente_ropa") {
-            if (quienRopaNorm !== "cliente_ropa" && quienRopaNorm !== "ambas") return false;
-          } else if (formData.opcion === "realprint_ropa") {
-            if (quienRopaNorm !== "realprint_ropa" && quienRopaNorm !== "ambas") return false;
-          } else {
-            return false;
-          }
-          return true;
-        } else {
-          return false;
-        }
+        return formData.subservicio === "solo_serigrafia" && pf.subservicio === "solo_serigrafia";
       }
       return true;
-    });
-  } else {
-    productosFinalesFiltrados = [];
-  }
+    })
+  ) : [];
 
   // Maneja cambios en los campos del formulario
   const handleChange = (e) => {
@@ -114,7 +105,7 @@ export default function ClienteEditarPedido() {
       setFormData((prev) => ({ ...prev, opcion: "", tamanoCaja: undefined }));
     }
     if (name === "producto") {
-      const pf = productosFinales.find(p => String(p.id) === String(value));
+      const pf = catalogoPrendas.find(p => String(p.id) === String(value));
       if (pf && pf.enCaja) {
         setFormData((prev) => ({ ...prev, tamanoCaja: pf.tamanoCaja || 50 }));
       } else {
@@ -128,7 +119,7 @@ export default function ClienteEditarPedido() {
     e.preventDefault();
     let productoFinal = null;
     if (formData.producto) {
-      productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+      productoFinal = catalogoPrendas.find(pf => String(pf.id) === String(formData.producto));
     }
     if (!productoFinal) return;
     setCarrito(prev => [...prev, {
@@ -166,7 +157,7 @@ export default function ClienteEditarPedido() {
     // Calcular total del pedido sumando los totales de cada producto
     let totalPedido = 0;
     const carritoActualizado = carrito.map(item => {
-      let productoFinal = item.productoFinal || productosFinales.find(pf => String(pf.id) === String(item.producto));
+      let productoFinal = item.productoFinal || catalogoPrendas.find(pf => String(pf.id) === String(item.producto));
       let precioUnitario = productoFinal?.precio || 0;
       let cantidadUnidades = item.cantidad;
       if (productoFinal && productoFinal.enCaja) {
@@ -220,7 +211,6 @@ export default function ClienteEditarPedido() {
               name="servicio"
               options={[
                 { value: "serigrafia", label: "Serigrafía" },
-                { value: "rotulacion", label: "Rotulación" }
               ]}
               value={formData.servicio}
               onChange={handleChange}
@@ -231,57 +221,39 @@ export default function ClienteEditarPedido() {
                 label="¿Qué necesitas?"
                 name="subservicio"
                 options={[
-                  { value: "solo_serigrafia", label: "Solo Serigrafía" },
-                  { value: "serigrafia+planchado", label: "Serigrafía + Planchado" },
-                  { value: "dtf+planchado", label: "DTF + Planchado" }
+                  { value: "solo_serigrafia", label: "Solo Serigrafía" }
                 ]}
                 value={formData.subservicio}
                 onChange={handleChange}
                 required
               />
             )}
-            {formData.servicio === "serigrafia" && (formData.subservicio === "serigrafia+planchado" || formData.subservicio === "dtf+planchado") && (
+            {clientePermitido && formData.servicio && prendasFiltradas.length > 0 && (
               <Select
-                label="¿Quién proporciona la ropa?"
-                name="opcion"
-                options={[
-                  { value: "cliente_ropa", label: "El cliente entrega la ropa" },
-                  { value: "realprint_ropa", label: "RealPrint proporciona la ropa" }
-                ]}
-                value={formData.opcion}
-                onChange={handleChange}
-                required
-              />
-            )}
-            {clientePermitido && formData.servicio && productosFinalesFiltrados.length > 0 && (
-              <Select
-                label="Producto Final"
+                label="Prenda seleccionada"
                 name="producto"
-                options={productosFinalesFiltrados.map(pf => ({ value: pf.id, label: pf.nombre }))}
+                options={prendasFiltradas.map(pf => ({ value: pf.id, label: pf.nombre }))}
                 value={formData.producto}
                 onChange={handleChange}
                 required={!!formData.servicio}
-                disabled={productosFinalesFiltrados.length === 0}
-                placeholder={productosFinalesFiltrados.length ? "Selecciona un producto final" : "No hay productos finales disponibles"}
+                disabled={prendasFiltradas.length === 0}
+                placeholder={prendasFiltradas.length ? "Selecciona una prenda" : "No hay opciones disponibles"}
               />
             )}
             {/* Nombre del Pedido automático */}
             {(() => {
               let productoFinal = null;
               if (formData.producto) {
-                productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+                productoFinal = catalogoPrendas.find(pf => String(pf.id) === String(formData.producto));
               }
               const nombreProducto = productoFinal ? productoFinal.nombre : "Producto";
               const fechaCreacion = pedido && pedido.fecha ? pedido.fecha : new Date().toISOString().split("T")[0];
-              let nombrePedido = "";
-              if (productoFinal && productoFinal.enCaja && formData.opcion !== "realprint_ropa") {
-                nombrePedido = `${formData.cantidad} caja ${nombreProducto} ${fechaCreacion}`;
-              } else {
-                nombrePedido = `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
-              }
+              const nombrePedido = productoFinal && productoFinal.enCaja
+                ? `${formData.cantidad} caja ${nombreProducto} ${fechaCreacion}`
+                : `${formData.cantidad} ${nombreProducto} ${fechaCreacion}`;
               return (
                 <div className="mb-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto (automático)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del pedido (automático)</label>
                   <div className="px-3 py-2 bg-gray-100 rounded border border-gray-200 text-gray-700">{nombrePedido}</div>
                 </div>
               );
@@ -290,9 +262,9 @@ export default function ClienteEditarPedido() {
             {(() => {
               let productoFinal = null;
               if (formData.producto) {
-                productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+                productoFinal = catalogoPrendas.find(pf => String(pf.id) === String(formData.producto));
               }
-              if (productoFinal && productoFinal.servicio === "serigrafia" && productoFinal.enCaja && formData.opcion !== "realprint_ropa") {
+              if (productoFinal && productoFinal.servicio === "serigrafia" && productoFinal.enCaja) {
                 return (
                   <Input
                     label="Tamaño de la caja"
@@ -309,7 +281,8 @@ export default function ClienteEditarPedido() {
             })()}
           </div>
           <Textarea
-            label="Descripción del Producto"
+            id="descripcion"
+            label="Descripción del pedido"
             name="descripcion"
             placeholder="Detalles sobre el diseño, materiales, colores, dimensiones, etc."
             value={formData.descripcion}
@@ -320,7 +293,7 @@ export default function ClienteEditarPedido() {
             {(() => {
               let productoFinal = null;
               if (formData.producto) {
-                productoFinal = productosFinales.find(pf => String(pf.id) === String(formData.producto));
+                productoFinal = catalogoPrendas.find(pf => String(pf.id) === String(formData.producto));
               }
               if (productoFinal && productoFinal.enCaja) {
                 return (
@@ -360,6 +333,7 @@ export default function ClienteEditarPedido() {
             />
           </div>
           <Textarea
+            id="instrucciones"
             label="Instrucciones Especiales (Opcional)"
             name="instrucciones"
             placeholder="Cualquier detalle adicional o preferencia específica"

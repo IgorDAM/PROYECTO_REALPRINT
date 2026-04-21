@@ -1,53 +1,45 @@
 import { GlassCard } from '../ui';
+import { calculateOrderPricing } from './pricing';
+import type { PricingConfig } from '../../utils/pricingConfig';
 
 interface PricesSummaryProps {
   orderType: string;
-  formData: any;
+  formData: {
+    quantity?: number;
+    linearMeters?: number;
+    spacingCm?: number;
+    unitWidthCm?: number;
+    unitHeightCm?: number;
+  };
   showDetailedBreakdown?: boolean;
+  pricingConfig?: PricingConfig;
 }
 
 export function PricesSummary({
   orderType,
   formData,
   showDetailedBreakdown = false,
+  pricingConfig,
 }: PricesSummaryProps) {
-  // Precios base (estos deberían venir de la API en producción)
-  const BASE_SCREENPRINTING_PRICE = 3.5;
-  const BASE_PRESSING_PRICE = 2.0;
-
-  let pricePerUnit = 0;
-  let breakdown = [];
-
-  if (orderType === 'SCREENPRINTING') {
-    pricePerUnit = BASE_SCREENPRINTING_PRICE;
-    breakdown = [
-      { label: 'Serigrafía base', price: BASE_SCREENPRINTING_PRICE },
-    ];
-  } else if (orderType === 'SCREENPRINTING_PRESSING') {
-    pricePerUnit = BASE_SCREENPRINTING_PRICE + BASE_PRESSING_PRICE;
-    breakdown = [
-      { label: 'Serigrafía', price: BASE_SCREENPRINTING_PRICE },
-      { label: 'Planchado', price: BASE_PRESSING_PRICE },
-    ];
-
-    // Agregar marcaje si está seleccionado
-    if (formData.locationPlacementId) {
-      pricePerUnit += 5.0; // Precio base de la ubicación
-      breakdown.push({ label: 'Marcaje (ubicación)', price: 5.0 });
-    }
-
-    // Agregar prenda si es RealPrint quien la proporciona
-    if (
-      formData.clientProvidedClothing === false &&
-      formData.inventoryProductId
-    ) {
-      const productPrice = 5.5; // Mock - obtener de API
-      pricePerUnit += productPrice;
-      breakdown.push({ label: 'Prenda', price: productPrice });
-    }
-  }
-
-  const totalPrice = pricePerUnit * (formData.quantity || 1);
+  // Comentario didáctico: este cálculo centraliza las reglas de tramos por metro lineal.
+  const {
+    unitPrice,
+    totalPrice,
+    breakdown,
+    linearMetersPerUnit,
+    totalLinearMeters,
+    rows,
+    unitsPerRow,
+    totalLinearMetersRaw,
+  } = calculateOrderPricing({
+    orderType,
+    quantity: formData.quantity,
+    linearMeters: formData.linearMeters,
+    spacingCm: formData.spacingCm,
+    unitWidthCm: formData.unitWidthCm,
+    unitHeightCm: formData.unitHeightCm,
+    pricingConfig,
+  });
 
   return (
     <GlassCard className="bg-green-50 p-4 border border-green-200">
@@ -67,31 +59,80 @@ export function PricesSummary({
       ) : null}
 
       <div className="space-y-2">
+        {/* Comentario didáctico: unitPrice ya es el precio por metro según el tramo activo. */}
         <div className="flex justify-between text-sm">
-          <span className="text-green-800">Precio unitario:</span>
+          <span className="text-green-800">Precio por metro lineal:</span>
           <span className="font-semibold text-green-900">
-            €{pricePerUnit.toFixed(2)}
+            €{unitPrice.toFixed(2)}
+          </span>
+        </div>
+
+        {linearMetersPerUnit ? (
+          <div className="flex justify-between text-sm">
+            <span className="text-green-800">
+              Metros lineales por unidad: {linearMetersPerUnit.toFixed(2)}
+            </span>
+            <span className="font-semibold text-green-900">
+              × {formData.quantity || 1}
+            </span>
+          </div>
+        ) : null}
+
+        {formData.unitWidthCm && formData.unitHeightCm ? (
+          <div className="flex justify-between text-sm">
+            <span className="text-green-800">
+              Unidad referencia: {formData.unitWidthCm} x {formData.unitHeightCm} cm
+            </span>
+            <span className="font-semibold text-green-900">
+              {unitsPerRow} por fila
+            </span>
+          </div>
+        ) : null}
+
+        {formData.spacingCm ? (
+          <div className="flex justify-between text-sm">
+            <span className="text-green-800">
+              Distancia entre unidades: {formData.spacingCm} cm
+            </span>
+            <span className="font-semibold text-green-900">Incluida</span>
+          </div>
+        ) : null}
+
+        <div className="flex justify-between text-sm">
+          <span className="text-green-800">
+            Metros lineales reales:
+          </span>
+          <span className="font-semibold text-green-900">
+            {totalLinearMetersRaw.toFixed(2)} m
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm">
+          <span className="text-green-800">
+            Metros lineales facturables ({rows} filas):
+          </span>
+          <span className="font-semibold text-green-900">
+            {totalLinearMeters.toFixed(2)} m
           </span>
         </div>
 
         {formData.quantity && formData.quantity > 1 ? (
-          <>
-            <div className="flex justify-between text-sm">
-              <span className="text-green-800">
-                Cantidad: {formData.quantity} unidades
-              </span>
-              <span className="font-semibold text-green-900">
-                × €{pricePerUnit.toFixed(2)}
-              </span>
-            </div>
-            <div className="border-t border-green-200 pt-2 flex justify-between">
-              <span className="font-semibold text-green-900">Total:</span>
-              <span className="text-lg font-bold text-green-900">
-                €{totalPrice.toFixed(2)}
-              </span>
-            </div>
-          </>
+          <div className="flex justify-between text-sm">
+            <span className="text-green-800">
+              Cantidad: {formData.quantity} unidades
+            </span>
+            <span className="font-semibold text-green-900">
+              × €{unitPrice.toFixed(2)}
+            </span>
+          </div>
         ) : null}
+
+        <div className="border-t border-green-200 pt-2 flex justify-between">
+          <span className="font-semibold text-green-900">Total facturable:</span>
+          <span className="text-lg font-bold text-green-900">
+            €{totalPrice.toFixed(2)}
+          </span>
+        </div>
       </div>
     </GlassCard>
   );

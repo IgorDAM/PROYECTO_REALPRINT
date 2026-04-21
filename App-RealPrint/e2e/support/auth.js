@@ -3,11 +3,6 @@ import { expect } from '@playwright/test';
 export const CREDENTIALS = {
   admin: { username: 'admin', password: 'admin123', homePath: '/admin' },
   cliente: { username: 'cliente', password: 'cliente123', homePath: '/cliente' },
-  operario: {
-    username: 'operario_demo_serigrafia',
-    password: 'operario123',
-    homePath: '/operario',
-  },
 };
 
 export async function clearAppState(page) {

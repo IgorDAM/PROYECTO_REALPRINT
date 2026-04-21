@@ -1,5 +1,9 @@
+import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useLocalStorageState } from "./useLocalStorageState";
+
+const STORAGE_RESET_VERSION_KEY = "realprint_seed_reset_version";
+const STORAGE_RESET_VERSION = "2026-04-empty-inventario-productos-finales";
 
 type Entity = Record<string, any>;
 type CatalogosEmpresa = Record<string, any>;
@@ -72,6 +76,17 @@ export function useDataState({
 
   const [usuarios, setUsuarios] = useLocalStorageState("realprint_usuarios", initialUsuarios);
   const [tareas, setTareas] = useLocalStorageState("realprint_tareas", initialTareas);
+
+  useEffect(() => {
+    const currentVersion = localStorage.getItem(STORAGE_RESET_VERSION_KEY);
+    if (currentVersion === STORAGE_RESET_VERSION) return;
+
+    localStorage.removeItem("realprint_productos_finales");
+    localStorage.removeItem("realprint_inventario");
+    setProductosFinales(initialProductosFinales);
+    setInventario(initialInventario);
+    localStorage.setItem(STORAGE_RESET_VERSION_KEY, STORAGE_RESET_VERSION);
+  }, [initialInventario, initialProductosFinales, setInventario, setProductosFinales]);
 
   return {
     productosFinales,

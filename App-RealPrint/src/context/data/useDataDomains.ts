@@ -1,6 +1,5 @@
 import { createCatalogosDomain } from "./catalogosDomain";
 import { createEstadisticasDomain } from "./estadisticasDomain";
-import { createInventarioDomain } from "./inventarioDomain";
 import { createPedidosDomain } from "./pedidosDomain";
 import { createProductosDomain } from "./productosDomain";
 import { createTareasDomain } from "./tareasDomain";
@@ -18,7 +17,6 @@ interface ServiceFlags {
 
 interface DataDomainsConfig {
   pedidos: ServiceFlags;
-  inventario: ServiceFlags;
   usuarios: ServiceFlags;
 }
 
@@ -35,7 +33,6 @@ interface UseDataDomainsInput {
   setUsuarios: SetState<Entity[]>;
   tareas: Entity[];
   setTareas: SetState<Entity[]>;
-  inventarioService: AnyFn | Record<string, any>;
   pedidosService: AnyFn | Record<string, any>;
   usuariosService: AnyFn | Record<string, any>;
   dataConfig: DataDomainsConfig;
@@ -61,7 +58,6 @@ export function useDataDomains({
   setUsuarios,
   tareas,
   setTareas,
-  inventarioService,
   pedidosService,
   usuariosService,
   dataConfig,
@@ -82,21 +78,31 @@ export function useDataDomains({
     usuarios,
   });
 
-  const {
-    updateInventario,
-    updateInventarioSafe,
-    addInventario,
-    addInventarioSafe,
-    deleteInventario,
-    deleteInventarioSafe,
-  } = createInventarioDomain({
-    inventario,
-    setInventario,
-    inventarioService,
-    useCreateService: dataConfig.inventario.useCreateService,
-    useUpdateService: dataConfig.inventario.useUpdateService,
-    useDeleteService: dataConfig.inventario.useDeleteService,
-  });
+  const updateInventario = (id: number | string, updates: Record<string, any>) => {
+    setInventario((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
+  };
+
+  const updateInventarioSafe = async (id: number | string, updates: Record<string, any>) => {
+    updateInventario(id, updates);
+  };
+
+  const addInventario = (item: Entity) => {
+    const newItem = { ...item, id: Date.now(), usados: 0 };
+    setInventario((prev) => [...prev, newItem]);
+    return newItem;
+  };
+
+  const addInventarioSafe = async (item: Entity) => {
+    return addInventario(item);
+  };
+
+  const deleteInventario = (id: number | string) => {
+    setInventario((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const deleteInventarioSafe = async (id: number | string) => {
+    deleteInventario(id);
+  };
 
   const {
     addPedido,

@@ -1,39 +1,18 @@
 import { z } from 'zod';
 
 export const Step1Schema = z.object({
-  orderType: z.enum(['SCREENPRINTING', 'SCREENPRINTING_PRESSING'], {
-    errorMap: () => ({ message: 'Selecciona un tipo de pedido' }),
-  }),
+  linearMeters: z.number().positive('Los metros lineales deben ser mayores a 0'),
+  spacingCm: z.number().min(0, 'La separación no puede ser negativa').default(0),
 });
 
-export const Step2ScreenprintingSchema = z.object({
-  fileUrl: z.string().min(1, 'Archivo requerido'),
+export const Step2Schema = z.object({
+  fileUrls: z.array(z.string().min(1)).min(1, 'Archivo requerido'),
   quantity: z.number().int().min(1, 'Mínimo 1 unidad').max(1000, 'Máximo 1000 unidades'),
-  measurementCm: z.number().int().min(1, 'Mínimo 1 cm').max(50, 'Máximo 50 cm'),
+  linearMeters: z.number().positive('Los metros lineales deben ser mayores a 0'),
+  spacingCm: z.number().min(0, 'La separación no puede ser negativa').default(0),
 });
 
-export const Step2PressingSchema = z.object({
-  clientProvidedClothing: z.boolean(),
-});
-
-export const Step3aSchema = z.object({
-  fileUrl: z.string().min(1, 'Archivo requerido'),
-  quantity: z.number().int().min(1, 'Mínimo 1 unidad').max(1000, 'Máximo 1000 unidades'),
-  measurementCm: z.number().int().min(1, 'Mínimo 1 cm').max(50, 'Máximo 50 cm'),
-  clothingType: z.enum(['Camiseta', 'Sudadera', 'Pantalón', 'Polo'], {
-    errorMap: () => ({ message: 'Selecciona un tipo de prenda' }),
-  }),
-  locationPlacementId: z.string().min(1, 'Selecciona una posición de marcaje'),
-});
-
-export const Step3bSchema = z.object({
-  inventoryProductId: z.string().min(1, 'Selecciona una prenda'),
-  locationPlacementId: z.string().min(1, 'Selecciona una posición de marcaje'),
-  quantity: z.number().int().min(1, 'Mínimo 1 unidad').max(1000, 'Máximo 1000 unidades'),
-  finalProductId: z.string().optional(),
-});
-
-export const Step4Schema = z.object({
+export const Step3Schema = z.object({
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: 'Debes aceptar los términos de servicio',
   }),
@@ -43,14 +22,11 @@ export const Step4Schema = z.object({
 });
 
 export const OrderItemSchema = z.object({
-  type: z.enum(['SCREENPRINTING', 'SCREENPRINTING_PRESSING']),
-  clientProvidedClothing: z.boolean().optional(),
-  fileUrl: z.string().optional(),
+  type: z.literal('SCREENPRINTING'),
+  fileUrls: z.array(z.string().min(1)).min(1),
   quantity: z.number().int().min(1),
-  measurementCm: z.number().int().optional(),
-  locationPlacementId: z.string().optional(),
-  inventoryProductId: z.string().optional(),
-  finalProductId: z.string().optional(),
+  linearMeters: z.number().positive(),
+  spacingCm: z.number().min(0).default(0),
 });
 
 export const CreateOrderSchema = z.object({
@@ -59,11 +35,8 @@ export const CreateOrderSchema = z.object({
 });
 
 export type Step1Type = z.infer<typeof Step1Schema>;
-export type Step2ScreenprintingType = z.infer<typeof Step2ScreenprintingSchema>;
-export type Step2PressingType = z.infer<typeof Step2PressingSchema>;
-export type Step3aType = z.infer<typeof Step3aSchema>;
-export type Step3bType = z.infer<typeof Step3bSchema>;
-export type Step4Type = z.infer<typeof Step4Schema>;
+export type Step2Type = z.infer<typeof Step2Schema>;
+export type Step3Type = z.infer<typeof Step3Schema>;
 export type OrderItemType = z.infer<typeof OrderItemSchema>;
 export type CreateOrderType = z.infer<typeof CreateOrderSchema>;
 

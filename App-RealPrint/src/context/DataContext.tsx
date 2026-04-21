@@ -23,7 +23,7 @@ import {
   INITIAL_TAREAS,
 } from "./data/initialData";
 import { DataContext, useDataContextStrict } from "./DataContextCore";
-import { inventarioService, pedidosService, usuariosService } from "../services";
+import { pedidosService, usuariosService } from "../services";
 import { createDataValue } from "./data/createDataValue";
 import { dataConfig } from "./data/dataConfig";
 import { ESTADOS_PEDIDO, SERVICIOS } from "./data/uiContracts";
@@ -64,28 +64,12 @@ export function DataProvider({ children }: DataProviderProps) {
   const {
     setCatalogoEmpresa,
     getCatalogoEmpresa,
-    addProductoFinal,
-    updateProductoFinal,
-    deleteProductoFinal,
-    addPedido,
     createPedidoSafe,
-    updatePedido,
     updatePedidoSafe,
-    deletePedido,
     deletePedidoSafe,
-    updateInventario,
-    updateInventarioSafe,
-    addInventario,
-    addInventarioSafe,
-    deleteInventario,
-    deleteInventarioSafe,
-    addUsuario,
     addUsuarioSafe,
-    updateUsuario,
     updateUsuarioSafe,
-    deleteUsuario,
     deleteUsuarioSafe,
-    updateTarea,
     getEstadisticas,
   } = useDataDomains({
     productosFinales,
@@ -100,7 +84,6 @@ export function DataProvider({ children }: DataProviderProps) {
     setUsuarios,
     tareas,
     setTareas,
-    inventarioService,
     pedidosService,
     usuariosService,
     dataConfig,
@@ -109,36 +92,16 @@ export function DataProvider({ children }: DataProviderProps) {
   // Contrato publico del contexto consumido por las pantallas actuales.
   const value: DataContextValue = createDataValue({
     productosFinales,
-    setProductosFinales,
-    addProductoFinal,
-    updateProductoFinal,
-    deleteProductoFinal,
     pedidos,
-    inventario,
     usuarios,
-    tareas,
-    catalogosEmpresa,
     setCatalogoEmpresa,
     getCatalogoEmpresa,
-    addPedido,
     createPedidoSafe,
-    updatePedido,
     updatePedidoSafe,
-    deletePedido,
     deletePedidoSafe,
-    updateInventario,
-    updateInventarioSafe,
-    addInventario,
-    addInventarioSafe,
-    deleteInventario,
-    deleteInventarioSafe,
-    addUsuario,
     addUsuarioSafe,
-    updateUsuario,
     updateUsuarioSafe,
-    deleteUsuario,
     deleteUsuarioSafe,
-    updateTarea,
     getEstadisticas,
   });
 

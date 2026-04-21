@@ -1,140 +1,209 @@
+import { calculateLayoutMetrics, MATERIAL_WIDTH_CM } from './pricing';
+
+const MATERIAL_HEIGHT_CM = 100;
+
+interface FileWithDimensions {
+  id: string;
+  name: string;
+  url?: string;
+  widthCm?: number;
+  heightCm?: number;
+}
+
 interface OrderLayoutPreviewProps {
-  fileUrls?: string[];
+  filesWithDimensions?: FileWithDimensions[];
   quantity?: number;
-  linearMeters?: number;
   spacingCm?: number;
-  materialWidthCm?: number;
   className?: string;
 }
 
-function formatFileLabel(fileUrl: string, index: number) {
-  const cleanName = fileUrl.split('/').pop() || fileUrl;
-  return cleanName || `Archivo ${index + 1}`;
+function formatFileLabel(fileUrl: string | undefined, fileName: string, index: number) {
+  const name = fileName || fileUrl?.split('/').pop() || `Archivo ${index + 1}`;
+  return name.length > 20 ? name.substring(0, 17) + '...' : name;
 }
 
 export function OrderLayoutPreview({
-  fileUrls = [],
+  filesWithDimensions = [],
   quantity = 1,
-  linearMeters = 1,
   spacingCm = 0,
-  materialWidthCm = 60,
   className = '',
 }: OrderLayoutPreviewProps) {
   const safeQuantity = Math.max(1, Number(quantity) || 1);
-  const safeLinearMeters = Math.max(0, Number(linearMeters) || 0);
   const safeSpacingCm = Math.max(0, Number(spacingCm) || 0);
-  const totalLinearMetersRaw =
-    safeLinearMeters * safeQuantity +
-    (safeQuantity > 1 ? ((safeQuantity - 1) * safeSpacingCm) / 100 : 0);
-  const visibleUnits = Math.min(safeQuantity, 6);
-  const visibleFiles = fileUrls.slice(0, visibleUnits);
-  const hiddenUnits = safeQuantity - visibleUnits;
-  const unitShare = totalLinearMetersRaw > 0 ? (safeLinearMeters / totalLinearMetersRaw) * 100 : 100;
-  const gapShare = totalLinearMetersRaw > 0 ? ((safeSpacingCm / 100) / totalLinearMetersRaw) * 100 : 0;
+  const validFiles = filesWithDimensions.filter((file) => Number(file.widthCm) > 0 && Number(file.heightCm) > 0);
+
+  // Tomamos la huella máxima para evitar subestimar metros lineales con múltiples archivos.
+  const unitWidthCm = validFiles.length ? Math.max(...validFiles.map((file) => Number(file.widthCm))) : 0;
+  const unitHeightCm = validFiles.length ? Math.max(...validFiles.map((file) => Number(file.heightCm))) : 0;
+
+  const layout = calculateLayoutMetrics({
+    quantity: safeQuantity,
+    spacingCm: safeSpacingCm,
+    unitWidthCm,
+    unitHeightCm,
+  });
+
+  const unitWidthPercent = layout.unitWidthCm ? (layout.unitWidthCm / MATERIAL_WIDTH_CM) * 100 : 0;
+  const unitHeightPercent = layout.unitHeightCm ? (layout.unitHeightCm / MATERIAL_HEIGHT_CM) * 100 : 0;
+  const spacingXPercent = (layout.spacingCm / MATERIAL_WIDTH_CM) * 100;
+  const spacingYPercent = (layout.spacingCm / MATERIAL_HEIGHT_CM) * 100;
+
+  const totalHeightPercent = layout.rows * unitHeightPercent + Math.max(0, layout.rows - 1) * spacingYPercent;
+  const fitsInCanvas = totalHeightPercent <= 100;
+
+  const visibleRows = unitHeightPercent > 0
+    ? Math.max(0, Math.floor((100 + spacingYPercent) / (unitHeightPercent + spacingYPercent)))
+    : 0;
+  const visibleUnits = Math.min(layout.quantity, layout.unitsPerRow * visibleRows);
+  const hiddenUnits = Math.max(0, layout.quantity - visibleUnits);
 
   return (
-    <section className={`rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm ${className}`.trim()}>
-      <div className="mb-3 flex items-start justify-between gap-3">
+    <section className={`rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4 shadow-sm ${className}`.trim()}>
+      <div className="mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-slate-900">Vista previa del paño</h3>
-          <p className="text-xs text-slate-500">Disposición estimada en un panel de 60 × 100 cm.</p>
+          <p className="text-xs text-slate-500">Distribución en panel 60 × 100 cm</p>
         </div>
-        <div className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200">
-          Ancho fijo: {materialWidthCm} cm
+        <div className="rounded-full bg-white px-2 sm:px-3 py-1 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 whitespace-nowrap">
+          Total: {layout.billableLinearMeters} m
         </div>
       </div>
 
-      <div
-        className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-inner"
-        style={{ aspectRatio: '60 / 100' }}
-      >
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-medium text-slate-600">
-          <span>60 cm</span>
-          <span>100 cm</span>
-        </div>
-
-        <div className="flex h-[calc(100%-2rem)] flex-col gap-2 p-3">
-          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-[11px] text-slate-500">
-            Cada bloque representa una unidad del pedido. La separación se muestra entre bloques.
-          </div>
-
-          <div className="flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white p-2">
-            <div className="flex h-full flex-col gap-2 overflow-hidden">
-              {visibleFiles.map((fileUrl, index) => (
-                <div
-                  key={`${fileUrl}-${index}`}
-                  className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-900 shadow-sm"
-                  style={{ flex: `${Math.max(unitShare, 6)} 1 0` }}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-semibold leading-tight">Unidad {index + 1}</p>
-                      <p className="truncate text-[11px] text-orange-800">{formatFileLabel(fileUrl, index)}</p>
-                    </div>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-orange-700 ring-1 ring-orange-200">
-                      {safeLinearMeters.toFixed(2)} m
-                    </span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-orange-200">
-                    <div
-                      className="h-full rounded-full bg-orange-500"
-                      style={{ width: `${Math.max(20, Math.min(100, unitShare))}%` }}
-                    />
-                  </div>
-                </div>
+      {/* Canvas del paño */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_260px] gap-4">
+        <div className="min-w-0">
+          <div
+            className="relative rounded-lg border-2 border-slate-300 bg-white shadow-inner"
+            style={{ aspectRatio: '3 / 5' }}
+          >
+            {/* Fondo con grid orientativo */}
+            <div className="absolute inset-0 opacity-5">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div key={`h-${i}`} className="absolute w-full border-b border-slate-300" style={{ top: `${i * 10}%` }} />
               ))}
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={`v-${i}`} className="absolute h-full border-r border-slate-300" style={{ left: `${i * 16.67}%` }} />
+              ))}
+            </div>
 
-              {safeSpacingCm > 0 && visibleFiles.length > 1 ? (
-                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-1 text-center text-[11px] text-slate-500">
-                  Separación estimada: {safeSpacingCm} cm entre unidades
-                </div>
-              ) : null}
+            {/* Unidades distribuidas en grid */}
+            <div className="absolute inset-0">
+              {validFiles.length ? (
+                <div className="relative w-full h-full p-1 sm:p-2">
+                  {visibleUnits > 0 ? (
+                    Array.from({ length: visibleUnits }).map((_, idx) => {
+                      const file = validFiles[idx % validFiles.length] || validFiles[0];
+                      // Calcular posición en grid (fila y columna)
+                      const row = Math.floor(idx / layout.unitsPerRow);
+                      const col = idx % layout.unitsPerRow;
+                      const topPercent = row * (unitHeightPercent + spacingYPercent);
+                      const leftPercent = col * (unitWidthPercent + spacingXPercent);
 
-              {hiddenUnits > 0 ? (
-                <div className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-center text-[11px] text-slate-600">
-                  +{hiddenUnits} unidad{hiddenUnits > 1 ? 'es' : ''} adicional{hiddenUnits > 1 ? 'es' : ''}
+                      return (
+                        <div
+                          key={`unit-${idx}`}
+                          className="absolute rounded border border-orange-400 bg-gradient-to-b from-orange-100 to-orange-50 flex items-center justify-center text-center p-1 overflow-hidden transition-all hover:shadow-md"
+                          style={{
+                            top: `${topPercent}%`,
+                            left: `${leftPercent}%`,
+                            width: `${unitWidthPercent}%`,
+                            height: `${unitHeightPercent}%`,
+                          }}
+                          title={`${file.name} (${file.widthCm}×${file.heightCm}cm)`}
+                        >
+                          <span className="text-[10px] sm:text-xs font-semibold text-orange-900 truncate">
+                            U{idx + 1}
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : null}
                 </div>
-              ) : null}
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-slate-400 text-xs text-center px-2">
+                  Sube archivos con dimensiones para ver preview
+                </div>
+              )}
+            </div>
+
+            {/* Etiquetas de dimensiones */}
+            <div className="absolute top-1 left-1 right-1 flex justify-between text-[10px] font-semibold text-slate-600 pointer-events-none">
+              <span>60 cm</span>
+              <span>100 cm</span>
             </div>
           </div>
+        </div>
 
-          <div className="rounded-xl bg-slate-900 px-3 py-2 text-[11px] text-white">
-            <div className="flex items-center justify-between gap-2">
-              <span>Metros lineales totales</span>
-              <strong>{totalLinearMetersRaw.toFixed(2)} m</strong>
-            </div>
-            <div className="mt-1 flex items-center justify-between gap-2 text-white/80">
-              <span>{safeQuantity} unidad{safeQuantity > 1 ? 'es' : ''}</span>
-              <span>{safeSpacingCm > 0 ? `${safeSpacingCm} cm de separación` : 'Sin separación'}</span>
-            </div>
-            {visibleFiles.length ? (
-              <p className="mt-1 truncate text-white/70">
-                Archivos: {visibleFiles.map((fileUrl) => formatFileLabel(fileUrl, 0)).join(' • ')}
+        {/* Información detallada */}
+        <div className="flex-1 space-y-2 text-xs">
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-2">
+            <p className="font-semibold text-blue-900 mb-1">Cálculo de metros</p>
+            <div className="space-y-1 text-blue-800 text-[11px]">
+              <p>- Alto por unidad: {layout.unitHeightCm || 0} cm = {layout.linearMetersPerUnit.toFixed(2)} m</p>
+              <p>- Distribución: {layout.rows} fila(s) x {(layout.unitHeightCm || 0)} cm</p>
+              {safeSpacingCm > 0 && (
+                <p>- Separación entre filas: {Math.max(0, layout.rows - 1)} x {safeSpacingCm} cm</p>
+              )}
+              <p className="font-bold border-t border-blue-200 pt-1 mt-1">
+                Total real: {layout.totalLinearMetersRaw.toFixed(2)} m
               </p>
-            ) : null}
+              <p className="font-bold text-blue-900">
+                Facturable: {layout.billableLinearMeters} m
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-slate-100 border border-slate-200 p-2">
+            <p className="font-semibold text-slate-900 mb-2 text-xs">Configuración</p>
+            <dl className="space-y-1 text-slate-700 text-[11px]">
+              <div className="flex justify-between">
+                <dt>Cantidad:</dt>
+                <dd className="font-semibold">{layout.quantity}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Dimensión archivo:</dt>
+                <dd className="font-semibold">{layout.unitWidthCm || 0}×{layout.unitHeightCm || 0} cm</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Separación:</dt>
+                <dd className="font-semibold">{layout.spacingCm} cm</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Distribución:</dt>
+                <dd className="font-semibold">{layout.unitsPerRow} por fila × {layout.rows} fila(s)</dd>
+              </div>
+              {!fitsInCanvas && (
+                <div className="text-amber-700 mt-2 p-1 bg-amber-50 rounded border border-amber-200 text-[10px]">
+                  No cabe todo en el paño. Se muestran {visibleUnits} de {layout.quantity} unidades.
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {hiddenUnits > 0 && (
+            <div className="rounded-lg bg-orange-50 border border-orange-200 p-2 text-orange-800 text-[11px]">
+              <p className="font-semibold">
+                +{hiddenUnits} unidad{hiddenUnits > 1 ? 'es' : ''} fuera del área visible (total: {layout.billableLinearMeters} m)
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {filesWithDimensions?.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-200">
+          <p className="text-xs font-semibold text-slate-600 mb-2">Archivos configurados:</p>
+          <div className="flex flex-wrap gap-1">
+            {filesWithDimensions.map((file, idx) => (
+              <span key={file.id} className="text-xs bg-white border border-slate-200 rounded px-2 py-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                {formatFileLabel(file.url, file.name, idx)}: <strong>{file.widthCm}×{file.heightCm} cm</strong>
+              </span>
+            ))}
           </div>
         </div>
-
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-lg border border-slate-200/70 bg-white/80 px-3 py-1 text-[10px] text-slate-500 backdrop-blur">
-          Visual orientativa para validar cantidad, orden de archivos y separación.
-        </div>
-      </div>
-
-      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-600 sm:grid-cols-3">
-        <div className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200">
-          <span className="block text-[10px] uppercase tracking-wide text-slate-400">Cantidad</span>
-          <strong className="text-slate-900">{safeQuantity}</strong>
-        </div>
-        <div className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200">
-          <span className="block text-[10px] uppercase tracking-wide text-slate-400">Metros por unidad</span>
-          <strong className="text-slate-900">{safeLinearMeters.toFixed(2)} m</strong>
-        </div>
-        <div className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200">
-          <span className="block text-[10px] uppercase tracking-wide text-slate-400">Separación</span>
-          <strong className="text-slate-900">{safeSpacingCm.toFixed(1)} cm</strong>
-        </div>
-      </div>
+      )}
     </section>
   );
 }
+
 

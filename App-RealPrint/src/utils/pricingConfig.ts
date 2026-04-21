@@ -1,79 +1,122 @@
 export interface PriceRange {
   id: string;
   label: string;
-  maxWidthCm: number;
-  maxHeightCm: number;
-  soloSerigrafiaPrice: number;
-  serigrafiaPlanchadoPrice: number;
+  minLinearMeters: number;
+  maxLinearMeters: number;
+  pricePerLinearMeter: number;
 }
 
 export interface PricingConfig {
-  ranges: PriceRange[];
+  materialWidthCm: number;
+  tiers: PriceRange[];
 }
 
+export const MATERIAL_WIDTH_CM = 60;
+
 export const DEFAULT_PRICING_CONFIG: PricingConfig = {
-  ranges: [
+  materialWidthCm: MATERIAL_WIDTH_CM,
+  tiers: [
     {
-      id: "small",
-      label: "Pequeno",
-      maxWidthCm: 10,
-      maxHeightCm: 10,
-      soloSerigrafiaPrice: 3.5,
-      serigrafiaPlanchadoPrice: 5.5,
+      id: "tier-1",
+      label: "1 metro lineal",
+      minLinearMeters: 1,
+      maxLinearMeters: 1,
+      pricePerLinearMeter: 12,
     },
     {
-      id: "medium",
-      label: "Mediano",
-      maxWidthCm: 15,
-      maxHeightCm: 15,
-      soloSerigrafiaPrice: 4.25,
-      serigrafiaPlanchadoPrice: 6.25,
+      id: "tier-2-5",
+      label: "2-5 metros lineales",
+      minLinearMeters: 2,
+      maxLinearMeters: 5,
+      pricePerLinearMeter: 11,
     },
     {
-      id: "large",
-      label: "Grande",
-      maxWidthCm: 25,
-      maxHeightCm: 30,
-      soloSerigrafiaPrice: 5.5,
-      serigrafiaPlanchadoPrice: 7.5,
+      id: "tier-6-20",
+      label: "6-20 metros lineales",
+      minLinearMeters: 6,
+      maxLinearMeters: 20,
+      pricePerLinearMeter: 10,
+    },
+    {
+      id: "tier-21-50",
+      label: "21-50 metros lineales",
+      minLinearMeters: 21,
+      maxLinearMeters: 50,
+      pricePerLinearMeter: 9,
+    },
+    {
+      id: "tier-51-plus",
+      label: "+51 metros lineales",
+      minLinearMeters: 51,
+      maxLinearMeters: 999999,
+      pricePerLinearMeter: 8,
     },
   ],
 };
 
-export const PRICING_CONFIG_KEY = "realprint_pricing_config_v1";
+export const PRICING_CONFIG_KEY = "realprint_pricing_config_v2";
 
-export function getRangeForMeasurement(
-  widthCm: number,
-  heightCm: number,
+export function getRangeForLinearMeters(
+  linearMeters: number,
   config: PricingConfig,
 ): PriceRange | null {
-  if (!widthCm || !heightCm) return null;
-  const safeWidth = Math.max(0, Number(widthCm));
-  const safeHeight = Math.max(0, Number(heightCm));
+  const safeMeters = Math.max(1, Math.ceil(Number(linearMeters) || 0));
 
   return (
-    [...config.ranges]
-      .sort((a, b) => a.maxWidthCm * a.maxHeightCm - b.maxWidthCm * b.maxHeightCm)
-      .find((range) => safeWidth <= range.maxWidthCm && safeHeight <= range.maxHeightCm) || null
+    [...config.tiers]
+      .sort((a, b) => a.minLinearMeters - b.minLinearMeters)
+      .find((tier) => safeMeters >= tier.minLinearMeters && safeMeters <= tier.maxLinearMeters) ||
+    null
   );
+}
+
+function normalizeTier(candidate: any, idx: number): PriceRange | null {
+  if (!candidate || typeof candidate !== "object") return null;
+
+  const isLegacyShape =
+    "maxWidthCm" in candidate ||
+    "maxHeightCm" in candidate ||
+    "soloSerigrafiaPrice" in candidate;
+  if (isLegacyShape && !("minLinearMeters" in candidate) && !("pricePerLinearMeter" in candidate)) {
+    return null;
+  }
+
+  const minLinearMeters = Math.max(1, Number(candidate.minLinearMeters) || 0);
+  const maxCandidate = Number(candidate.maxLinearMeters);
+  const maxLinearMeters = Number.isFinite(maxCandidate)
+    ? Math.max(minLinearMeters, maxCandidate)
+    : 999999;
+
+  return {
+    id: String(candidate.id || `tier-${idx}`),
+    label: String(candidate.label || `Tramo ${idx + 1}`),
+    minLinearMeters,
+    maxLinearMeters,
+    pricePerLinearMeter: Math.max(0, Number(candidate.pricePerLinearMeter) || 0),
+  };
 }
 
 export function normalizePricingConfig(input: unknown): PricingConfig {
   if (!input || typeof input !== "object") return DEFAULT_PRICING_CONFIG;
-  const maybeRanges = (input as PricingConfig).ranges;
-  if (!Array.isArray(maybeRanges) || maybeRanges.length === 0) return DEFAULT_PRICING_CONFIG;
 
-  const normalizedRanges = maybeRanges
-    .filter((range) => range && typeof range === "object")
-    .map((range: any, idx: number) => ({
-      id: String(range.id || `range-${idx}`),
-      label: String(range.label || `Rango ${idx + 1}`),
-      maxWidthCm: Math.max(1, Number(range.maxWidthCm) || 1),
-      maxHeightCm: Math.max(1, Number(range.maxHeightCm) || 1),
-      soloSerigrafiaPrice: Math.max(0, Number(range.soloSerigrafiaPrice) || 0),
-      serigrafiaPlanchadoPrice: Math.max(0, Number(range.serigrafiaPlanchadoPrice) || 0),
-    }));
+  const rawConfig = input as Record<string, unknown>;
+  const materialWidthCm = Math.max(
+    1,
+    Number(rawConfig.materialWidthCm) || MATERIAL_WIDTH_CM,
+  );
+  const candidates = Array.isArray(rawConfig.tiers)
+    ? rawConfig.tiers
+    : Array.isArray(rawConfig.ranges)
+      ? rawConfig.ranges
+      : [];
 
-  return normalizedRanges.length ? { ranges: normalizedRanges } : DEFAULT_PRICING_CONFIG;
+  const normalizedTiers = candidates
+    .filter((tier) => tier && typeof tier === "object")
+    .map((tier, idx) => normalizeTier(tier, idx))
+    .filter((tier): tier is PriceRange => Boolean(tier));
+
+  return normalizedTiers.length
+    ? { materialWidthCm, tiers: normalizedTiers }
+    : DEFAULT_PRICING_CONFIG;
 }
 

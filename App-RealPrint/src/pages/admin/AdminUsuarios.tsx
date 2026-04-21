@@ -45,27 +45,32 @@ interface TableColumn {
 const ROLES: RoleOption[] = [
   { value: "admin", label: "Administrador" },
   { value: "cliente", label: "Cliente" },
-  { value: "operario", label: "Operario" },
 ];
 
 export default function AdminUsuarios() {
   // Estado para modal de catálogo
   const [catalogoModal, setCatalogoModal] = useState<CatalogoModalState>({ open: false, usuario: null });
-  // Acceso a catálogo de empresa
-  const { setCatalogoEmpresa, getCatalogoEmpresa } = useUsuariosData();
+  const { usuarios, updateUsuarioSafe, addUsuarioSafe, deleteUsuarioSafe, setCatalogoEmpresa, getCatalogoEmpresa } = useUsuariosData();
   // Servicios disponibles para catálogo
   const SERVICIOS_CATALOGO = [
+    { value: "serigrafia", label: "Serigrafía" },
     { value: "dtf", label: "DTF" },
-    { value: "rotulacion", label: "Rotulación" },
   ];
   // Estado para edición de catálogo
-  const [servicioCatalogo, setServicioCatalogo] = useState("dtf");
+  const [servicioCatalogo, setServicioCatalogo] = useState("serigrafia");
   const [prendasCatalogo, setPrendasCatalogo] = useState<string[]>([]);
   // Guardar catálogo
   const handleSaveCatalogo = () => {
     if (!catalogoModal.usuario) return;
     setCatalogoEmpresa(catalogoModal.usuario.id, servicioCatalogo, prendasCatalogo.filter((p) => p.trim() !== ""));
     setCatalogoModal({ open: false, usuario: null });
+  };
+
+  const openCatalogoModal = (usuario: UsuarioItem) => {
+    const defaultService = "serigrafia";
+    setServicioCatalogo(defaultService);
+    setPrendasCatalogo(getCatalogoEmpresa(usuario.id, defaultService));
+    setCatalogoModal({ open: true, usuario });
   };
   // Cambiar servicio en modal
   const handleServicioCatalogoChange = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -86,7 +91,6 @@ export default function AdminUsuarios() {
   const handleRemovePrenda = (idx: number) => {
     setPrendasCatalogo((prev) => prev.filter((_, i) => i !== idx));
   };
-  const { usuarios, updateUsuarioSafe, addUsuarioSafe, deleteUsuarioSafe } = useUsuariosData();
   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedUsuario, setSelectedUsuario] = useState<UsuarioItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -158,7 +162,7 @@ export default function AdminUsuarios() {
     { key: "email", label: "Email" },
     { key: "empresa", label: "Empresa", render: (value) => value || "-" },
     { key: "role", label: "Rol", render: (value) => (
-        <Badge variant={value === "admin" ? "info" : value === "operario" ? "warning" : "success"}>
+        <Badge variant={value === "admin" ? "info" : "success"}>
           {String(value).charAt(0).toUpperCase() + String(value).slice(1)}
         </Badge>
       )
@@ -186,7 +190,11 @@ export default function AdminUsuarios() {
           <Button size="sm" variant="danger" disabled={isProcessing} onClick={() => handleDeleteUsuario(row)}>
             Eliminar
           </Button>
-          {/* Botón Catálogo eliminado */}
+          {row.role === "cliente" ? (
+            <Button size="sm" variant="secondary" onClick={() => openCatalogoModal(row)}>
+              Catalogo
+            </Button>
+          ) : null}
         </div>
       ),
     },
@@ -244,14 +252,6 @@ export default function AdminUsuarios() {
       />
 
       {/* Modal Catálogo Empresa */}
-      {selectedUsuario && selectedUsuario.role === "cliente" && (
-        <Input
-          label="Empresa*"
-          value={selectedUsuario.empresa || ""}
-          onChange={(e) => setSelectedUsuario({ ...selectedUsuario, empresa: e.target.value })}
-          required
-        />
-      )}
       <Modal
         isOpen={catalogoModal.open}
         onClose={() => setCatalogoModal({ open: false, usuario: null })}
@@ -321,19 +321,8 @@ export default function AdminUsuarios() {
               label="Rol"
               options={ROLES}
               value={selectedUsuario.role}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedUsuario({ ...selectedUsuario, role: e.target.value, especialidad: e.target.value === 'operario' ? (selectedUsuario.especialidad || 'serigrafia') : undefined })}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedUsuario({ ...selectedUsuario, role: e.target.value, especialidad: undefined })}
             />
-            {selectedUsuario.role === 'operario' && (
-              <Select
-                label="Especialidad"
-                options={[
-                  { value: 'serigrafia', label: 'Serigrafía' },
-                  { value: 'rotulacion', label: 'Rotulación' }
-                ]}
-                value={selectedUsuario.especialidad || 'serigrafia'}
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedUsuario({ ...selectedUsuario, especialidad: e.target.value })}
-              />
-            )}
             <Input
               label="Contraseña"
               type="password"
@@ -389,19 +378,8 @@ export default function AdminUsuarios() {
             label="Rol"
             options={ROLES}
             value={newUsuario.role}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewUsuario({ ...newUsuario, role: e.target.value, especialidad: e.target.value === 'operario' ? (newUsuario.especialidad || 'serigrafia') : undefined })}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewUsuario({ ...newUsuario, role: e.target.value })}
           />
-          {newUsuario.role === 'operario' && (
-            <Select
-              label="Especialidad"
-              options={[
-                { value: 'serigrafia', label: 'Serigrafía' },
-                { value: 'rotulacion', label: 'Rotulación' }
-              ]}
-              value={newUsuario.especialidad || 'serigrafia'}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => setNewUsuario({ ...newUsuario, especialidad: e.target.value })}
-            />
-          )}
           <Input
             label="Contraseña"
             type="password"

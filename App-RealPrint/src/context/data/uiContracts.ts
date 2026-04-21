@@ -28,10 +28,4 @@ export const SERVICIOS: Servicio[] = [
     label: "Serigrafía",
     subservicios: [],
   },
-  {
-    value: "rotulacion",
-    label: "Rotulación",
-    subservicios: [],
-  },
 ];
-

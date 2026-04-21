@@ -84,30 +84,26 @@ describe('estadisticasDomain', () => {
 
   it('debe contar total de usuarios', () => {
     const usuarios = [
-      { id: 1, username: 'admin', role: 'admin' },
-      { id: 2, username: 'operario1', role: 'operario' },
-      { id: 3, username: 'cliente1', role: 'cliente' },
+      { id: 1, username: 'admin', role: 'admin' }, { id: 2, username: 'cliente1', role: 'cliente' },
     ];
 
     const domain = createMockEstadisticasDomain([], [], usuarios);
     const total = domain.getTotalUsuarios();
 
-    expect(total).toBe(3);
+    expect(total).toBe(2);
   });
 
   it('debe contar usuarios por rol', () => {
     const usuarios = [
       { id: 1, username: 'admin', role: 'admin' },
-      { id: 2, username: 'operario1', role: 'operario' },
-      { id: 3, username: 'operario2', role: 'operario' },
-      { id: 4, username: 'cliente1', role: 'cliente' },
+      { id: 2, username: 'cliente1', role: 'cliente' },
+      { id: 3, username: 'cliente2', role: 'cliente' },
     ];
 
     const domain = createMockEstadisticasDomain([], [], usuarios);
 
     expect(domain.getUsuariosPorRol('admin')).toBe(1);
-    expect(domain.getUsuariosPorRol('operario')).toBe(2);
-    expect(domain.getUsuariosPorRol('cliente')).toBe(1);
+    expect(domain.getUsuariosPorRol('cliente')).toBe(2);
   });
 
   it('debe calcular tasa de completitud de pedidos', () => {

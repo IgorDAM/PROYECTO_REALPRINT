@@ -12,10 +12,10 @@ import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
 import { useApiStatus } from "../../hooks/useApiStatus";
-import { useInventarioData } from "../../hooks/useInventarioData";
 import { usePedidosData } from "../../hooks/usePedidosData";
 import { useProductosData } from "../../hooks/useProductosData";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
+import { getToken } from "../../services/tokenStorage";
 
 type PedidoItem = Record<string, any>;
 
@@ -25,15 +25,63 @@ interface TableColumn {
   render?: (value: any, row?: PedidoItem) => JSX.Element | string;
 }
 
+function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
+  // 1) Formato nuevo recomendado: array directo en fileUrls.
+  if (Array.isArray(pedido?.fileUrls)) {
+    return pedido.fileUrls.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+  }
+
+  // 2) Compatibilidad con algunos payloads legacy donde fileUrls venía serializado en JSON.
+  if (typeof pedido?.fileUrls === "string") {
+    try {
+      const parsed = JSON.parse(pedido.fileUrls);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+      }
+    } catch {
+      // Si no es JSON válido, lo tratamos como texto plano.
+      return pedido.fileUrls.trim() ? [pedido.fileUrls.trim()] : [];
+    }
+  }
+
+  // 3) Compatibilidad backend (columna fileUrlsJson).
+  if (typeof pedido?.fileUrlsJson === "string" && pedido.fileUrlsJson.trim()) {
+    try {
+      const parsed = JSON.parse(pedido.fileUrlsJson);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+      }
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function isDownloadableUrl(fileUrl: string): boolean {
+  return fileUrl.startsWith("http://") || fileUrl.startsWith("https://") || fileUrl.startsWith("/");
+}
+
+function getFileNameFromUrl(fileUrl: string, fallbackIndex: number): string {
+  try {
+    const parsed = new URL(fileUrl, window.location.origin);
+    const lastChunk = parsed.pathname.split("/").filter(Boolean).pop();
+    return lastChunk || `archivo-${fallbackIndex + 1}`;
+  } catch {
+    return `archivo-${fallbackIndex + 1}`;
+  }
+}
+
 export default function AdminPedidos() {
   const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
-  const { inventario } = useInventarioData();
-  const { productosFinales } = useProductosData();
+  const { productosFinales: catalogoPrendas } = useProductosData();
   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedPedido, setSelectedPedido] = useState<PedidoItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
 
   const filteredPedidos = (pedidos as PedidoItem[])
     .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente)
@@ -70,12 +118,55 @@ export default function AdminPedidos() {
     if (result !== null) setIsModalOpen(false);
   };
 
+  const handleDownloadFile = async (fileUrl: string, index: number) => {
+    if (!isDownloadableUrl(fileUrl)) return;
+
+    const token = getToken();
+
+    // Comentario didáctico: si el enlace es externo y no requiere JWT,
+    // abrimos en nueva pestaña para no forzar descarga por blob.
+    if ((fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) && !fileUrl.includes("/api/files/")) {
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    setDownloadingFile(fileUrl);
+    try {
+      const response = await fetch(fileUrl, {
+        method: "GET",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        window.open(fileUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = getFileNameFromUrl(fileUrl, index);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      // Fallback didáctico: si falla fetch con token, intentamos apertura directa.
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+    } finally {
+      setDownloadingFile((current) => (current === fileUrl ? null : current));
+    }
+  };
+
   const columns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "cliente", label: "Cliente" },
     { key: "pedido", label: "Pedido" },
-    { key: "productoFinalId", label: "Producto Final", render: (id) => {
-      const pf = productosFinales.find((p: PedidoItem) => p.id == id);
+    { key: "productoFinalId", label: "Prenda", render: (id) => {
+      const pf = catalogoPrendas.find((p: PedidoItem) => p.id == id);
       return pf ? pf.nombre : "-";
     } },
     { key: "fechaEntrega", label: "Entrega" },
@@ -159,10 +250,10 @@ export default function AdminPedidos() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <p className="text-surface-500 text-sm">Producto Final</p>
+                              <p className="text-surface-500 text-sm">Prenda asociada</p>
                               <p className="font-medium">
                                 {(() => {
-                                  const pf = productosFinales.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
+                                  const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
                                   return pf ? pf.nombre : "-";
                                 })()}
                               </p>
@@ -171,11 +262,18 @@ export default function AdminPedidos() {
                               <p className="text-surface-500 text-sm">Materiales Usados</p>
                               <p className="font-medium">
                                 {(() => {
-                                  const pf = productosFinales.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
-                                  if (!pf || !pf.productosInventario) return "-";
-                                  return pf.productosInventario.map((id: string | number) => {
-                                    const prod = inventario.find((i: PedidoItem) => i.id == id);
-                                    return prod ? prod.nombre : id;
+                                  const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
+                                  if (!pf) return "-";
+                                  const materialIds = Array.isArray(pf.materiales)
+                                    ? pf.materiales
+                                        .filter((m: any) => m && m.id !== undefined)
+                                        .map((m: any) => ({ id: m.id, cantidad: Number(m.cantidad) || 1 }))
+                                    : Array.isArray(pf.productosInventario)
+                                      ? pf.productosInventario.map((id: string | number) => ({ id, cantidad: 1 }))
+                                      : [];
+                                  if (!materialIds.length) return "-";
+                                  return materialIds.map(({ id, cantidad }: { id: string | number; cantidad: number }) => {
+                                    return `${id}${cantidad > 1 ? ` x${cantidad}` : ""}`;
                                   }).join(", ");
                                 })()}
                               </p>
@@ -219,6 +317,37 @@ export default function AdminPedidos() {
             <div>
               <p className="text-surface-500 text-sm mb-2">Descripción</p>
               <p className="bg-surface-100 p-3 rounded-lg text-sm sm:text-base">{selectedPedido.descripcion}</p>
+            </div>
+
+            <div>
+              <p className="text-surface-500 text-sm mb-2">Archivos del pedido</p>
+              {(() => {
+                const fileUrls = parseFileUrlsFromPedido(selectedPedido);
+
+                if (fileUrls.length === 0) {
+                  return <p className="text-sm text-surface-500">No hay archivos asociados.</p>;
+                }
+
+                return (
+                  <ul className="space-y-2">
+                    {fileUrls.map((fileUrl, index) => (
+                      <li key={`${fileUrl}-${index}`} className="rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm">
+                        {isDownloadableUrl(fileUrl) ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadFile(fileUrl, index)}
+                            className="text-left text-primary-600 hover:text-primary-700 hover:underline break-all"
+                          >
+                            {downloadingFile === fileUrl ? "Descargando..." : `Descargar archivo ${index + 1}`}
+                          </button>
+                        ) : (
+                          <span className="text-surface-700 break-all">{fileUrl}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
             </div>
 
             <div>

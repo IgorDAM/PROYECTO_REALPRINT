@@ -44,6 +44,34 @@ describe('calculateLayoutMetrics', () => {
     expect(result.totalLinearMetersRaw).toBe(0);
     expect(result.billableLinearMeters).toBe(1);
   });
+
+  it('cuando el ancho de unidad supera 60 cm, fuerza 1 unidad por fila', () => {
+    const result = calculateLayoutMetrics({
+      quantity: 5,
+      unitWidthCm: 70,
+      unitHeightCm: 20,
+      spacingCm: 2,
+    });
+
+    expect(result.unitsPerRow).toBe(1);
+    expect(result.rows).toBe(5);
+    expect(result.totalLinearMetersRaw).toBeCloseTo(1.08, 5);
+    expect(result.billableLinearMeters).toBe(2);
+  });
+
+  it('con cantidades grandes mantiene distribucion estable y redondeo correcto', () => {
+    const result = calculateLayoutMetrics({
+      quantity: 123,
+      unitWidthCm: 14,
+      unitHeightCm: 18,
+      spacingCm: 1.5,
+    });
+
+    expect(result.unitsPerRow).toBe(3);
+    expect(result.rows).toBe(41);
+    expect(result.totalLinearMetersRaw).toBeCloseTo(7.98, 5);
+    expect(result.billableLinearMeters).toBe(8);
+  });
 });
 
 describe('calculateOrderPricing', () => {
@@ -61,6 +89,21 @@ describe('calculateOrderPricing', () => {
     expect(result.totalLinearMetersRaw).toBeCloseTo(1.68, 5);
     expect(result.totalLinearMeters).toBe(2);
     expect(result.totalPrice).toBeGreaterThanOrEqual(0);
+  });
+
+  it('respeta el redondeo al metro facturable en escenarios frontera', () => {
+    const result = calculateOrderPricing({
+      orderType: 'SCREENPRINTING',
+      quantity: 7,
+      unitWidthCm: 30,
+      unitHeightCm: 14,
+      spacingCm: 1,
+    });
+
+    expect(result.unitsPerRow).toBe(1);
+    expect(result.rows).toBe(7);
+    expect(result.totalLinearMetersRaw).toBeCloseTo(1.04, 5);
+    expect(result.totalLinearMeters).toBe(2);
   });
 });
 
