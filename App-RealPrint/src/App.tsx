@@ -11,7 +11,6 @@ import Configuracion from "./pages/Configuracion";
 // Paginas de administrador
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPedidos from "./pages/admin/AdminPedidos";
-import AdminHistorial from "./pages/admin/AdminHistorial";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
 
 // Paginas de cliente
@@ -47,7 +46,7 @@ export default function App() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="pedidos" element={<AdminPedidos />} />
-                <Route path="historial" element={<AdminHistorial />} />
+                <Route path="historial" element={<Navigate to="/admin/pedidos?tab=completados" replace />} />
                 <Route path="usuarios" element={<AdminUsuarios />} />
                 <Route path="configuracion" element={<Configuracion />} />
 

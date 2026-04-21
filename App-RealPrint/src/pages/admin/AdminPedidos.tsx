@@ -15,6 +15,7 @@
  */
 import { useState } from "react";
 import type { ChangeEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
 import { useApiStatus } from "../../hooks/useApiStatus";
 import { usePedidosData } from "../../hooks/usePedidosData";
@@ -79,6 +80,7 @@ function getFileNameFromUrl(fileUrl: string, fallbackIndex: number): string {
 }
 
 export default function AdminPedidos() {
+  const [searchParams] = useSearchParams();
   const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
   const { productosFinales: catalogoPrendas } = useProductosData();
   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
@@ -88,8 +90,14 @@ export default function AdminPedidos() {
   const [filterEstado, setFilterEstado] = useState("");
   const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
 
-  // Nueva funcionalidad: tabulaciones para consolidar vistas
-  const [activeTab, setActiveTab] = useState<"activos" | "completados" | "cancelados">("activos");
+  /**
+   * Detecta query param ?tab= para abrir la pestaña correspondiente.
+   * Usado cuando se redirige desde /admin/historial → /admin/pedidos?tab=completados
+   */
+  const tabFromUrl = searchParams.get("tab") as "activos" | "completados" | "cancelados" | null;
+  const [activeTab, setActiveTab] = useState<"activos" | "completados" | "cancelados">(
+    tabFromUrl === "completados" || tabFromUrl === "cancelados" ? tabFromUrl : "activos"
+  );
 
   /**
    * Mapeo de tabulaciones a los estados que incluyen.
