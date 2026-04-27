@@ -62,6 +62,27 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
     }
   }
 
+  // 4) ✅ NUEVO: Extraer archivos embebidos en descripción (formato "Archivos: archivo1.pdf, archivo2.jpg")
+  if (typeof pedido?.descripcion === "string") {
+    const desc = pedido.descripcion;
+    const match = desc.match(/Archivos:\s*([^\|]+)/);
+    if (match) {
+      const fileList = match[1].trim();
+      const files = fileList
+        .split(',')
+        .map((f) => f.trim())
+        .filter((f): f is string => typeof f === "string" && f.length > 0 && !f.includes('|'))
+        .map((f) => {
+          // Si no es URL, asumimos que es nombre de archivo y construimos URL relativa
+          if (!f.startsWith('http://') && !f.startsWith('https://') && !f.startsWith('/')) {
+            return `/api/files/${f}`;
+          }
+          return f;
+        });
+      if (files.length > 0) return files;
+    }
+  }
+
   return [];
 }
 
