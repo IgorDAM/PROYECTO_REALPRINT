@@ -32,25 +32,40 @@ interface TableColumn {
 }
 
 function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
-  // Función auxiliar para normalizar archivos a URLs
+  const allowedOrigins = (() => {
+    const origins = new Set<string>([window.location.origin]);
+    try {
+      const apiBase = import.meta.env.VITE_API_URL;
+      if (typeof apiBase === "string" && apiBase.trim()) {
+        const parsed = new URL(apiBase, window.location.origin);
+        origins.add(parsed.origin);
+      }
+    } catch {
+      // Ignorar configuraciones malformadas y quedarse con el origen actual.
+    }
+    return origins;
+  })();
+
+  const isAllowedFileUrl = (value: string): boolean => {
+    try {
+      const parsed = new URL(value, window.location.origin);
+      return allowedOrigins.has(parsed.origin) && parsed.pathname.startsWith("/api/files/");
+    } catch {
+      return false;
+    }
+  };
+
   const normalizeToUrl = (f: string): string | null => {
     if (!f || typeof f !== "string") return null;
-    f = f.trim();
-    if (!f) return null;
+    const trimmed = f.trim();
+    if (!trimmed) return null;
 
-    // Si ya es URL, devolverlo
-    if (f.startsWith("http://") || f.startsWith("https://") || f.startsWith("/api/files/")) {
-      return f;
-    }
+    if (isAllowedFileUrl(trimmed)) return trimmed;
+    if (trimmed.startsWith("/api/files/")) return trimmed;
 
-    // Si comienza solo con "/", es URL relativa válida
-    if (f.startsWith("/")) {
-      return f;
-    }
-
-    // Si es nombre de archivo simple (tiene extensión), convertir a URL
-    if (f.includes(".") && !f.includes(" ")) {
-      return `/api/files/${f}`;
+    // Si es nombre de archivo simple (con extension), convertir a URL del backend.
+    if (trimmed.includes(".") && !trimmed.includes(" ")) {
+      return `/api/files/${trimmed}`;
     }
 
     return null;
@@ -73,7 +88,6 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
           .filter((item): item is string => item !== null);
       }
     } catch {
-      // Si no es JSON válido, lo tratamos como texto plano.
       const normalized = normalizeToUrl(pedido.fileUrls);
       return normalized ? [normalized] : [];
     }
@@ -93,11 +107,10 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
     }
   }
 
-  // 4) ✅ NUEVO: Extraer archivos embebidos en descripción (formato "Archivos: archivo1.pdf, archivo2.jpg")
+  // 4) Extraer archivos embebidos en descripción (formato "Archivos: archivo1.pdf, archivo2.jpg")
   if (typeof pedido?.descripcion === "string") {
     const desc = pedido.descripcion;
-    // Buscar patrón "Archivos: ..." antes del siguiente |
-    const match = desc.match(/Archivos:\s*([^\|]+?)(?:\s*\||$)/);
+    const match = desc.match(/Archivos:\s*([^|]+?)(?:\s*\||$)/);
     if (match && match[1]) {
       const fileList = match[1].trim();
       const files = fileList
@@ -112,7 +125,19 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
 }
 
 function isDownloadableUrl(fileUrl: string): boolean {
-  return fileUrl.startsWith("http://") || fileUrl.startsWith("https://") || fileUrl.startsWith("/");
+  try {
+    const allowedOrigins = new Set<string>([window.location.origin]);
+    const apiBase = import.meta.env.VITE_API_URL;
+    if (typeof apiBase === "string" && apiBase.trim()) {
+      const parsed = new URL(apiBase, window.location.origin);
+      allowedOrigins.add(parsed.origin);
+    }
+
+    const parsed = new URL(fileUrl, window.location.origin);
+    return allowedOrigins.has(parsed.origin) && parsed.pathname.startsWith("/api/files/");
+  } catch {
+    return false;
+  }
 }
 
 function getFileNameFromUrl(fileUrl: string, fallbackIndex: number): string {

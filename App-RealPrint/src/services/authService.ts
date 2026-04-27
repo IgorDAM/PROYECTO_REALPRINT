@@ -49,10 +49,13 @@ const DEFAULT_DEMO_USERS: DemoUser[] = [
 
 /**
  * Toggle de estrategia de autenticacion:
- * - true  -> login local (demo/offline)
+ * - true  -> login local (solo desarrollo)
  * - false -> login por API real
+ *
+ * Nota de seguridad:
+ * En produccion forzamos API real aunque alguien deje VITE_USE_LOCAL_AUTH=true.
  */
-const USE_LOCAL_AUTH = import.meta.env.VITE_USE_LOCAL_AUTH !== "false";
+const USE_LOCAL_AUTH = import.meta.env.DEV && import.meta.env.VITE_USE_LOCAL_AUTH !== "false";
 
 /**
  * Lee usuarios guardados localmente con tolerancia a datos corruptos.
