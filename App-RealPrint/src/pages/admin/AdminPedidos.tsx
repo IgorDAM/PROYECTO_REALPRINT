@@ -32,9 +32,35 @@ interface TableColumn {
 }
 
 function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
+  // Función auxiliar para normalizar archivos a URLs
+  const normalizeToUrl = (f: string): string | null => {
+    if (!f || typeof f !== "string") return null;
+    f = f.trim();
+    if (!f) return null;
+
+    // Si ya es URL, devolverlo
+    if (f.startsWith("http://") || f.startsWith("https://") || f.startsWith("/api/files/")) {
+      return f;
+    }
+
+    // Si comienza solo con "/", es URL relativa válida
+    if (f.startsWith("/")) {
+      return f;
+    }
+
+    // Si es nombre de archivo simple (tiene extensión), convertir a URL
+    if (f.includes(".") && !f.includes(" ")) {
+      return `/api/files/${f}`;
+    }
+
+    return null;
+  };
+
   // 1) Formato nuevo recomendado: array directo en fileUrls.
   if (Array.isArray(pedido?.fileUrls)) {
-    return pedido.fileUrls.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+    return pedido.fileUrls
+      .map(normalizeToUrl)
+      .filter((item): item is string => item !== null);
   }
 
   // 2) Compatibilidad con algunos payloads legacy donde fileUrls venía serializado en JSON.
@@ -42,11 +68,14 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
     try {
       const parsed = JSON.parse(pedido.fileUrls);
       if (Array.isArray(parsed)) {
-        return parsed.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+        return parsed
+          .map(normalizeToUrl)
+          .filter((item): item is string => item !== null);
       }
     } catch {
       // Si no es JSON válido, lo tratamos como texto plano.
-      return pedido.fileUrls.trim() ? [pedido.fileUrls.trim()] : [];
+      const normalized = normalizeToUrl(pedido.fileUrls);
+      return normalized ? [normalized] : [];
     }
   }
 
@@ -55,7 +84,9 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
     try {
       const parsed = JSON.parse(pedido.fileUrlsJson);
       if (Array.isArray(parsed)) {
-        return parsed.filter((item: unknown): item is string => typeof item === "string" && item.trim().length > 0);
+        return parsed
+          .map(normalizeToUrl)
+          .filter((item): item is string => item !== null);
       }
     } catch {
       return [];
@@ -65,20 +96,14 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
   // 4) ✅ NUEVO: Extraer archivos embebidos en descripción (formato "Archivos: archivo1.pdf, archivo2.jpg")
   if (typeof pedido?.descripcion === "string") {
     const desc = pedido.descripcion;
-    const match = desc.match(/Archivos:\s*([^\|]+)/);
-    if (match) {
+    // Buscar patrón "Archivos: ..." antes del siguiente |
+    const match = desc.match(/Archivos:\s*([^\|]+?)(?:\s*\||$)/);
+    if (match && match[1]) {
       const fileList = match[1].trim();
       const files = fileList
-        .split(',')
-        .map((f) => f.trim())
-        .filter((f): f is string => typeof f === "string" && f.length > 0 && !f.includes('|'))
-        .map((f) => {
-          // Si no es URL, asumimos que es nombre de archivo y construimos URL relativa
-          if (!f.startsWith('http://') && !f.startsWith('https://') && !f.startsWith('/')) {
-            return `/api/files/${f}`;
-          }
-          return f;
-        });
+        .split(",")
+        .map((f) => normalizeToUrl(f))
+        .filter((f): f is string => f !== null);
       if (files.length > 0) return files;
     }
   }
