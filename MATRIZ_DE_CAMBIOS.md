@@ -292,8 +292,93 @@ md/
 
 ---
 
-**Fecha de generación:** 21 de Abril de 2026  
+---
+
+## CAMBIOS DE PRODUCCIÓN (27 de Abril de 2026)
+
+### src/main/java/com/realprint/realprintbackend/controller/FileController.java
+| Cambio | Línea | Antes | Después | Razón |
+|--------|-------|-------|---------|-------|
+| Autenticación JWT obligatoria | 56-67 | Fallback sin auth para desarrollo | Throw 401 Unauthorized si no hay auth | Seguridad producción obligatoria |
+| Removal System.out.println | 66 | "ADVERTENCIA: Descargando..." | Eliminado | Limpieza de código |
+
+**Nueva estructura:**
+```java
+if (authentication == null || !authentication.isAuthenticated()) {
+    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, 
+        "Se requiere autenticación JWT para descargar archivos");
+}
+validateDownloadAccess(fileName, authentication);
+```
+
+### src/main/resources/application-prod.properties (Nuevo archivo)
+| Campo | Valor | Propósito |
+|-------|-------|----------|
+| spring.datasource.url | jdbc:mysql://localhost:3306/realprint_prod | Base de datos producción |
+| app.jwt.secret | > 32 caracteres aleatorios | Firma JWT tokens |
+| app.upload.dir | /var/realprint/uploads | Almacenamiento archivos producción |
+| app.cors.allowed-origins | https://tudominio.com | CORS solo dominio real |
+| spring.jpa.hibernate.ddl-auto | validate | No modificar BD automáticamente |
+| logging.level | WARN/INFO | Reducir verbosidad |
+
+### App-RealPrint/.env.production (Nuevo archivo)
+| Variable | Valor Desarrollo | Valor Producción | Por Qué |
+|----------|------------------|------------------|---------|
+| VITE_USE_LOCAL_AUTH | true | false ✅ | Usar JWT backend, no localStorage |
+| VITE_AUTH_BACKEND | true | true | Authenticación desde backend |
+| VITE_API_URL | http://localhost:8080 | https://tudominio.com | URL API real |
+| VITE_ENABLE_DEBUG | true | false | Deshabilitar debug en producción |
+
+### Documentación - Nuevos archivos
+| Archivo | Líneas | Propósito |
+|---------|--------|----------|
+| DEPLOYMENT_PRODUCCION_CHECKLIST.md | 500+ | Checklist completo 7 fases |
+| DEPLOYMENT_QUICK_REFERENCE.md | 150+ | Resumen rápido de cambios |
+| DEPLOYMENT_PASO_A_PASO.md | 450+ | Instrucciones visuales paso-a-paso |
+
+---
+
+## COMPARATIVA DESARROLLO vs PRODUCCIÓN
+
+### Autenticación de Descargas
+```
+DESARROLLO:
+- Usuario sin login → intenta descargar → fallback √ permite (VITE_USE_LOCAL_AUTH=true)
+- Sistema:Permite sin JWT para testing local
+
+PRODUCCIÓN:
+- Usuario sin login → intenta descargar → 401 Unauthorized
+- Usuario con JWT válido → puede descargar
+- Sistema: JWT obligatorio, roles verificados
+```
+
+### Variables de Entorno
+```
+DESARROLLO (.env):
+VITE_USE_LOCAL_AUTH=true
+VITE_API_URL=http://localhost:8080
+
+PRODUCCIÓN (.env.production):
+VITE_USE_LOCAL_AUTH=false ✅
+VITE_API_URL=https://tudominio.com ✅
+```
+
+### Backend Spring
+```
+DESARROLLO (application.properties):
+spring.jpa.hibernate.ddl-auto=update
+logging.level.root=DEBUG
+
+PRODUCCIÓN (application-prod.properties):
+spring.jpa.hibernate.ddl-auto=validate ✅
+logging.level.root=WARN ✅
+```
+
+---
+
+**Fecha de generación:** 21 de Abril de 2026 (Auditoría)  
 **Status:** ✅ AUDITORÍA COMPLETADA  
-**Próxima revisión:** 30-60 días
+**Última actualización:** 27 de Abril de 2026 (Cambios Producción)  
+**Próxima revisión:** Posterior al deploy a producción
 
 
