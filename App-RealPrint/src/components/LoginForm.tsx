@@ -10,6 +10,8 @@ import FloatingInput from "./FloatingInput";
 import { useLogin } from "../hooks/useLogin";
 import type { ChangeEvent } from "react";
 
+const SHOW_DEMO_CREDENTIALS = import.meta.env.DEV && import.meta.env.VITE_USE_LOCAL_AUTH !== "false";
+
 export default function LoginForm() {
   // useLogin centraliza validacion, llamada a auth y redireccion por rol.
   const { username, password, setUsername, setPassword, handleSubmit, error, loading } = useLogin();
@@ -73,14 +75,15 @@ export default function LoginForm() {
       </button>
 
       {/* Usuarios demo para acelerar pruebas manuales de UI/roles */}
-      <div className="text-center text-xs mt-6 p-4 bg-surface-50 rounded-xl border border-surface-200">
-        <p className="text-surface-500 mb-2">Usuarios de prueba:</p>
-        <div className="flex flex-wrap justify-center gap-2">
-          <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>admin</strong> / admin123</span>
-          <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>cliente</strong> / cliente123</span>
+      {SHOW_DEMO_CREDENTIALS && (
+        <div className="text-center text-xs mt-6 p-4 bg-surface-50 rounded-xl border border-surface-200">
+          <p className="text-surface-500 mb-2">Usuarios de prueba:</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>admin</strong> / admin123</span>
+            <span className="px-2 py-1 bg-white rounded-lg border border-surface-200 text-surface-700"><strong>cliente</strong> / cliente123</span>
+          </div>
         </div>
-      </div>
+      )}
     </form>
   );
 }
-

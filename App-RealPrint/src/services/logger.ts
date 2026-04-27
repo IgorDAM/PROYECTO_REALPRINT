@@ -10,6 +10,8 @@
 
 const LOG_STORAGE_KEY = 'realprint_logs';
 const MAX_LOGS = 100;
+const IS_DEV = import.meta.env.DEV;
+const PERSIST_LOGS = IS_DEV;
 
 const LogLevel = {
   DEBUG: 'DEBUG',
@@ -37,6 +39,28 @@ interface LogEntry {
   userAgent: string;
 }
 
+function sanitizeLogData(value: any, depth = 0): any {
+  if (value == null || depth > 3) return value;
+  if (Array.isArray(value)) return value.slice(0, 20).map((item) => sanitizeLogData(item, depth + 1));
+  if (typeof value !== 'object') {
+    if (typeof value === 'string' && value.length > 500) return `${value.slice(0, 500)}…`;
+    return value;
+  }
+
+  const redactedKeys = new Set(['password', 'token', 'accessToken', 'refreshToken', 'authorization', 'secret']);
+  const output: Record<string, any> = {};
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (redactedKeys.has(key.toLowerCase())) {
+      output[key] = '[redacted]';
+      continue;
+    }
+    output[key] = sanitizeLogData(entry, depth + 1);
+  }
+
+  return output;
+}
+
 class Logger {
   private minLevel: string;
   private logs: LogEntry[];
@@ -47,6 +71,7 @@ class Logger {
   }
 
   private _loadLogs(): LogEntry[] {
+    if (!PERSIST_LOGS) return [];
     try {
       const stored = localStorage.getItem(LOG_STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -56,6 +81,7 @@ class Logger {
   }
 
   private _saveLogs(): void {
+    if (!PERSIST_LOGS) return;
     try {
       const recent = this.logs.slice(-MAX_LOGS);
       localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(recent));
@@ -72,11 +98,11 @@ class Logger {
     return {
       level,
       message,
-      data,
+      data: sanitizeLogData(data),
       timestamp: new Date().toISOString(),
-      user: this._getCurrentUser(),
+      user: IS_DEV ? this._getCurrentUser() : 'redacted',
       url: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) : 'unknown',
+      userAgent: IS_DEV && typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 50) : 'redacted',
     };
   }
 
@@ -94,6 +120,8 @@ class Logger {
   }
 
   private _logToConsole(level: string, message: string, data: Record<string, any>): void {
+    if (!IS_DEV) return;
+
     const styles: Record<string, string> = {
       DEBUG: 'color: #888; font-size: 12px;',
       INFO: 'color: #0066cc; font-weight: bold;',
@@ -144,17 +172,20 @@ class Logger {
   }
 
   getLogs(level: string | null = null): LogEntry[] {
+    if (!IS_DEV) return [];
     if (!level) return this.logs;
     return this.logs.filter(log => log.level === level);
   }
 
   clearLogs(): void {
     this.logs = [];
-    localStorage.removeItem(LOG_STORAGE_KEY);
+    if (PERSIST_LOGS) {
+      localStorage.removeItem(LOG_STORAGE_KEY);
+    }
   }
 
   exportLogs(): string {
-    return JSON.stringify(this.logs, null, 2);
+    return IS_DEV ? JSON.stringify(this.logs, null, 2) : '[]';
   }
 }
 
