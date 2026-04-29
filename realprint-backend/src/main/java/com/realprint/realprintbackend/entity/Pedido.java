@@ -3,14 +3,21 @@ package com.realprint.realprintbackend.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -23,8 +30,11 @@ import lombok.Setter;
 /**
  * Entidad principal de pedidos.
  *
- * Aquí guardaremos la información base que luego verá el admin y el cliente:
- * cliente, servicio, estado, precio, fechas y datos técnicos del pedido.
+ * Cambios de diseño:
+ * - clienteId ahora es @ManyToOne → Usuario (relación JPA explícita)
+ * - Se elimina clienteNombre (se obtiene de usuario.getNombre())
+ * - Se agrega creadoPorId → Usuario (quién creó el pedido: admin o cliente)
+ * - fileUrlsJson se mantiene por compatibilidad, pero mejor usar PedidoArchivo
  */
 @Entity
 @Table(name = "pedidos")
@@ -40,13 +50,20 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ID del cliente propietario del pedido.
-    @Column(nullable = false)
-    private Long clienteId;
+    // Relación: Cliente propietario del pedido (eliminamos clienteId y clienteNombre)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cliente_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_cliente"))
+    private Usuario cliente;
 
-    // Nombre visible del cliente, útil para administración y listados.
-    @Column(nullable = false)
-    private String clienteNombre;
+    // Relación: Usuario que creó el pedido (admin o el mismo cliente)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "creado_por_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_creado_por"))
+    private Usuario creadoPor;
+
+    // Relación: Archivos asociados al pedido
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<PedidoArchivo> archivos = new ArrayList<>();
 
     // Tipo general de servicio: serigrafía, planchado, etc.
     @Column(nullable = false)
@@ -83,7 +100,7 @@ public class Pedido {
     // Medida del diseño en centímetros (alto).
     private Integer measurementHeightCm;
 
-    // URLs o nombres de archivos subidos, almacenados como texto JSON simple.
+    // URLs o nombres de archivos subidos (deprecated, usar PedidoArchivo en su lugar)
     @Column(columnDefinition = "TEXT")
     private String fileUrlsJson;
 
@@ -144,4 +161,3 @@ public class Pedido {
         this.updatedAt = LocalDateTime.now();
     }
 }
-

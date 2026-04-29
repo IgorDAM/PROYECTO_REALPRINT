@@ -2,18 +2,26 @@ package com.realprint.realprintbackend.service;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.realprint.realprintbackend.entity.Pedido;
 import com.realprint.realprintbackend.entity.PedidoEstado;
+import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.exception.PedidoNoEncontradoException;
 import com.realprint.realprintbackend.repository.PedidoRepository;
+import com.realprint.realprintbackend.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
 
 /**
  * Servicio de pedidos.
+ *
+ * CAMBIOS con nuevo diseño:
+ * - save(Pedido, Authentication) asigna cliente y creadoPor automáticamente
+ * - cliente: El usuario autenticado (o el especificado en DTO si es admin)
+ * - creadoPor: Siempre el usuario autenticado
  *
  * Aquí empezamos a poner la lógica de negocio encima del repositorio:
  * - listar pedidos
@@ -29,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final UsuarioRepository usuarioRepository;
 
     /**
      * Devuelve todos los pedidos. Lo usaremos sobre todo en el panel de admin.
@@ -68,8 +77,34 @@ public class PedidoService {
 
     /**
      * Guarda un pedido nuevo o actualizado.
+     * CAMBIO: Asigna cliente y creadoPor desde el contexto de autenticación.
      *
-     * Si el pedido no tiene id, JPA lo interpreta como inserción.
+     * @param pedido El pedido a guardar
+     * @param auth Contexto de seguridad con el usuario autenticado
+     * @return El pedido guardado
+     */
+    public Pedido save(Pedido pedido, Authentication auth) {
+        // Obtener el usuario autenticado
+        String username = auth.getName();
+        Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+
+        // Asignar creadoPor (siempre el usuario autenticado)
+        pedido.setCreadoPor(usuarioAutenticado);
+
+        // Asignar cliente:
+        // - Si el pedido ya tiene cliente, respetarlo (para ediciones)
+        // - Si no, asignarlo al usuario autenticado
+        if (pedido.getCliente() == null) {
+            pedido.setCliente(usuarioAutenticado);
+        }
+
+        return pedidoRepository.save(pedido);
+    }
+
+    /**
+     * Guarda un pedido sin contexto de autenticación.
+     * Usado internamente, no debe exponerse en Controllers.
      */
     public Pedido save(Pedido pedido) {
         return pedidoRepository.save(pedido);
@@ -83,6 +118,10 @@ public class PedidoService {
         Pedido pedidoExistente = findById(id);
 
         pedidoActualizado.setId(pedidoExistente.getId());
+        // NO modificar cliente ni creadoPor
+        pedidoActualizado.setCliente(pedidoExistente.getCliente());
+        pedidoActualizado.setCreadoPor(pedidoExistente.getCreadoPor());
+
         return pedidoRepository.save(pedidoActualizado);
     }
 
@@ -107,4 +146,3 @@ public class PedidoService {
         pedidoRepository.deleteById(id);
     }
 }
-

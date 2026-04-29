@@ -8,6 +8,11 @@
  * - "Completados": completado, enviado
  * - "Cancelados": cancelado
  *
+ * Filtrado de estado:
+ * - Select muestra TODOS los estados disponibles (pendiente, en_proceso, completado, enviado, cancelado)
+ * - Al seleccionar un estado fuera de la pestaña activa, el resultado estará vacío
+ * - Esto permite subfiltrado granular dentro de cada vista
+ *
  * Buenas prácticas:
  * - Modulariza lógica de filtrado y actualización de estado
  * - Usa componentes UI reutilizables
@@ -283,7 +288,8 @@ export default function AdminPedidos() {
 
   const columns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
-    { key: "cliente", label: "Cliente" },
+    { key: "clienteNombre", label: "Cliente" },
+    { key: "creadoPorNombre", label: "Creado por" },
     { key: "pedido", label: "Pedido" },
     { key: "productoFinalId", label: "Prenda", render: (id) => {
       const pf = catalogoPrendas.find((p: PedidoItem) => p.id == id);
@@ -306,10 +312,11 @@ export default function AdminPedidos() {
   ];
 
   /**
-   * Opciones de filtrado según la pestaña activa.
-   * Solo muestra los estados disponibles en la pestaña actual.
+   * Opciones de filtrado para el SELECT.
+   * Incluye todos los estados disponibles, no solo los de la pestaña activa.
+   * Esto permite hacer subfiltradores dentro de cada vista.
    */
-  const estadoOptions = tabsConfig[activeTab].states.map((state) => ({
+  const estadoOptions = Object.keys(ESTADOS_PEDIDO).map((state) => ({
     value: state,
     label: ESTADOS_PEDIDO[state]?.label || state,
   }));
@@ -430,7 +437,11 @@ export default function AdminPedidos() {
                             </div>
               <div>
                 <p className="text-surface-500 text-sm">Cliente</p>
-                <p className="font-medium">{selectedPedido.cliente}</p>
+                <p className="font-medium">{selectedPedido.clienteNombre}</p>
+              </div>
+              <div>
+                <p className="text-surface-500 text-sm">Creado por</p>
+                <p className="font-medium">{selectedPedido.creadoPorNombre || "-"}</p>
               </div>
               <div>
                 <p className="text-surface-500 text-sm">Pedido</p>
@@ -534,4 +545,5 @@ export default function AdminPedidos() {
     </div>
   );
 }
+
 

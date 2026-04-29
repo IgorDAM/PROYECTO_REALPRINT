@@ -1,7 +1,12 @@
 import { httpClient } from "./httpClient";
 
 /**
- * Servicio CRUD de pedidos (primera versión).
+ * Servicio CRUD de pedidos (versión mejorada).
+ *
+ * CAMBIOS con nuevo diseño:
+ * - Interfaz Pedido ahora incluye creadoPorId y creadoPorNombre
+ * - Backend asigna automáticamente cliente y creadoPor desde contexto de seguridad
+ * - Frontend puede ahora saber quién creó cada pedido
  *
  * **Responsabilidad:**
  * Encapsular todas las operaciones HTTP sobre el endpoint `/pedidos` del backend.
@@ -20,14 +25,17 @@ import { httpClient } from "./httpClient";
  * const pedidos = await pedidosService.list();
  *
  * @example
- * // Crear un nuevo pedido
- * const nuevoP = await pedidosService.create({ clienteId: 1, servicio: "serigrafia" });
+ * // Crear un nuevo pedido (cliente y creadoPor asignados automáticamente por Backend)
+ * const nuevoP = await pedidosService.create({ servicio: "serigrafia", estado: "pendiente" });
  */
 
 interface Pedido {
   id?: number | string;
   clienteId: number;
   clienteNombre?: string;
+  // NUEVO: Quién creó el pedido
+  creadoPorId?: number;
+  creadoPorNombre?: string;
   servicio: string;
   subservicio?: string;
   descripcion?: string;
@@ -78,4 +86,3 @@ export const pedidosService: CrudService = {
     return httpClient.delete(`/pedidos/${id}`) as Promise<void>;
   },
 };
-
