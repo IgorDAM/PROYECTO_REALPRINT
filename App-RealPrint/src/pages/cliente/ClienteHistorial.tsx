@@ -2,6 +2,9 @@
  * Historial de pedidos del cliente.
  * Muestra pedidos finalizados, enviados o cancelados y el total gastado.
  *
+ * CAMBIOS:
+ * - Ahora muestra creadoPorNombre (quién creó el pedido)
+ *
  * Buenas prácticas:
  * - Modulariza lógica de filtrado y columnas de tabla
  * - Usa componentes UI reutilizables
@@ -25,6 +28,7 @@ export default function ClienteHistorial() {
     { key: "id", label: "ID Pedido", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "pedido", label: "Pedido" },
     { key: "servicio", label: "Servicio" },
+    { key: "creadoPorNombre", label: "Creado por" },
     { key: "fecha", label: "Fecha Pedido" },
     { key: "fechaEntrega", label: "Fecha Entrega" },
     {

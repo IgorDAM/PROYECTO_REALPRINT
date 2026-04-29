@@ -100,8 +100,15 @@ class FileControllerTest {
         byte[] payload = "png-demo".getBytes(StandardCharsets.UTF_8);
         ByteArrayResource resource = new ByteArrayResource(payload);
 
-        Usuario cliente = new Usuario("cliente", "hash", "Cliente", "cliente@demo.com", RolUsuario.CLIENTE);
-        cliente.setId(42L);
+        Usuario cliente = Usuario.builder()
+                .id(42L)
+                .username("cliente")
+                .passwordHash("hash")
+                .nombre("Cliente")
+                .email("cliente@demo.com")
+                .rol(RolUsuario.CLIENTE)
+                .activo(true)
+                .build();
 
         when(usuarioRepository.findByUsername("cliente")).thenReturn(Optional.of(cliente));
         when(pedidoRepository.existsByClienteIdAndFileUrlsJsonContaining(42L, "1234-diseno.pdf")).thenReturn(true);
@@ -121,8 +128,15 @@ class FileControllerTest {
 
     @Test
     void downloadClienteNoPropietarioDenegado() {
-        Usuario cliente = new Usuario("cliente", "hash", "Cliente", "cliente@demo.com", RolUsuario.CLIENTE);
-        cliente.setId(77L);
+        Usuario cliente = Usuario.builder()
+                .id(77L)
+                .username("cliente")
+                .passwordHash("hash")
+                .nombre("Cliente")
+                .email("cliente@demo.com")
+                .rol(RolUsuario.CLIENTE)
+                .activo(true)
+                .build();
 
         when(usuarioRepository.findByUsername("cliente")).thenReturn(Optional.of(cliente));
         when(pedidoRepository.existsByClienteIdAndFileUrlsJsonContaining(77L, "1234-diseno.pdf")).thenReturn(false);

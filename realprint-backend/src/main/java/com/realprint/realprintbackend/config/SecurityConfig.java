@@ -45,7 +45,12 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/h2-console/**", "/error").permitAll()
                         // Descargas de archivos: permitir acceso sin autenticación (fallback desarrollo).
                         // El controlador valida permisos si hay token JWT presente.
-                        .requestMatchers("/files/**").permitAll()
+                        .requestMatchers("/api/files/**", "/files/**").permitAll()
+                        // Solo administradores pueden listar todos los pedidos con GET /api/pedidos
+                        // Otros como GET /api/pedidos/{id}, POST /api/pedidos, PUT /api/pedidos/{id} requieren auth.
+                        .requestMatchers("/api/pedidos").hasRole("ADMIN")
+                        // El resto de rutas /api/** requieren autenticación (CLIENTE o ADMIN).
+                        .requestMatchers("/api/**").authenticated()
                         // Solo administradores pueden entrar a rutas de administración.
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Clientes y administradores pueden acceder a la parte de cliente.
