@@ -1,12 +1,95 @@
-# Workspace/IDE
+# =============================================================================
+# .gitignore - Excluir archivos sensibles del repositorio
+# =============================================================================
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Dependencies
+node_modules/
+/frontend/node_modules/
+/backend/.m2/
+
+# Build output
+dist/
+build/
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE
+.vscode/
 .idea/
+*.swp
+*.swo
+*~
+*.iml
+.DS_Store
+
+# Logs
+*.log
+logs/
+/backend/backend.log
 
 # OS
-.DS_Store
 Thumbs.db
+.DS_Store
 
-# App artifacts
-App-RealPrint/test-results/
-App-RealPrint/playwright-report/
+# Uploads
+uploads/*
+!uploads/.gitkeep
 
+# Test coverage
+coverage/
+.nyc_output/
+htmlcov/
+test-results/
 
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Frontend
+/frontend/dist/
+/frontend/.next/
+/frontend/out/
+/frontend/build/
+/frontend/.turbo/
+
+# Backend
+/backend/target/
+/backend/.mvn/wrapper/
+/backend/logs/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+
+# NPM
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Database
+*.db
+*.sqlite
+
+# Backup files
+*.bak
+*.backup
+*~

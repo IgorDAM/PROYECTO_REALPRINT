@@ -1,260 +1,181 @@
-# 🎊 REALPRINT - Sistema de Gestión de Impresión Personalizada
+# RealPrint - Sistema de Gestión de Pedidos
 
-![Status](https://img.shields.io/badge/status-COMPLETADO-brightgreen?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)
-![Tests](https://img.shields.io/badge/tests-83%2F83-success?style=for-the-badge)
-![Coverage](https://img.shields.io/badge/coverage-65--70%25-yellowgreen?style=for-the-badge)
+Sistema integral de gestión de pedidos para servicios de impresión personalizada, con frontend moderno y backend REST seguro.
 
----
-
-## 📋 Descripción del Proyecto
-
-**RealPrint** es una aplicación web moderna para la **gestión integral de pedidos de impresión personalizada**, diseñada para optimizar la colaboración entre clientes y empresas de estampación/rotulación.
-
-### Motivación
-Este proyecto surge de una necesidad detectada en la experiencia profesional en el sector de rotulación y serigrafía. RealPrint optimiza:
-- Reducción de plazos de entrega
-- Mejora de calidad del producto final
-- Mayor sostenibilidad en procesos
-- Gestión directa cliente-operario
-
----
-
-## ✅ ESTADO ACTUAL: 100% COMPLETADO
-
-### Frontend Production-Ready ✅
-- ✅ React 18 + Vite
-- ✅ 83 tests unitarios pasando
-- ✅ Build verde sin errores
-- ✅ 65-70% cobertura de código
-- ✅ Documentación completa
-
-### Falta Backend (Próxima fase)
-- ⏳ API REST (80-120 horas)
-- ⏳ Base de datos
-- ⏳ Autenticación real
-
----
-
-## 🚀 INICIO RÁPIDO
-
-### Para Desarrolladores
-
-```bash
-# 1. Instalar dependencias
-cd App-RealPrint
-npm install
-
-# 2. Iniciar en desarrollo
-npm run dev
-# → http://localhost:5173
-
-# 3. Credenciales demo
-Username: admin
-Password: admin123
-
-# 4. Correr tests
-npm test -- --run
-# → 83/83 tests pasando ✅
-
-# 5. Build producción
-npm run build
-# → Listo para deploy
-```
-
----
-
-## 📚 DOCUMENTACIÓN
-
-| Documento | Propósito |
-|-----------|-----------|
-| **md/05_guias_y_referencias/GUIA_INSTALACION.md** | Setup y troubleshooting |
-| **md/05_guias_y_referencias/REFERENCIA_APIs.md** | APIs, componentes, servicios |
-| **md/04_ejecucion_pasos/PASO_8_COMPLETADO.md** | Resumen de lo completado |
-| **md/07_app_realprint/README.md** | Descripción técnica |
-
-**👉 EMPIEZA AQUÍ:** Lee primero **md/00_inicio/00_COMIENZA_AQUI.md**
-
----
-
-## 🎯 Características Implementadas
-
-### 👨‍💼 Administrador
-- ✅ Dashboard con estadísticas
-- ✅ Gestión de pedidos (CRUD completo)
-- ✅ Gestión de inventario
-- ✅ Gestión de usuarios y roles
-- ✅ Reportes y análisis
-
-### 👥 Cliente
-- ✅ Crear y ver pedidos
-- ✅ Historial de órdenes
-- ✅ Actualizar pedidos pendientes
-- ✅ Panel personalizado
-
-### 🏭 Operario
-- ✅ Ver tareas asignadas
-- ✅ Marcar tareas completadas
-- ✅ Detalles de pedidos
-- ✅ Gestión de trabajo diario
-
----
-
-## 📊 Métricas Finales
-
-```
-Duración:           18.5 horas
-Pasos completados:  8/8
-Tests creados:      83 ✅
-Cobertura:          65-70% ✅
-Build:              Verde ✅
-Lint:               0 errores ✅
-Performance:        A (Lighthouse) ✅
-Bundle:             42.67 KB CSS + 316.61 KB JS ✅
-```
-
----
-
-## 🛠️ Stack Tecnológico
-
-| Aspecto | Tecnología |
-|--------|-----------|
-| Frontend | React 18.2 + Vite 4.4.5 |
-| Styling | Tailwind CSS 3.3.3 |
-| Router | React Router DOM 7.12 |
-| State | Context API + Custom Hooks |
-| Testing | Vitest 4.1 + @testing-library |
-| Build | Vite + Lint automático |
-| Docs | Markdown (10+ archivos) |
-
----
-
-## 📁 Estructura de Carpetas
+## 📁 Estructura del Proyecto
 
 ```
 PROYECTO_REALPRINT/
-├── md/
-│   ├── 00_inicio/00_COMIENZA_AQUI.md
-│   ├── 05_guias_y_referencias/GUIA_INSTALACION.md
-│   ├── 05_guias_y_referencias/REFERENCIA_APIs.md
-│   ├── 04_ejecucion_pasos/PASO_*_COMPLETADO.md
-│   └── 01_indices/INDICE_DOCUMENTACION.md
-└── App-RealPrint/               # Aplicación React
-    ├── src/
-    │   ├── components/          # Componentes UI
-    │   ├── context/            # State (Auth, Data)
-    │   ├── hooks/              # Custom hooks
-    │   ├── pages/              # Páginas por rol
-    │   ├── services/           # HTTP, Logger, Auth
-    │   └── utils/              # Validadores, helpers
-    ├── package.json
-    ├── vite.config.js
-    ├── vitest.config.js
-    └── README.md
+├── frontend/              # React + Vite + TypeScript
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.js
+├── backend/               # Spring Boot 4.0.5 + Java 17
+│   ├── src/
+│   ├── pom.xml
+│   └── target/
+├── docker/                # Configuración Docker
+│   └── docker-compose.yml
+├── scripts/               # Base de datos y utilidades
+│   └── realprint-database-mysql.sql
+├── docs/                  # Documentación
+│   ├── DIAGRAMAS/
+│   ├── INTERFACES/
+│   └── md/
+└── README.md
 ```
 
----
+## 🚀 Inicio Rápido
 
-## 🧪 Testing
+### Requisitos Previos
+- **Node.js** 18+
+- **Java** 17+
+- **Maven** 3.8+
+- **MySQL** 8.0+
+- **Docker** (opcional)
+
+### 1. Configurar Base de Datos
 
 ```bash
-# Todos los tests
-npm test -- --run
-# → 83/83 pasando ✅
-
-# Modo watch
-npm test
-
-# Con UI interactiva
-npm run test:ui
-
-# Cobertura
-npm run test:coverage
+# Abrir MySQL y ejecutar el script
+mysql -u root -p < scripts/realprint-database-mysql.sql
 ```
 
----
+O si usas Workbench:
+1. Abre MySQL Workbench
+2. Ejecuta `scripts/realprint-database-mysql.sql`
 
-## 📈 Qué Se Implementó
-
-### PASO 1: Lint en Build ✅
-ESLint se ejecuta automáticamente antes de compilar
-
-### PASO 2: Vitest Setup ✅
-Framework de testing completamente configurado
-
-### PASO 3: Tests de Dominios ✅
-25 tests para lógica de negocio (pedidos, inventario, etc.)
-
-### PASO 4: Logger Centralizado ✅
-Sistema de logging con 5 niveles y auditoría
-
-### PASO 5: Validación Completa ✅
-20+ validadores para formularios
-
-### PASO 6: Error Boundaries ✅
-Captura de errores con UI elegante
-
-### PASO 7: Performance & Paginación ✅
-Paginación de 25 items + lazy loading + memoización
-
-### PASO 8: Documentación Final ✅
-Documentación profesional y completa
-
----
-
-## ⏭️ Siguiente Fase: Backend (No incluido)
-
-```
-Backend API (80-120 horas):
-├── Node.js + Express o SpringBoot
-├── PostgreSQL / MongoDB
-├── Autenticación JWT
-├── Logging centralizado
-└── Deploy en producción
-```
-
----
-
-## 🎓 Para Nuevos Desarrolladores
-
-1. **Lee:** md/00_inicio/00_COMIENZA_AQUI.md (5 min)
-2. **Instala:** md/05_guias_y_referencias/GUIA_INSTALACION.md (10 min)
-3. **Código:** npm run dev (empieza a desarrollar)
-4. **Referencia:** REFERENCIA_APIs.md (durante desarrollo)
-
----
-
-## 💡 Comandos Útiles
+### 2. Arrancar Backend
 
 ```bash
-npm run dev              # Desarrollo con HMR
-npm run build            # Build producción
-npm run preview          # Previsualizar build
-npm run lint             # Validar ESLint
-npm test                 # Tests modo watch
-npm test -- --run       # Tests una sola vez
-npm run test:ui         # Tests UI
-npm run test:coverage   # Cobertura
+cd backend
+mvn spring-boot:run
 ```
 
----
+El backend estará disponible en `http://localhost:8080/api`
+
+**Usuarios de prueba:**
+- `admin` / `admin123`
+- `cliente1` / `cliente123`
+
+### 3. Arrancar Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+El frontend estará disponible en `http://localhost:5173`
+
+## 📋 Endpoints Principales
+
+### Autenticación
+- `POST /api/auth/login` - Login de usuario
+
+### Pedidos
+- `GET /api/pedidos` - Listar pedidos
+- `POST /api/pedidos` - Crear pedido
+- `PUT /api/pedidos/:id` - Actualizar pedido
+- `DELETE /api/pedidos/:id` - Eliminar pedido
+
+### Usuarios
+- `GET /api/usuarios` - Listar usuarios
+- `POST /api/usuarios` - Crear usuario
+
+## 🛠️ Stack Tecnológico
+
+### Frontend
+- **React** 18.2
+- **Vite** 8.0
+- **TypeScript** 5.9
+- **React Router** 7.12
+- **Tailwind CSS** 3.3
+- **Zod** 4.3 (Validación)
+
+### Backend
+- **Spring Boot** 4.0.5
+- **Java** 17
+- **MySQL** 8.0
+- **Spring Security** + JWT
+- **JPA/Hibernate** ORM
+- **Lombok**
+
+## 🔒 Seguridad
+
+- Autenticación basada en JWT
+- Contraseñas hasheadas con BCrypt
+- CORS configurado
+- Validación de entrada con Zod
+
+## 📝 Notas Importantes
+
+### Context Path
+El backend usa context path `/api`:
+- URLs base: `http://localhost:8080/api`
+- Las rutas en controladores son relativas al contexto
+- Ej: `@RequestMapping("/pedidos")` → `/api/pedidos`
+
+### BD MySQL
+- Host: `localhost:3306`
+- Database: `realprint_db`
+- Usuario: `root`
+- Contraseña: `root123`
+
+## 📚 Documentación Adicional
+
+Ver carpeta `/docs` para:
+- Diagramas de arquitectura
+- Interfaces de usuario
+- Documentación técnica detallada
+
+## 🐛 Troubleshooting
+
+### Backend no inicia
+```bash
+# Limpia build anterior
+mvn clean
+mvn spring-boot:run
+```
+
+### Error de conexión a BD
+- Verifica que MySQL está corriendo: `net start MySQL80`
+- Comprueba credenciales en `backend/src/main/resources/application.yml`
+
+### Frontend no conecta al backend
+- Verifica CORS en `backend/src/main/java/.../config/CorsConfig.java`
+- Backend debe estar en `http://localhost:8080/api`
+
+## 👨‍💻 Desarrollo
+
+### Modo desarrollo con hot reload
+
+**Backend:**
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+### Build para producción
+
+**Backend:**
+```bash
+cd backend
+mvn clean package -DskipTests
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run build
+```
 
 ## 📞 Contacto & Soporte
 
-- **Docs:** Revisar los 10+ archivos de documentación
-- **Tests:** Ejecutar `npm test` para validar setup
-- **Logger:** Ver logs con `logger.getLogs()` en consola
-
----
-
-## ✨ Agradecimientos
-
-Proyecto completado con dedicación y atención a detalles.
-
-¡Gracias por usar RealPrint! 🚀
-
----
-
-**Completado:** 2026-03-22  
-**Status:** ✅ Production Ready  
-**Próxima fase:** Backend API
+Para reportar bugs o sugerencias, contacta al equipo de desarrollo.

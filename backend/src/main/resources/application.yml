@@ -1,0 +1,76 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/api}
+
+spring:
+  application:
+    name: realprint-backend
+  
+  profiles:
+    active: ${SPRING_PROFILE:development}
+  
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:10485760}
+      max-request-size: ${MAX_REQUEST_SIZE:12582912}
+  
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:realprint_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root123}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: ${LOG_LEVEL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+  
+  mvc:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: '*'
+      allow-credentials: true
+
+logging:
+  level:
+    root: INFO
+    com.realprint: ${LOG_LEVEL:DEBUG}
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET:realprint-secret-key-dev-2026-super-larga-para-hs256}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+app:
+  upload:
+    dir: ${UPLOAD_DIR:uploads}
+    max-size: ${MAX_FILE_SIZE:10485760}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      simple:
+        enabled: true
