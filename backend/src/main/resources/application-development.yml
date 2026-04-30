@@ -7,9 +7,6 @@ spring:
   application:
     name: realprint-backend
   
-  profiles:
-    active: ${SPRING_PROFILE:development}
-  
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:10485760}

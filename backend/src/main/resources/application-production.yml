@@ -2,13 +2,14 @@ server:
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: ${SERVER_CONTEXT_PATH:/api}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
 
 spring:
   application:
     name: realprint-backend
-  
-  profiles:
-    active: ${SPRING_PROFILE:production}
   
   servlet:
     multipart:
@@ -98,10 +99,3 @@ management:
     tags:
       application: realprint
       environment: ${SPRING_PROFILE:production}
-
-# Security headers
-server:
-  compression:
-    enabled: true
-    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
-    min-response-size: 1024
