@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: realprint-frontend
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - realprint_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Backend (Spring Boot)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: realprint-backend
+    expose:
+      - "8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-realprint_db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root123}
+      JWT_SECRET: ${JWT_SECRET:-realprint-secret-key-prod-super-larga-32chars}
+      SPRING_PROFILE: production
+      SERVER_CONTEXT_PATH: /api
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - realprint_network
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: realprint-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123}
+      MYSQL_DATABASE: ${DB_NAME:-realprint_db}
+      MYSQL_USER: ${DB_USER:-realprint}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-realprint123}
+      TZ: 'UTC'
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    networks:
+      - realprint_network
+    restart: unless-stopped
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/realprint-database-mysql.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-root}", "-p${DB_PASSWORD:-root123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=1000
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  realprint_network:
+    driver: bridge
