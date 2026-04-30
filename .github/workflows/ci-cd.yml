@@ -36,7 +36,7 @@ jobs:
       - name: Run Maven tests
         run: |
           cd backend
-          mvn clean test -DskipIntegrationTests
+          mvn clean test -DskipIntegrationTests -Dspring.profiles.active=test
 
       - name: Build Backend
         run: |
