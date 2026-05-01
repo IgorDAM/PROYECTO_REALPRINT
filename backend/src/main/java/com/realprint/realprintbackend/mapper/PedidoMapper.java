@@ -7,21 +7,19 @@ import com.realprint.realprintbackend.entity.PedidoEstado;
 /**
  * Mapper entre Pedido (Entity) y PedidoDTO.
  *
- * **CAMBIOS de diseño mejorado:**
- * - clienteId y clienteNombre ahora vienen de la relación @ManyToOne usuario.cliente
- * - Se agrega creador (usuario.creadoPor)
+ * **CAMBIOS de diseño (mejorado):**
+ * - Removidos creadoPorId y creadoPorNombre (cliente es quien crea)
+ * - clienteId y clienteNombre vienen de la relación @ManyToOne usuario.cliente
  * - Los archivos se obtienen de la lista pedido.archivos
  *
  * **Responsabilidad principal:**
  * Convertir estados del enum PedidoEstado (MAYÚSCULAS)
- * a strings minúscula_con_guion para sincronizar con el frontend.
+ * a strings minúscula para sincronizar con el frontend.
  *
- * Ejemplo:
- * - "PENDIENTE" (enum) → "pendiente" (DTO)
- * - "EN_PROCESO" (enum) → "en_proceso" (DTO)
- * - "COMPLETADO" (enum) → "completado" (DTO)
- * - "ENVIADO" (enum) → "enviado" (DTO)
- * - "CANCELADO" (enum) → "cancelado" (DTO)
+ * Ejemplo de conversión:
+ * - "PENDIENTE" (enum) ↔ "pendiente" (DTO)
+ * - "EN_PROCESO" (enum) ↔ "en_proceso" (DTO)
+ * - "COMPLETADO" (enum) ↔ "completado" (DTO)
  */
 public class PedidoMapper {
 
@@ -59,6 +57,8 @@ public class PedidoMapper {
     /**
      * Convierte una Entidad Pedido a PedidoDTO.
      *
+     * NOTA: creadoPorId y creadoPorNombre removidos (ya no existen en entity).
+     *
      * @param pedido La entidad del pedido
      * @return El DTO del pedido con estados en formato minúscula
      */
@@ -72,9 +72,8 @@ public class PedidoMapper {
                 // Obtener datos del cliente desde la relación
                 .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
                 .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : "")
-                // Obtener datos de quién creó el pedido
-                .creadoPorId(pedido.getCreadoPor() != null ? pedido.getCreadoPor().getId() : null)
-                .creadoPorNombre(pedido.getCreadoPor() != null ? pedido.getCreadoPor().getNombre() : "")
+                // creadoPorId y creadoPorNombre: REMOVIDOS
+                // Cliente es siempre quien crea sus propios pedidos
                 // Resto de campos
                 .servicio(pedido.getServicio())
                 .subservicio(pedido.getSubservicio())
@@ -101,8 +100,8 @@ public class PedidoMapper {
      * Convierte un PedidoDTO a Entidad Pedido.
      *
      * Útil para operaciones de creación/actualización desde el frontend.
-     * NOTA: Los campos de relación (cliente, creadoPor) deben ser asignados
-     * por el servicio/controller, no por este mapper.
+     * NOTA: El campo cliente debe ser asignado por el servicio/controller,
+     * no por este mapper.
      *
      * @param dto El DTO del pedido
      * @return La entidad del pedido con enums correctos
@@ -114,7 +113,8 @@ public class PedidoMapper {
 
         return Pedido.builder()
                 .id(dto.getId())
-                // cliente y creadoPor deben ser asignados por el servicio
+                // cliente debe ser asignado por el servicio (usuario autenticado)
+                // creadoPor: REMOVIDO (no existe en nuevo diseño)
                 .servicio(dto.getServicio())
                 .subservicio(dto.getSubservicio())
                 .opcion(dto.getOpcion())

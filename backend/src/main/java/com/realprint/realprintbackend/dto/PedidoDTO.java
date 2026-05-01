@@ -12,11 +12,12 @@ import lombok.Setter;
 /**
  * DTO para transferencia de datos de pedidos.
  *
- * CAMBIOS de diseño mejorado:
- * - Agrega creadoPorId y creadoPorNombre (quién creó el pedido)
- * - Convierte la entidad Pedido a un formato serializable para el frontend.
+ * CAMBIOS de diseño (mejorado):
+ * - Removidos creadoPorId y creadoPorNombre
+ *   (cliente siempre es quien crea sus propios pedidos)
  * - Los estados se representan como strings minúsculas (e.g., "pendiente")
- *   en lugar del enum en mayúsculas para compatibilidad con el frontend.
+ *   para compatibilidad con frontend
+ * - Propietario del pedido: clienteId (único, no hay creadoPor)
  */
 @Getter
 @Setter
@@ -27,14 +28,14 @@ public class PedidoDTO {
 
     private Long id;
 
+    // Propietario del pedido (quién lo creó)
     private Long clienteId;
 
     private String clienteNombre;
 
-    // Quién creó el pedido (admin o el mismo cliente)
-    private Long creadoPorId;
-
-    private String creadoPorNombre;
+    // NOTA: creadoPorId y creadoPorNombre removidos
+    // El cliente es siempre quien crea el pedido
+    // Auditoría: createdAt timestamp es suficiente
 
     private String servicio;
 
@@ -59,7 +60,7 @@ public class PedidoDTO {
     private Integer measurementHeightCm;
 
     // Estado representado como string minúscula (e.g., "pendiente", "en_proceso")
-    // Esto sincroniza con lo que el frontend espera
+    // Sincroniza con lo que el frontend espera
     private String estado;
 
     private String fileUrlsJson;

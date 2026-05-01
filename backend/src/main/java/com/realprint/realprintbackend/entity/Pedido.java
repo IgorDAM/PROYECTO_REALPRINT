@@ -55,10 +55,9 @@ public class Pedido {
     @JoinColumn(name = "cliente_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_cliente"))
     private Usuario cliente;
 
-    // Relación: Usuario que creó el pedido (admin o el mismo cliente)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "creado_por_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_creado_por"))
-    private Usuario creadoPor;
+    // NOTA: Campo creadoPor removido.
+    // El cliente siempre es quien crea el pedido (no admin).
+    // createdAt timestamp es suficiente para auditoría.
 
     // Relación: Archivos asociados al pedido
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
