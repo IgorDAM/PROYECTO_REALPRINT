@@ -2,12 +2,9 @@
 # RealPrint Frontend - Multi-stage Dockerfile
 # =============================================================================
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
-
-# Instalar herramientas de build necesarias para compilar dependencias nativas en Alpine
-RUN apk add --no-cache python3 make g++
 
 # Copiar package*.json
 COPY package*.json ./
