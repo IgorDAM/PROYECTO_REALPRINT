@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run lint && vite build",
+    "build": "vite build",
+    "build:ci": "npm run lint && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -46,10 +48,6 @@
     "typescript": "^5.9.2",
     "vite": "^6.4.2",
     "vitest": "^4.1.5"
-  },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "*",
-    "@swc/core-linux-x64-gnu": "*"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",
