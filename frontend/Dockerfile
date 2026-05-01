@@ -18,7 +18,7 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
-# Build la aplicación
+# Build la aplicación (sin lint para dev)
 RUN npm run build
 
 # =============================================================================
