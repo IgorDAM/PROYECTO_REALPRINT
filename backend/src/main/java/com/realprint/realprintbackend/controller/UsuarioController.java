@@ -22,6 +22,13 @@ import com.realprint.realprintbackend.service.UsuarioService;
 
 import lombok.RequiredArgsConstructor;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+
 /**
  * Controlador REST de usuarios.
  *
@@ -46,6 +53,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/usuarios")
 @RequiredArgsConstructor
+@Tag(name = "Usuarios", description = "Operaciones relacionadas con usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -58,6 +66,16 @@ public class UsuarioController {
      *
      * @return Lista de UsuarioDTO con todos los usuarios
      */
+    @Operation(summary = "Listar usuarios",
+               description = "Obtiene una lista de todos los usuarios registrados. Solo accesible para administradores.")
+    @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente",
+                 content = @Content(mediaType = "application/json",
+                 array = @ArraySchema(schema = @Schema(implementation = UsuarioDTO.class))))
+    @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo administradores pueden acceder a esta información.")
+    @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para acceder a esta información.")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
+    @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
@@ -78,6 +96,17 @@ public class UsuarioController {
      * @param authentication Usuario autenticado actual
      * @return El UsuarioDTO solicitado
      */
+    @Operation(summary = "Obtener usuario por ID",
+               description = "Obtiene los detalles de un usuario específico por su ID. Los administradores pueden acceder a cualquier usuario," +
+                             "mientras que los clientes solo pueden acceder a su propia información.")
+    @ApiResponse(responseCode = "200", description = "Usuario obtenido exitosamente",
+                 content = @Content(mediaType = "application/json",
+                 schema = @Schema(implementation = UsuarioDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Acceso denegado. No tienes permiso para acceder a esta información.")
+    @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para acceder a esta información.")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
+    @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioDTO> obtenerUsuario(
             @PathVariable Long id,
@@ -101,6 +130,15 @@ public class UsuarioController {
      * @param usuarioDTO Los datos del nuevo usuario
      * @return El UsuarioDTO creado con ID asignado
      */
+    @Operation(summary = "Crear nuevo usuario",
+               description = "Crea un nuevo usuario en el sistema. Solo los administradores pueden crear nuevos usuarios.")
+    @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente",
+                 content = @Content(mediaType = "application/json",
+                 schema = @Schema(implementation = UsuarioDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden crear nuevos usuarios.")
+    @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para crear un nuevo usuario.")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UsuarioDTO> crearUsuario(@RequestBody UsuarioDTO usuarioDTO) {
@@ -124,6 +162,17 @@ public class UsuarioController {
      * @param usuarioDTO Los datos actualizados
      * @return El UsuarioDTO actualizado
      */
+    @Operation(summary = "Actualizar usuario",
+               description = "Actualiza la información de un usuario existente." +
+                       "Los administradores pueden actualizar cualquier usuario, mientras que los clientes solo pueden actualizar su propia información.")
+    @ApiResponse(responseCode = "200", description = "Usuario actualizado exitosamente",
+                 content = @Content(mediaType = "application/json",
+                 schema = @Schema(implementation = UsuarioDTO.class)))
+    @ApiResponse(responseCode = "403", description = "Acceso denegado. No tienes permiso para actualizar esta información.")
+    @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para actualizar la información del usuario.")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
+    @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDTO> actualizarUsuario(
             @PathVariable Long id,
@@ -146,6 +195,14 @@ public class UsuarioController {
      * @param id ID del usuario a eliminar
      * @return Respuesta vacía con estado 204 No Content
      */
+    @Operation(summary = "Eliminar usuario",
+               description = "Elimina un usuario del sistema. Solo los administradores pueden eliminar usuarios.")
+    @ApiResponse(responseCode = "204", description = "Usuario eliminado exitosamente. No se devuelve contenido en la respuesta.")
+    @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden eliminar usuarios.")
+    @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para eliminar un usuario.")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
+    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
+    @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
