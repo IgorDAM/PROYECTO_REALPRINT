@@ -32,15 +32,11 @@ COPY default.conf /etc/nginx/conf.d/default.conf
 # Copiar build desde builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Crear usuario no-root
-RUN addgroup -g 1001 -S nginx && \
-    adduser -u 1001 -S nginx -G nginx && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
+# El usuario nginx ya existe en nginx:alpine, solo cambiar permisos
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid
+    chown -R nginx:nginx /etc/nginx/conf.d
 
 USER nginx
 
