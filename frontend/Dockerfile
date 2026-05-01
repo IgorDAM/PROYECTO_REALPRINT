@@ -1,7 +1,7 @@
 # =============================================================================
 # RealPrint Frontend - Multi-stage Dockerfile
 # =============================================================================
-# Stage 1: Build
+# Stage 1: Build - USANDO node:20-slim (no alpine)
 FROM node:20-slim AS builder
 
 WORKDIR /app
@@ -10,12 +10,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar todas las dependencias (incluye devDependencies)
+# node:20-slim ya tiene glibc, así que Rollup encuentra sus binarios nativos
 RUN npm ci
 
 # Copiar código fuente
 COPY . .
 
-# Build la aplicación (sin lint para dev)
+# Build la aplicación (sin lint - vite only)
 RUN npm run build
 
 # =============================================================================
