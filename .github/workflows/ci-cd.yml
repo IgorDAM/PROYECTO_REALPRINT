@@ -76,6 +76,10 @@ jobs:
         run: npm install @swc/core-linux-x64-gnu --no-save
         working-directory: ./frontend
 
+      - name: Install Rollup native binding for Linux  # ✅ NUEVO - fix error Rollup
+        run: npm install @rollup/rollup-linux-x64-gnu --no-save
+        working-directory: ./frontend
+
       - name: Lint
         run: |
           cd frontend
