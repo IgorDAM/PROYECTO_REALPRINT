@@ -9,7 +9,6 @@
     "build:ci": "npm run lint && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
