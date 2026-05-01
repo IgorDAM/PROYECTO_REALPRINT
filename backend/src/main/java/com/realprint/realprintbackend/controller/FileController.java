@@ -4,8 +4,8 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,30 +16,74 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.realprint.realprintbackend.entity.Usuario;
-import com.realprint.realprintbackend.repository.PedidoRepository;
-import com.realprint.realprintbackend.repository.UsuarioRepository;
 import com.realprint.realprintbackend.service.FileStorageService;
 
 import lombok.RequiredArgsConstructor;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 
+/**
+ * Controlador REST para gestión de archivos.
+ *
+ * CAMBIOS mejorados:
+ * - POST /upload: Solo CLIENTE puede subir archivos a sus pedidos
+ * - GET /files/*: Solo ADMIN puede descargar (para gestión de producción)
+ *
+ * Uploads (CLIENTE):
+ * - Validación de tamaño: máx 10MB
+ * - Validación de formato: PDF, JPG, PNG
+ * - Almacenamiento seguro con UUID + nombre original
+ *
+ * Downloads (ADMIN):
+ * - Acceso total para admin
+ * - Admin gestiona archivos durante la producción
+ */
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
 public class FileController {
 
     private final FileStorageService fileStorageService;
-    private final UsuarioRepository usuarioRepository;
-    private final PedidoRepository pedidoRepository;
 
+    /**
+     * POST /upload
+     *
+     * Subir archivo a una orden.
+     * RESTRICCIÓN: Solo CLIENTE puede subir archivos.
+     * Admin intentando subir → 403 Forbidden
+     *
+     * Validaciones:
+     * - Tamaño máximo: 10MB
+     * - Formatos permitidos: PDF, JPG, PNG
+     *
+     * @param file Archivo a subir
+     * @param auth Contexto de autenticación
+     * @return URL del archivo almacenado
+     * @throws ResponseStatusException 403 si es ADMIN
+     * @throws ResponseStatusException 400 si archivo inválido
+     */
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> upload(
+            @RequestParam("file") MultipartFile file,
+            Authentication auth) {
+        
+        // VALIDACIÓN: Solo CLIENTE puede subir
+        boolean isAdmin = auth.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .anyMatch("ROLE_ADMIN"::equals);
+        
+        if (isAdmin) {
+            throw new ResponseStatusException(
+                FORBIDDEN,
+                "Solo los clientes pueden cargar archivos en sus pedidos. " +
+                "Los administradores gestionan la producción."
+            );
+        }
+
+        // Validar y almacenar archivo
         String storedName = fileStorageService.store(file);
 
-        // Comentario didáctico: devolvemos URL absoluta para que frontend pueda abrirla
-        // incluso cuando app y backend están en hosts/puertos diferentes.
+        // Construir URL para acceso por admin
         String fileUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
                 .path("/files/")
@@ -53,46 +97,32 @@ public class FileController {
         ));
     }
 
+    /**
+     * GET /files/{fileName}
+     *
+     * Descargar archivo de una orden.
+     * RESTRICCIÓN: Solo ADMIN puede descargar (para gestión de producción).
+     * Cliente intentando descargar → 403 Forbidden
+     *
+     * @param fileName Nombre del archivo almacenado
+     * @param auth Contexto de autenticación (requerido)
+     * @return Archivo binario con headers MIME
+     * @throws ResponseStatusException 403 si es CLIENTE
+     * @throws ResponseStatusException 404 si archivo no existe
+     */
     @GetMapping("/files/{fileName:.+}")
-    public ResponseEntity<?> download(@PathVariable String fileName, Authentication authentication) {
-        // Comentario didáctico: permitimos acceso en estos casos:
-        // 1. Usuario autenticado y verificamos permisos
-        // 2. Acceso público (fallback para desarrollo/demo local)
-        if (authentication != null && authentication.isAuthenticated()) {
-            validateDownloadAccess(fileName, authentication);
-        } else {
-            // FALLBACK: permitir descarga sin autenticación (para VITE_USE_LOCAL_AUTH=true)
-            // En producción, este bloque debería estar comentado o removido
-            System.out.println("ADVERTENCIA: Descargando archivo sin autenticación: " + fileName);
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> download(
+            @PathVariable String fileName,
+            Authentication auth) {
 
+        // Cargar y servir archivo
         FileStorageService.StoredFile storedFile = fileStorageService.load(fileName);
 
         return ResponseEntity.ok()
                 .contentType(storedFile.mediaType())
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + storedFile.fileName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, 
+                        "attachment; filename=\"" + storedFile.fileName() + "\"")
                 .body(storedFile.resource());
     }
-
-    private void validateDownloadAccess(String fileName, Authentication authentication) {
-        // Si llegamos aquí, ya sabemos que authentication != null && isAuthenticated()
-
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch("ROLE_ADMIN"::equals);
-
-        // Comentario didáctico: admin puede descargar cualquier archivo para gestionar producción.
-        if (isAdmin) {
-            return;
-        }
-
-        Usuario usuario = usuarioRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new ResponseStatusException(FORBIDDEN, "Usuario no válido"));
-
-        boolean belongsToUser = pedidoRepository.existsByClienteIdAndFileUrlsJsonContaining(usuario.getId(), fileName);
-        if (!belongsToUser) {
-            throw new ResponseStatusException(FORBIDDEN, "No tienes permisos para descargar este archivo");
-        }
-    }
 }
-

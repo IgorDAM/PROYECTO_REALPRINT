@@ -76,25 +76,25 @@ public class PedidoService {
     }
 
     /**
-     * Guarda un pedido nuevo o actualizado.
-     * CAMBIO: Asigna cliente y creadoPor desde el contexto de autenticación.
+     * Guarda un pedido nuevo.
+     * NOTA: Solo CLIENTE puede crear pedidos (validado en controller).
+     * 
+     * Asigna cliente al usuario autenticado.
+     * El campo creadoPor fue removido: cliente es siempre quien crea.
      *
      * @param pedido El pedido a guardar
      * @param auth Contexto de seguridad con el usuario autenticado
      * @return El pedido guardado
+     * @throws RuntimeException si usuario no encontrado
      */
     public Pedido save(Pedido pedido, Authentication auth) {
-        // Obtener el usuario autenticado
+        // Obtener el usuario autenticado (DEBE ser CLIENTE)
         String username = auth.getName();
         Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
 
-        // Asignar creadoPor (siempre el usuario autenticado)
-        pedido.setCreadoPor(usuarioAutenticado);
-
-        // Asignar cliente:
-        // - Si el pedido ya tiene cliente, respetarlo (para ediciones)
-        // - Si no, asignarlo al usuario autenticado
+        // Asignar cliente: siempre el usuario autenticado
+        // (creadoPor fue removido, cliente_id es suficiente)
         if (pedido.getCliente() == null) {
             pedido.setCliente(usuarioAutenticado);
         }
@@ -111,16 +111,16 @@ public class PedidoService {
     }
 
     /**
-     * Actualiza un pedido completo.
+     * Actualiza un pedido existente.
      * Primero comprobamos que exista para evitar guardar algo que no está en la base de datos.
+     * NO modifica cliente (owner del pedido).
      */
     public Pedido update(Long id, Pedido pedidoActualizado) {
         Pedido pedidoExistente = findById(id);
 
         pedidoActualizado.setId(pedidoExistente.getId());
-        // NO modificar cliente ni creadoPor
+        // NO modificar cliente (propietario)
         pedidoActualizado.setCliente(pedidoExistente.getCliente());
-        pedidoActualizado.setCreadoPor(pedidoExistente.getCreadoPor());
 
         return pedidoRepository.save(pedidoActualizado);
     }

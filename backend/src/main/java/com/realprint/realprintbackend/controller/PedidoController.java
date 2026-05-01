@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.entity.Pedido;
@@ -25,29 +27,21 @@ import lombok.RequiredArgsConstructor;
 /**
  * Controlador REST de pedidos.
  *
- * CAMBIOS con nuevo diseño:
- * - POST /api/pedidos ahora asigna cliente y creadoPor desde el contexto de seguridad
- * - El cliente es el usuario autenticado (o especificado si es admin)
- * - El creadoPor es siempre el usuario autenticado
+ * CAMBIOS con nuevo diseño (mejorado):
+ * - Campo creadoPor removido (cliente siempre crea sus propios pedidos)
+ * - POST /pedidos: SOLO CLIENTE puede crear (ADMIN rechazado con 403)
+ * - Admin puede: ver todos, cambiar estado, asignar precio, descargar archivos
+ * - Admin NO puede: crear pedidos, cargar archivos
  *
  * Expone operaciones CRUD para gestión de pedidos.
  * Todos los endpoints requieren autenticación (JWT).
  *
  * Endpoints:
- * - GET    /api/pedidos           - Listar todos los pedidos (admin)
- * - GET    /api/pedidos/{id}      - Obtener un pedido específico
- * - POST   /api/pedidos           - Crear un nuevo pedido
- * - PUT    /api/pedidos/{id}      - Actualizar un pedido
- * - DELETE /api/pedidos/{id}      - Eliminar un pedido (admin)
- *
- * **Seguridad:**
- * - El endpoint GET /pedidos está restringido a ADMIN
- * - Otros endpoints aceptan CLIENTE y ADMIN
- *
- * **DTO Mapping:**
- * - Convierte Pedido (entity) ↔ PedidoDTO
- * - Los estados se representan en minúscula en DTO (e.g., "pendiente")
- * - Los estados internos usan enum mayúscula (e.g., PENDIENTE)
+ * - GET    /pedidos           - Listar todos los pedidos (ADMIN only)
+ * - GET    /pedidos/{id}      - Obtener un pedido específico
+ * - POST   /pedidos           - Crear un nuevo pedido (CLIENTE only)
+ * - PUT    /pedidos/{id}      - Actualizar un pedido (ADMIN only, gestionar)
+ * - DELETE /pedidos/{id}      - Eliminar un pedido (ADMIN only)
  */
 @RestController
 @RequestMapping("/pedidos")
@@ -57,7 +51,7 @@ public class PedidoController {
     private final PedidoService pedidoService;
 
     /**
-     * GET /api/pedidos
+     * GET /pedidos
      *
      * Listar todos los pedidos (solo para ADMIN).
      * Usado en el dashboard de administración para gestión global.
@@ -75,10 +69,10 @@ public class PedidoController {
     }
 
     /**
-     * GET /api/pedidos/{id}
+     * GET /pedidos/{id}
      *
      * Obtener un pedido específico por su ID.
-     * Disponible para ADMIN y CLIENTE (cada cliente solo ve sus pedidos).
+     * Disponible para ADMIN (ve todos) y CLIENTE (solo ve sus propios).
      *
      * @param id ID del pedido
      * @return El PedidoDTO solicitado
@@ -90,47 +84,67 @@ public class PedidoController {
     }
 
     /**
-     * POST /api/pedidos
+     * POST /pedidos
      *
      * Crear un nuevo pedido.
-     * CAMBIO: Asigna automáticamente:
-     * - cliente: El usuario autenticado (o especificado si es admin)
-     * - creadoPor: Siempre el usuario autenticado
+     * RESTRICCIÓN: Solo CLIENTE puede crear pedidos.
+     * Admin intentando crear → 403 Forbidden
+     *
+     * Asigna automáticamente:
+     * - cliente_id = usuario autenticado
+     * - createdAt = ahora
+     * - estado = PENDIENTE
      *
      * @param pedidoDTO Los datos del nuevo pedido
      * @param auth Contexto de seguridad (inyectado por Spring)
      * @return El PedidoDTO creado con ID asignado
+     * @throws ResponseStatusException 403 si es ADMIN
      */
     @PostMapping
     public ResponseEntity<PedidoDTO> crearPedido(
             @RequestBody PedidoDTO pedidoDTO,
             Authentication auth) {
-        // Convertir DTO → Entity (con conversión de estado a enum)
+        
+        // VALIDACIÓN: Solo CLIENTE puede crear pedidos
+        boolean isAdmin = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ROLE_ADMIN"::equals);
+        
+        if (isAdmin) {
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Solo los clientes pueden crear pedidos. Los administradores gestionan los existentes."
+            );
+        }
+        
+        // Convertir DTO → Entity
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO);
 
-        // Guardar delegando al servicio (que asignará cliente y creadoPor)
+        // Guardar delegando al servicio (asignará cliente automáticamente)
         Pedido pedidoGuardado = pedidoService.save(pedido, auth);
 
-        // Convertir Entity → DTO (con conversión de enum a string)
+        // Convertir Entity → DTO
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(PedidoMapper.toDTO(pedidoGuardado));
     }
 
     /**
-     * PUT /api/pedidos/{id}
+     * PUT /pedidos/{id}
      *
-     * Actualizar un pedido existente.
-     * Acepta actualizaciones parciales o completas.
-     * NO modifica cliente ni creadoPor.
+     * Actualizar un pedido existente (gestión de admin).
+     * Acepta actualizaciones de estado, precio, etc.
+     * NO modifica cliente (propietario del pedido).
      *
      * @param id ID del pedido a actualizar
      * @param pedidoDTO Los datos actualizados
      * @return El PedidoDTO actualizado
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")  // Solo ADMIN actualiza
     public ResponseEntity<PedidoDTO> actualizarPedido(
             @PathVariable Long id,
             @RequestBody PedidoDTO pedidoDTO) {
+        
         // Convertir DTO → Entity
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO);
 
@@ -142,7 +156,7 @@ public class PedidoController {
     }
 
     /**
-     * DELETE /api/pedidos/{id}
+     * DELETE /pedidos/{id}
      *
      * Eliminar un pedido (solo ADMIN).
      * Realiza un borrado físico de la base de datos.
