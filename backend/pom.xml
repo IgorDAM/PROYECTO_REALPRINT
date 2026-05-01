@@ -95,6 +95,19 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!--
+            ✅ FIX: Actualizado de 2.3.0 a 2.8.3
+            springdoc 2.3.x es compatible con Spring Boot 3.x (Spring Framework 6.x).
+            Spring Boot 4.x usa Spring Framework 7.x y requiere springdoc 2.8.x o superior.
+            Además se elimina la dependencia separada de swagger-annotations
+            porque ya viene incluida transitivamente en springdoc.
+        -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.3</version>
+        </dependency>
     </dependencies>
 
     <build>

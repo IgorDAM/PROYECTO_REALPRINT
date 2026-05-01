@@ -11,14 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Configuración central de seguridad.
- *
- * Idea clave:
- * - No usamos sesión de servidor (JWT stateless).
- * - El filtro JWT se ejecuta antes de la autenticación estándar.
- * - Las rutas se protegen por rol desde aquí para que el control sea claro.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -29,39 +21,50 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    // ✅ Bean que faltaba — causa raíz del fallo original
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // El bean corsConfigurationSource está en CorsConfig.java — no se duplica aquí.
+    // Customizer.withDefaults() lo encuentra automáticamente en el contexto.
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // Desactivamos CSRF porque trabajamos con un frontend separado y JWT.
                 .csrf(csrf -> csrf.disable())
-                // Permite que el backend acepte peticiones desde Vite/React.
                 .cors(Customizer.withDefaults())
-                // H2 console necesita iframes para verse en navegador.
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-                // Stateless = no guardamos sesión en memoria del servidor.
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        // Login y consola H2 deben quedar accesibles para arrancar y depurar.
-                        .requestMatchers("/auth/login", "/h2-console/**", "/error").permitAll()
-                        // Descargas de archivos: permitir acceso sin autenticación (fallback desarrollo).
-                        // El controlador valida permisos si hay token JWT presente.
+
+                        // públicos — las rutas son relativas al context-path (/api)
+                        .requestMatchers(
+                                "/auth/**",
+                                "/error",
+                                "/h2-console/**"
+                        ).permitAll()
+
+                        // swagger
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
+                        // archivos
                         .requestMatchers("/files/**").permitAll()
-                        // Solo administradores pueden listar todos los pedidos con GET /pedidos
-                        // Otros como GET /pedidos/{id}, POST /pedidos, PUT /pedidos/{id} requieren auth.
+
+                        // ejemplo roles
                         .requestMatchers("/pedidos").hasRole("ADMIN")
-                        // El resto de rutas requieren autenticación (CLIENTE o ADMIN).
-                        .requestMatchers("/**").authenticated()
-                        // El resto de rutas requieren autenticación.
+
+                        // todo lo demás
                         .anyRequest().authenticated()
                 )
-                // Nuestro filtro JWT debe correr antes del filtro estándar de usuario/contraseña.
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        // BCrypt es el encoder recomendado para guardar hashes de contraseñas.
-        return new BCryptPasswordEncoder();
     }
 }
