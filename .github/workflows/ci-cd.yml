@@ -64,11 +64,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # ✅ Sin caché - evita que npm restaure node_modules incompleto en Linux
 
       - name: Install dependencies (clean)
-        # ✅ Instalación limpia: genera package-lock.json en Linux
-        # con todos los binarios nativos (rollup, swc) correctamente incluidos
         run: |
           rm -rf node_modules package-lock.json
           npm install
@@ -205,6 +202,7 @@ jobs:
       - name: Deploy to Staging
         run: |
           echo "Deploying to staging environment..."
+          # TODO: Implementar deployment a staging
           # ssh -i ${{ secrets.STAGING_SSH_KEY }} user@staging-server 'cd /app && docker-compose pull && docker-compose up -d'
 
   # ========================================
@@ -228,44 +226,9 @@ jobs:
       - name: Deploy to Production
         run: |
           echo "Deploying to production environment..."
+          # TODO: Implementar deployment a produccion
           # ssh -i ${{ secrets.PROD_SSH_KEY }} user@prod-server 'cd /app && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d'
 
-      - name: Notify Slack (Success)
-        if: success()
-        uses: slackapi/slack-github-action@v2
-        with:
-          payload: |
-            {
-              "text": "✅ RealPrint deployed to Production",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*✅ Production Deployment Successful*\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Notify Slack (Failure)
-        if: failure()
-        uses: slackapi/slack-github-action@v2
-        with:
-          payload: |
-            {
-              "text": "❌ RealPrint deployment failed",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*❌ Production Deployment Failed*\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      # NOTE: Slack notifications deshabilitadas
+      # Para habilitarlas, configurar SLACK_WEBHOOK_URL en GitHub Secrets:
+      # https://github.com/IgorDAM/PROYECTO_REALPRINT/settings/secrets/actions
