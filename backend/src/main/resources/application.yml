@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: 8080
   servlet:
     context-path: ${SERVER_CONTEXT_PATH:/api}
 
@@ -19,7 +19,7 @@ spring:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:realprint_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD:root123}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -53,7 +53,7 @@ logging:
     org.springframework.security: DEBUG
 
 jwt:
-  secret: ${JWT_SECRET:realprint-secret-key-dev-2026-super-larga-para-hs256}
+  secret: ${JWT_SECRET}
   expiration-ms: ${JWT_EXPIRATION_MS:86400000}
 
 app:

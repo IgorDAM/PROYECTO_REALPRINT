@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
+// ✅ estos sí se usan en este controller
 
 /**
  * Controlador REST de usuarios.
@@ -108,16 +110,10 @@ public class UsuarioController {
     @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
     @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @GetMapping("/{id}")
+    @PostAuthorize("@securityRules.canReadUsuario(authentication, returnObject.body)")
     public ResponseEntity<UsuarioDTO> obtenerUsuario(
             @PathVariable Long id,
             Authentication authentication) {
-        // Verificación de permisos: ADMIN ve todo, otros solo se ven a sí mismos
-        if (!authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            // Si no es admin, verificar que sea su propio ID
-            // Aquí se podría agregar lógica adicional para extraer el usuario actual
-        }
-
         Usuario usuario = usuarioService.findById(id);
         return ResponseEntity.ok(UsuarioMapper.toDTO(usuario));
     }
@@ -174,6 +170,7 @@ public class UsuarioController {
     @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
     @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @PutMapping("/{id}")
+    @PreAuthorize("@securityRules.canUpdateUsuario(authentication, #id)")
     public ResponseEntity<UsuarioDTO> actualizarUsuario(
             @PathVariable Long id,
             @RequestBody UsuarioDTO usuarioDTO) {

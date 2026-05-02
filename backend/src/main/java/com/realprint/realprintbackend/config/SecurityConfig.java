@@ -55,12 +55,6 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // archivos
-                        .requestMatchers("/files/**").permitAll()
-
-                        // ejemplo roles
-                        .requestMatchers("/pedidos").hasRole("ADMIN")
-
                         // todo lo demás
                         .anyRequest().authenticated()
                 )
