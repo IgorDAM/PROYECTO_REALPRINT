@@ -34,7 +34,4 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 	@EntityGraph(attributePaths = {"cliente", "creadoPor"})
 	List<Pedido> findAll();
 
-	// Comentario didáctico: validamos si un archivo pertenece a un pedido de un cliente.
-	// Usamos "Containing" porque fileUrlsJson se almacena como texto JSON simple.
-	boolean existsByClienteIdAndFileUrlsJsonContaining(Long clienteId, String fileToken);
 }
