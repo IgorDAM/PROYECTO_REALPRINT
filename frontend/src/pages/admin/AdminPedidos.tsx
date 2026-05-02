@@ -24,7 +24,6 @@ import { useSearchParams } from "react-router-dom";
 import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
 import { useApiStatus } from "../../hooks/useApiStatus";
 import { usePedidosData } from "../../hooks/usePedidosData";
-import { useProductosData } from "../../hooks/useProductosData";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
 import { getToken } from "../../services/tokenStorage";
 
@@ -158,7 +157,6 @@ function getFileNameFromUrl(fileUrl: string, fallbackIndex: number): string {
 export default function AdminPedidos() {
   const [searchParams] = useSearchParams();
   const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
-  const { productosFinales: catalogoPrendas } = useProductosData();
   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
   const [selectedPedido, setSelectedPedido] = useState<PedidoItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -283,10 +281,6 @@ export default function AdminPedidos() {
   const columns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "pedido", label: "Pedido" },
-    { key: "productoFinalId", label: "Prenda", render: (id) => {
-      const pf = catalogoPrendas.find((p: PedidoItem) => p.id == id);
-      return pf ? pf.nombre : "-";
-    } },
     { key: "fechaEntrega", label: "Entrega" },
     { key: "estado", label: "Estado", render: (value) => (
       <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>
@@ -393,35 +387,6 @@ export default function AdminPedidos() {
         {selectedPedido && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <p className="text-surface-500 text-sm">Prenda asociada</p>
-                <p className="font-medium">
-                  {(() => {
-                    const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
-                    return pf ? pf.nombre : "-";
-                  })()}
-                </p>
-              </div>
-              <div>
-                <p className="text-surface-500 text-sm">Materiales Usados</p>
-                <p className="font-medium">
-                  {(() => {
-                    const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
-                    if (!pf) return "-";
-                    const materialIds = Array.isArray(pf.materiales)
-                      ? pf.materiales
-                          .filter((m: any) => m && m.id !== undefined)
-                          .map((m: any) => ({ id: m.id, cantidad: Number(m.cantidad) || 1 }))
-                      : Array.isArray(pf.productosInventario)
-                        ? pf.productosInventario.map((id: string | number) => ({ id, cantidad: 1 }))
-                        : [];
-                    if (!materialIds.length) return "-";
-                    return materialIds.map(({ id, cantidad }: { id: string | number; cantidad: number }) => {
-                      return `${id}${cantidad > 1 ? ` x${cantidad}` : ""}`;
-                    }).join(", ");
-                  })()}
-                </p>
-              </div>
               <div>
                 <p className="text-surface-500 text-sm">Pedido</p>
                 <p className="font-medium">{selectedPedido.pedido}</p>
