@@ -33,8 +33,8 @@ import lombok.Setter;
  * Cambios de diseño:
  * - clienteId ahora es @ManyToOne → Usuario (relación JPA explícita)
  * - Se elimina clienteNombre (se obtiene de usuario.getNombre())
- * - Se agrega creadoPorId → Usuario (quién creó el pedido: admin o cliente)
- * - fileUrlsJson se mantiene por compatibilidad, pero mejor usar PedidoArchivo
+ * - Campos removidos (legacy): subservicio, opcion, productoFinalId, boxTotal, cajasCompletadas, fileUrlsJson
+ * - Se usa PedidoArchivo para gestionar archivos en lugar de fileUrlsJson
  */
 @Entity
 @Table(name = "pedidos")
@@ -50,14 +50,10 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relación: Cliente propietario del pedido (eliminamos clienteId y clienteNombre)
+    // Relación: Cliente propietario del pedido
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cliente_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_cliente"))
     private Usuario cliente;
-
-    // NOTA: Campo creadoPor removido.
-    // El cliente siempre es quien crea el pedido (no admin).
-    // createdAt timestamp es suficiente para auditoría.
 
     // Relación: Archivos asociados al pedido
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -68,24 +64,12 @@ public class Pedido {
     @Column(nullable = false)
     private String servicio;
 
-    // Subservicio o variante concreta del trabajo.
-    private String subservicio;
-
-    // Opción elegida dentro del flujo del formulario.
-    private String opcion;
-
-    // Si el pedido depende de un producto final del admin, guardamos su id.
-    private Long productoFinalId;
-
     // Descripción libre del trabajo a realizar.
     @Column(length = 2000)
     private String descripcion;
 
     // Cantidad base del pedido.
     private Integer cantidad;
-
-    // Cantidad de unidades finales si el formulario la separa.
-    private Integer cantidadUnidades;
 
     // Fecha en la que se crea o se registra el pedido.
     private LocalDate fecha;
@@ -99,10 +83,6 @@ public class Pedido {
     // Medida del diseño en centímetros (alto).
     private Integer measurementHeightCm;
 
-    // URLs o nombres de archivos subidos (deprecated, usar PedidoArchivo en su lugar)
-    @Column(columnDefinition = "TEXT")
-    private String fileUrlsJson;
-
     // Estado del pedido, por defecto pendiente.
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -112,16 +92,6 @@ public class Pedido {
     // Precio total calculado para este pedido.
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
-
-    // Total de cajas si el flujo de negocio las usa.
-    private Integer boxTotal;
-
-    // Cajas ya completadas en el proceso.
-    @Builder.Default
-    private Integer cajasCompletadas = 0;
-
-    // Tamaño de caja usado por algunos trabajos del taller.
-    private Integer tamanoCaja;
 
     // Fecha/hora de creación técnica del registro.
     private LocalDateTime createdAt;
@@ -145,10 +115,6 @@ public class Pedido {
 
         if (this.estado == null) {
             this.estado = PedidoEstado.PENDIENTE;
-        }
-
-        if (this.cajasCompletadas == null) {
-            this.cajasCompletadas = 0;
         }
     }
 

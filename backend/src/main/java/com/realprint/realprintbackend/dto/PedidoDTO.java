@@ -12,12 +12,10 @@ import lombok.Setter;
 /**
  * DTO para transferencia de datos de pedidos.
  *
- * CAMBIOS de diseño (mejorado):
- * - Removidos creadoPorId y creadoPorNombre
- *   (cliente siempre es quien crea sus propios pedidos)
- * - Los estados se representan como strings minúsculas (e.g., "pendiente")
- *   para compatibilidad con frontend
- * - Propietario del pedido: clienteId (único, no hay creadoPor)
+ * CAMBIOS de diseño:
+ * - Removidos: creadoPorId, creadoPorNombre, subservicio, opcion, productoFinalId, 
+ *   boxTotal, cajasCompletadas, fileUrlsJson
+ * - Mantiene solo los campos usados en el frontend actual
  */
 @Getter
 @Setter
@@ -28,48 +26,33 @@ public class PedidoDTO {
 
     private Long id;
 
-    // Propietario del pedido (quién lo creó)
+    // Propietario del pedido
     private Long clienteId;
 
     private String clienteNombre;
 
-    // NOTA: creadoPorId y creadoPorNombre removidos
-    // El cliente es siempre quien crea el pedido
-    // Auditoría: createdAt timestamp es suficiente
-
+    // Tipo de servicio (serigrafía, planchado, etc.)
     private String servicio;
 
-    private String subservicio;
-
-    private String opcion;
-
-    private Long productoFinalId;
-
+    // Descripción del trabajo
     private String descripcion;
 
+    // Cantidad a producir
     private Integer cantidad;
 
-    private Integer cantidadUnidades;
-
+    // Fechas
     private LocalDate fecha;
 
     private LocalDate fechaEntrega;
 
+    // Medidas del diseño (cm)
     private Integer measurementWidthCm;
 
     private Integer measurementHeightCm;
 
-    // Estado representado como string minúscula (e.g., "pendiente", "en_proceso")
-    // Sincroniza con lo que el frontend espera
+    // Estado del pedido (pendiente, en_proceso, completado, enviado, cancelado)
     private String estado;
 
-    private String fileUrlsJson;
-
+    // Total a pagar
     private BigDecimal total;
-
-    private Integer boxTotal;
-
-    private Integer cajasCompletadas;
-
-    private Integer tamanoCaja;
 }

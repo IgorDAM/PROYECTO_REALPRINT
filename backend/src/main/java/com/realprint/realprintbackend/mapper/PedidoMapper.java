@@ -7,8 +7,8 @@ import com.realprint.realprintbackend.entity.PedidoEstado;
 /**
  * Mapper entre Pedido (Entity) y PedidoDTO.
  *
- * **CAMBIOS de diseño (mejorado):**
- * - Removidos creadoPorId y creadoPorNombre (cliente es quien crea)
+ * **CAMBIOS de diseño:**
+ * - Removidos campos legacy: subservicio, opcion, productoFinalId, boxTotal, cajasCompletadas, fileUrlsJson
  * - clienteId y clienteNombre vienen de la relación @ManyToOne usuario.cliente
  * - Los archivos se obtienen de la lista pedido.archivos
  *
@@ -57,8 +57,6 @@ public class PedidoMapper {
     /**
      * Convierte una Entidad Pedido a PedidoDTO.
      *
-     * NOTA: creadoPorId y creadoPorNombre removidos (ya no existen en entity).
-     *
      * @param pedido La entidad del pedido
      * @return El DTO del pedido con estados en formato minúscula
      */
@@ -72,27 +70,17 @@ public class PedidoMapper {
                 // Obtener datos del cliente desde la relación
                 .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
                 .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : "")
-                // creadoPorId y creadoPorNombre: REMOVIDOS
-                // Cliente es siempre quien crea sus propios pedidos
-                // Resto de campos
+                // Campos principales
                 .servicio(pedido.getServicio())
-                .subservicio(pedido.getSubservicio())
-                .opcion(pedido.getOpcion())
-                .productoFinalId(pedido.getProductoFinalId())
                 .descripcion(pedido.getDescripcion())
                 .cantidad(pedido.getCantidad())
-                .cantidadUnidades(pedido.getCantidadUnidades())
                 .fecha(pedido.getFecha())
                 .fechaEntrega(pedido.getFechaEntrega())
                 .measurementWidthCm(pedido.getMeasurementWidthCm())
                 .measurementHeightCm(pedido.getMeasurementHeightCm())
                 // CRÍTICO: Convertir enum a minúsculas
                 .estado(estadoEnumToString(pedido.getEstado()))
-                .fileUrlsJson(pedido.getFileUrlsJson())
                 .total(pedido.getTotal())
-                .boxTotal(pedido.getBoxTotal())
-                .cajasCompletadas(pedido.getCajasCompletadas())
-                .tamanoCaja(pedido.getTamanoCaja())
                 .build();
     }
 
@@ -100,8 +88,7 @@ public class PedidoMapper {
      * Convierte un PedidoDTO a Entidad Pedido.
      *
      * Útil para operaciones de creación/actualización desde el frontend.
-     * NOTA: El campo cliente debe ser asignado por el servicio/controller,
-     * no por este mapper.
+     * NOTA: El campo cliente debe ser asignado por el servicio/controller.
      *
      * @param dto El DTO del pedido
      * @return La entidad del pedido con enums correctos
@@ -114,25 +101,16 @@ public class PedidoMapper {
         return Pedido.builder()
                 .id(dto.getId())
                 // cliente debe ser asignado por el servicio (usuario autenticado)
-                // creadoPor: REMOVIDO (no existe en nuevo diseño)
                 .servicio(dto.getServicio())
-                .subservicio(dto.getSubservicio())
-                .opcion(dto.getOpcion())
-                .productoFinalId(dto.getProductoFinalId())
                 .descripcion(dto.getDescripcion())
                 .cantidad(dto.getCantidad())
-                .cantidadUnidades(dto.getCantidadUnidades())
                 .fecha(dto.getFecha())
                 .fechaEntrega(dto.getFechaEntrega())
                 .measurementWidthCm(dto.getMeasurementWidthCm())
                 .measurementHeightCm(dto.getMeasurementHeightCm())
                 // CRÍTICO: Convertir string minúscula a enum MAYÚSCULA
                 .estado(stringToEstadoEnum(dto.getEstado()))
-                .fileUrlsJson(dto.getFileUrlsJson())
                 .total(dto.getTotal())
-                .boxTotal(dto.getBoxTotal())
-                .cajasCompletadas(dto.getCajasCompletadas())
-                .tamanoCaja(dto.getTamanoCaja())
                 .build();
     }
 }
