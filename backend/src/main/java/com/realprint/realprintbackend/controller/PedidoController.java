@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +23,12 @@ import com.realprint.realprintbackend.mapper.PedidoMapper;
 import com.realprint.realprintbackend.service.PedidoService;
 
 import lombok.RequiredArgsConstructor;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses; // ✅ faltaba este
+// Content, Schema, ArraySchema eliminados — no se usan en este controller
 
 /**
  * Controlador REST de pedidos.
@@ -46,6 +52,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/pedidos")
 @RequiredArgsConstructor
+@Tag(name = "Pedidos", description = "Operaciones relacionadas con la gestión de pedidos")
 public class PedidoController {
 
     private final PedidoService pedidoService;
@@ -58,6 +65,12 @@ public class PedidoController {
      *
      * @return Lista de PedidoDTO con todos los pedidos
      */
+    @Operation(summary = "Listar todos los pedidos",
+                description = "Obtiene una lista de todos los pedidos registrados en el sistema. Solo accesible para usuarios con rol ADMIN.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de pedidos obtenida exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo ADMIN puede acceder a esta información.")
+    })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PedidoDTO>> listarPedidos() {
@@ -77,7 +90,16 @@ public class PedidoController {
      * @param id ID del pedido
      * @return El PedidoDTO solicitado
      */
+    @Operation  (summary = "Obtener un pedido por ID",
+                description = "Obtiene los detalles de un pedido específico. Los administradores pueden acceder a cualquier pedido," +
+                                "mientras que los clientes solo pueden acceder a sus propios pedidos.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Pedido obtenido exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo ADMIN puede acceder a cualquier pedido, los clientes solo a los suyos."),
+        @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
     @GetMapping("/{id}")
+    @PostAuthorize("@securityRules.canReadPedido(authentication, returnObject.body)")
     public ResponseEntity<PedidoDTO> obtenerPedido(@PathVariable Long id) {
         Pedido pedido = pedidoService.findById(id);
         return ResponseEntity.ok(PedidoMapper.toDTO(pedido));
@@ -100,23 +122,18 @@ public class PedidoController {
      * @return El PedidoDTO creado con ID asignado
      * @throws ResponseStatusException 403 si es ADMIN
      */
+    @Operation  (summary = "Crear un nuevo pedido",
+                description = "Permite a los clientes crear un nuevo pedido. Los administradores no pueden crear pedidos y recibirán un error 403 si intentan hacerlo." +
+                                 "El sistema asignará automáticamente el cliente, la fecha de creación y el estado inicial del pedido.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Pedido creado exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los clientes pueden crear pedidos.")
+    })
     @PostMapping
+    @PreAuthorize("@securityRules.canCreatePedido(authentication)")
     public ResponseEntity<PedidoDTO> crearPedido(
             @RequestBody PedidoDTO pedidoDTO,
             Authentication auth) {
-        
-        // VALIDACIÓN: Solo CLIENTE puede crear pedidos
-        boolean isAdmin = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch("ROLE_ADMIN"::equals);
-        
-        if (isAdmin) {
-            throw new ResponseStatusException(
-                HttpStatus.FORBIDDEN,
-                "Solo los clientes pueden crear pedidos. Los administradores gestionan los existentes."
-            );
-        }
-        
         // Convertir DTO → Entity
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO);
 
@@ -139,6 +156,14 @@ public class PedidoController {
      * @param pedidoDTO Los datos actualizados
      * @return El PedidoDTO actualizado
      */
+    @Operation  (summary = "Actualizar un pedido",
+                description = "Permite a los administradores actualizar los detalles de un pedido existente," +
+                            "como su estado o precio. No se permite modificar el cliente asociado al pedido.")
+    @ApiResponses (value = {
+        @ApiResponse(responseCode = "200", description = "Pedido actualizado exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden actualizar pedidos."),
+        @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")  // Solo ADMIN actualiza
     public ResponseEntity<PedidoDTO> actualizarPedido(
@@ -164,6 +189,14 @@ public class PedidoController {
      * @param id ID del pedido a eliminar
      * @return Respuesta vacía con estado 204 No Content
      */
+    @Operation (summary = "Eliminar un pedido",
+            description = "Permite a los administradores eliminar un pedido existente." +
+                        "Esta operación realiza un borrado físico del registro en la base de datos.")
+    @ApiResponses (value = {
+        @ApiResponse(responseCode = "204", description = "Pedido eliminado exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden eliminar pedidos."),
+        @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {

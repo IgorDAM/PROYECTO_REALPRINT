@@ -5,7 +5,6 @@ import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,13 +13,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.realprint.realprintbackend.service.FileStorageService;
 
 import lombok.RequiredArgsConstructor;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses; // ✅ faltaba este
+// Content, Schema, ArraySchema eliminados — no se usan en este controller
 
 /**
  * Controlador REST para gestión de archivos.
@@ -41,6 +43,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
+@Tag (name = "Archivos", description = "Operaciones relacionadas con la gestión de archivos para pedidos")
 public class FileController {
 
     private final FileStorageService fileStorageService;
@@ -62,24 +65,18 @@ public class FileController {
      * @throws ResponseStatusException 403 si es ADMIN
      * @throws ResponseStatusException 400 si archivo inválido
      */
+    @Operation  (summary = "Subir archivo a una orden",
+               description = "Permite a los clientes subir archivos relacionados con sus pedidos. Solo los usuarios con rol CLIENTE pueden realizar esta acción." +
+                                "Los administradores no tienen permitido subir archivos, ya que su función es gestionar la producción.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Archivo subido exitosamente, se devuelve la URL del archivo."),
+        @ApiResponse(responseCode = "400", description = "Archivo inválido (tamaño o formato no permitido)."),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los clientes pueden subir archivos.")
+    })
     @PostMapping("/upload")
+    @PreAuthorize("@securityRules.canUploadFile(authentication)")
     public ResponseEntity<Map<String, String>> upload(
-            @RequestParam("file") MultipartFile file,
-            Authentication auth) {
-        
-        // VALIDACIÓN: Solo CLIENTE puede subir
-        boolean isAdmin = auth.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
-                .anyMatch("ROLE_ADMIN"::equals);
-        
-        if (isAdmin) {
-            throw new ResponseStatusException(
-                FORBIDDEN,
-                "Solo los clientes pueden cargar archivos en sus pedidos. " +
-                "Los administradores gestionan la producción."
-            );
-        }
-
+            @RequestParam("file") MultipartFile file) {
         // Validar y almacenar archivo
         String storedName = fileStorageService.store(file);
 
@@ -110,11 +107,18 @@ public class FileController {
      * @throws ResponseStatusException 403 si es CLIENTE
      * @throws ResponseStatusException 404 si archivo no existe
      */
+    @Operation  (summary = "Descargar archivo de una orden",
+               description = "Permite a los administradores descargar archivos relacionados con los pedidos para gestionar la producción. Solo los usuarios con rol ADMIN pueden realizar esta acción." +
+                                "Los clientes no tienen permitido descargar archivos, ya que su función es crear pedidos y subir archivos relacionados.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Archivo descargado exitosamente."),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden descargar archivos."),
+        @ApiResponse(responseCode = "404", description = "Archivo no encontrado.")
+    })
     @GetMapping("/files/{fileName:.+}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> download(
-            @PathVariable String fileName,
-            Authentication auth) {
+            @PathVariable String fileName) {
 
         // Cargar y servir archivo
         FileStorageService.StoredFile storedFile = fileStorageService.load(fileName);
