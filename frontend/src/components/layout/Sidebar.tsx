@@ -29,7 +29,6 @@ const menuItems: Record<RoleKey, MenuItem[]> = {
   admin: [
     { path: "/admin", label: "Dashboard", icon: "dashboard" },
     { path: "/admin/pedidos", label: "Pedidos", icon: "package_2" },
-    { path: "/admin/historial", label: "Historial", icon: "history" },
     { path: "/admin/usuarios", label: "Usuarios", icon: "group" },
   ],
   cliente: [
@@ -150,5 +149,4 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       </div>
     </aside>
   );
-
 }

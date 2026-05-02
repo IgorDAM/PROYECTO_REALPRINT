@@ -16,7 +16,7 @@ spring:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:realprint_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:root123}
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
@@ -48,7 +48,7 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:clave-secreta-desarrollo-realprint-2024-minimo32chars}
   expiration-ms: ${JWT_EXPIRATION_MS:86400000}
 
 app:
