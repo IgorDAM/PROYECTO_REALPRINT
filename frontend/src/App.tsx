@@ -46,10 +46,8 @@ export default function App() {
               >
                 <Route index element={<AdminDashboard />} />
                 <Route path="pedidos" element={<AdminPedidos />} />
-                <Route path="historial" element={<Navigate to="/admin/pedidos?tab=completados" replace />} />
                 <Route path="usuarios" element={<AdminUsuarios />} />
                 <Route path="configuracion" element={<Configuracion />} />
-
               </Route>
 
               {/* Rutas de cliente */}
