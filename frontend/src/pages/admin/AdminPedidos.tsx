@@ -168,7 +168,6 @@ export default function AdminPedidos() {
 
   /**
    * Detecta query param ?tab= para abrir la pestaña correspondiente.
-   * Usado cuando se redirige desde /admin/historial → /admin/pedidos?tab=completados
    */
   const tabFromUrl = searchParams.get("tab") as "activos" | "completados" | "cancelados" | null;
   const [activeTab, setActiveTab] = useState<"activos" | "completados" | "cancelados">(
@@ -177,7 +176,6 @@ export default function AdminPedidos() {
 
   /**
    * Mapeo de tabulaciones a los estados que incluyen.
-   * Esto consolida AdminPedidos + AdminHistorial en una sola vista.
    */
   const tabsConfig = {
     activos: {
@@ -213,7 +211,6 @@ export default function AdminPedidos() {
     .filter((pedido) => {
       const matchesSearch =
         String(pedido.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(pedido.cliente).toLowerCase().includes(searchTerm.toLowerCase()) ||
         (pedido.pedido ? String(pedido.pedido).toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
         (pedido.servicio ? String(pedido.servicio).toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
         (pedido.descripcion ? String(pedido.descripcion).toLowerCase().includes(searchTerm.toLowerCase()) : false);
@@ -248,8 +245,6 @@ export default function AdminPedidos() {
 
     const token = getToken();
 
-    // Comentario didáctico: si el enlace es externo y no requiere JWT,
-    // abrimos en nueva pestaña para no forzar descarga por blob.
     if ((fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) && !fileUrl.includes("/api/files/")) {
       window.open(fileUrl, "_blank", "noopener,noreferrer");
       return;
@@ -279,7 +274,6 @@ export default function AdminPedidos() {
       document.body.removeChild(a);
       URL.revokeObjectURL(objectUrl);
     } catch {
-      // Fallback didáctico: si falla fetch con token, intentamos apertura directa.
       window.open(fileUrl, "_blank", "noopener,noreferrer");
     } finally {
       setDownloadingFile((current) => (current === fileUrl ? null : current));
@@ -288,8 +282,6 @@ export default function AdminPedidos() {
 
   const columns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
-    { key: "clienteNombre", label: "Cliente" },
-    { key: "creadoPorNombre", label: "Creado por" },
     { key: "pedido", label: "Pedido" },
     { key: "productoFinalId", label: "Prenda", render: (id) => {
       const pf = catalogoPrendas.find((p: PedidoItem) => p.id == id);
@@ -311,11 +303,6 @@ export default function AdminPedidos() {
     },
   ];
 
-  /**
-   * Opciones de filtrado para el SELECT.
-   * Incluye todos los estados disponibles, no solo los de la pestaña activa.
-   * Esto permite hacer subfiltradores dentro de cada vista.
-   */
   const estadoOptions = Object.keys(ESTADOS_PEDIDO).map((state) => ({
     value: state,
     label: ESTADOS_PEDIDO[state]?.label || state,
@@ -366,7 +353,7 @@ export default function AdminPedidos() {
       {/* Filters - Responsive stacking */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
         <Input
-          placeholder="Buscar por ID, cliente..."
+          placeholder="Buscar por ID, pedido..."
           value={searchTerm}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
@@ -406,42 +393,34 @@ export default function AdminPedidos() {
         {selectedPedido && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-surface-500 text-sm">Prenda asociada</p>
-                              <p className="font-medium">
-                                {(() => {
-                                  const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
-                                  return pf ? pf.nombre : "-";
-                                })()}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-surface-500 text-sm">Materiales Usados</p>
-                              <p className="font-medium">
-                                {(() => {
-                                  const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
-                                  if (!pf) return "-";
-                                  const materialIds = Array.isArray(pf.materiales)
-                                    ? pf.materiales
-                                        .filter((m: any) => m && m.id !== undefined)
-                                        .map((m: any) => ({ id: m.id, cantidad: Number(m.cantidad) || 1 }))
-                                    : Array.isArray(pf.productosInventario)
-                                      ? pf.productosInventario.map((id: string | number) => ({ id, cantidad: 1 }))
-                                      : [];
-                                  if (!materialIds.length) return "-";
-                                  return materialIds.map(({ id, cantidad }: { id: string | number; cantidad: number }) => {
-                                    return `${id}${cantidad > 1 ? ` x${cantidad}` : ""}`;
-                                  }).join(", ");
-                                })()}
-                              </p>
-                            </div>
               <div>
-                <p className="text-surface-500 text-sm">Cliente</p>
-                <p className="font-medium">{selectedPedido.clienteNombre}</p>
+                <p className="text-surface-500 text-sm">Prenda asociada</p>
+                <p className="font-medium">
+                  {(() => {
+                    const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
+                    return pf ? pf.nombre : "-";
+                  })()}
+                </p>
               </div>
               <div>
-                <p className="text-surface-500 text-sm">Creado por</p>
-                <p className="font-medium">{selectedPedido.creadoPorNombre || "-"}</p>
+                <p className="text-surface-500 text-sm">Materiales Usados</p>
+                <p className="font-medium">
+                  {(() => {
+                    const pf = catalogoPrendas.find((p: PedidoItem) => p.id == selectedPedido.productoFinalId);
+                    if (!pf) return "-";
+                    const materialIds = Array.isArray(pf.materiales)
+                      ? pf.materiales
+                          .filter((m: any) => m && m.id !== undefined)
+                          .map((m: any) => ({ id: m.id, cantidad: Number(m.cantidad) || 1 }))
+                      : Array.isArray(pf.productosInventario)
+                        ? pf.productosInventario.map((id: string | number) => ({ id, cantidad: 1 }))
+                        : [];
+                    if (!materialIds.length) return "-";
+                    return materialIds.map(({ id, cantidad }: { id: string | number; cantidad: number }) => {
+                      return `${id}${cantidad > 1 ? ` x${cantidad}` : ""}`;
+                    }).join(", ");
+                  })()}
+                </p>
               </div>
               <div>
                 <p className="text-surface-500 text-sm">Pedido</p>
@@ -511,23 +490,23 @@ export default function AdminPedidos() {
               })()}
             </div>
 
-             <div>
-               <p className="text-surface-500 text-sm mb-2">Cambiar Estado</p>
-               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                 {Object.entries(ESTADOS_PEDIDO).map(([key, { label }]) => (
-                   <Button
-                     key={key}
-                     variant={selectedPedido.estado === key ? "primary" : "secondary"}
-                     size="sm"
-                     disabled={isProcessing}
-                     onClick={() => handleUpdateEstado(selectedPedido.id, key)}
-                     className="text-xs sm:text-sm"
-                   >
-                     {label}
-                   </Button>
-                 ))}
-               </div>
-             </div>
+            <div>
+              <p className="text-surface-500 text-sm mb-2">Cambiar Estado</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.entries(ESTADOS_PEDIDO).map(([key, { label }]) => (
+                  <Button
+                    key={key}
+                    variant={selectedPedido.estado === key ? "primary" : "secondary"}
+                    size="sm"
+                    disabled={isProcessing}
+                    onClick={() => handleUpdateEstado(selectedPedido.id, key)}
+                    className="text-xs sm:text-sm"
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-surface-200">
               <Button variant="danger" disabled={isProcessing} onClick={() => {
@@ -545,5 +524,3 @@ export default function AdminPedidos() {
     </div>
   );
 }
-
-
