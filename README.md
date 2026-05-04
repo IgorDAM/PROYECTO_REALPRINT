@@ -1,181 +1,141 @@
-# RealPrint - Sistema de Gestión de Pedidos
+# RealPrint - Sistema de Gestion de Pedidos
 
-Sistema integral de gestión de pedidos para servicios de impresión personalizada, con frontend moderno y backend REST seguro.
+Sistema de gestion de pedidos para servicios de impresion personalizada, con frontend React y backend REST seguro.
 
-## 📁 Estructura del Proyecto
+## Estructura del proyecto
 
-```
+```text
 PROYECTO_REALPRINT/
-├── frontend/              # React + Vite + TypeScript
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.js
-├── backend/               # Spring Boot 4.0.5 + Java 17
-│   ├── src/
-│   ├── pom.xml
-│   └── target/
-├── docker/                # Configuración Docker
-│   └── docker-compose.yml
-├── scripts/               # Base de datos y utilidades
-│   └── realprint-database-mysql.sql
-├── docs/                  # Documentación
-│   ├── DIAGRAMAS/
-│   ├── INTERFACES/
-│   └── md/
-└── README.md
+|- frontend/                # React + Vite + TypeScript
+|- backend/                 # Spring Boot 4.0.5 + Java 17
+|- docker/                  # docker-compose.yml y docker-compose.prod.yml
+|- scripts/                 # SETUP/START/CLEAN + utilidades de deploy
+|- docs/                    # Documentacion
+|- LAUNCH.bat               # Menu principal en Windows
+`- README.md
 ```
 
-## 🚀 Inicio Rápido
+## Inicio rapido (Windows)
 
-### Requisitos Previos
-- **Node.js** 18+
-- **Java** 17+
-- **Maven** 3.8+
-- **MySQL** 8.0+
-- **Docker** (opcional)
+### Requisitos previos
+- Node.js 18+
+- Java 17+
+- Maven 3.8+
+- Docker Desktop
+- Git
 
-### 1. Configurar Base de Datos
+### Opcion recomendada
 
-```bash
-# Abrir MySQL y ejecutar el script
-mysql -u root -p < scripts/realprint-database-mysql.sql
+```powershell
+.\LAUNCH.bat
 ```
 
-O si usas Workbench:
-1. Abre MySQL Workbench
-2. Ejecuta `scripts/realprint-database-mysql.sql`
+Desde el menu puedes usar:
+- `[1]` `scripts\START_ALL.bat`
+- `[2]` `scripts\SETUP.bat`
+- `[3]` `scripts\START_BACKEND.bat`
+- `[4]` `scripts\START_FRONTEND.bat`
+- `[5]` `scripts\CLEAN.bat`
 
-### 2. Arrancar Backend
+### Arranque manual
 
-```bash
-cd backend
+```powershell
+# 1) MySQL en Docker
+cd docker
+docker compose up -d
+
+# 2) Backend
+cd ..\backend
 mvn spring-boot:run
-```
 
-El backend estará disponible en `http://localhost:8080/api`
-
-**Usuarios de prueba:**
-- `admin` / `admin123`
-- `cliente1` / `cliente123`
-
-### 3. Arrancar Frontend
-
-```bash
-cd frontend
+# 3) Frontend
+cd ..\frontend
 npm install
 npm run dev
 ```
 
-El frontend estará disponible en `http://localhost:5173`
+URLs locales:
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8080/api`
+- Swagger UI: `http://localhost:8080/api/swagger-ui.html`
 
-## 📋 Endpoints Principales
+Usuarios de prueba:
+- `admin` / `admin123`
+- `cliente1` / `cliente123`
 
-### Autenticación
-- `POST /api/auth/login` - Login de usuario
+## Endpoints principales
+
+### Autenticacion
+- `POST /api/auth/login` - Login
 
 ### Pedidos
-- `GET /api/pedidos` - Listar pedidos
-- `POST /api/pedidos` - Crear pedido
-- `PUT /api/pedidos/:id` - Actualizar pedido
-- `DELETE /api/pedidos/:id` - Eliminar pedido
+- `GET /api/pedidos` - Listar pedidos (ADMIN)
+- `GET /api/pedidos/{id}` - Obtener pedido por ID
+- `POST /api/pedidos` - Crear pedido (CLIENTE)
+- `PUT /api/pedidos/{id}` - Actualizar pedido (ADMIN)
+- `DELETE /api/pedidos/{id}` - Eliminar pedido (ADMIN)
 
 ### Usuarios
-- `GET /api/usuarios` - Listar usuarios
-- `POST /api/usuarios` - Crear usuario
+- `GET /api/usuarios` - Listar usuarios (ADMIN)
+- `GET /api/usuarios/{id}` - Obtener usuario (ADMIN o self)
+- `POST /api/usuarios` - Crear usuario (ADMIN)
+- `PUT /api/usuarios/{id}` - Actualizar usuario (ADMIN o self)
+- `DELETE /api/usuarios/{id}` - Eliminar usuario (ADMIN)
 
-## 🛠️ Stack Tecnológico
+### Archivos
+- `POST /api/upload` - Subir archivo (CLIENTE)
+- `GET /api/files/{fileName}` - Descargar archivo (ADMIN)
+
+## Stack tecnologico
 
 ### Frontend
-- **React** 18.2
-- **Vite** 8.0
-- **TypeScript** 5.9
-- **React Router** 7.12
-- **Tailwind CSS** 3.3
-- **Zod** 4.3 (Validación)
+- React 18.2
+- Vite 6.4.x
+- TypeScript 5.9
+- React Router 7.12
+- Tailwind CSS 3.3
+- Zod 4.3
 
 ### Backend
-- **Spring Boot** 4.0.5
-- **Java** 17
-- **MySQL** 8.0
-- **Spring Security** + JWT
-- **JPA/Hibernate** ORM
-- **Lombok**
+- Spring Boot 4.0.5
+- Java 17
+- MySQL 8.0
+- Spring Security + JWT
+- JPA/Hibernate
+- Lombok
 
-## 🔒 Seguridad
+## Notas importantes
 
-- Autenticación basada en JWT
-- Contraseñas hasheadas con BCrypt
-- CORS configurado
-- Validación de entrada con Zod
+- El backend usa `context-path` `/api` (configurado en `backend/src/main/resources/application.yml`).
+- Perfil por defecto: `SPRING_PROFILE=development`.
+- En desarrollo se usa `application-development.yml` (`ddl-auto=update`).
+- En produccion se usa `application-production.yml` (`ddl-auto=validate`).
 
-## 📝 Notas Importantes
-
-### Context Path
-El backend usa context path `/api`:
-- URLs base: `http://localhost:8080/api`
-- Las rutas en controladores son relativas al contexto
-- Ej: `@RequestMapping("/pedidos")` → `/api/pedidos`
-
-### BD MySQL
-- Host: `localhost:3306`
-- Database: `realprint_db`
-- Usuario: `root`
-- Contraseña: `root123`
-
-## 📚 Documentación Adicional
-
-Ver carpeta `/docs` para:
-- Diagramas de arquitectura
-- Interfaces de usuario
-- Documentación técnica detallada
-
-## 🐛 Troubleshooting
+## Troubleshooting rapido
 
 ### Backend no inicia
-```bash
-# Limpia build anterior
+
+```powershell
+cd backend
 mvn clean
 mvn spring-boot:run
 ```
 
-### Error de conexión a BD
-- Verifica que MySQL está corriendo: `net start MySQL80`
-- Comprueba credenciales en `backend/src/main/resources/application.yml`
+### Error de conexion a BD
 
-### Frontend no conecta al backend
-- Verifica CORS en `backend/src/main/java/.../config/CorsConfig.java`
-- Backend debe estar en `http://localhost:8080/api`
-
-## 👨‍💻 Desarrollo
-
-### Modo desarrollo con hot reload
-
-**Backend:**
-```bash
-cd backend
-mvn spring-boot:run
+```powershell
+docker ps | findstr realprint-mysql
+docker logs realprint-mysql
 ```
 
-**Frontend:**
-```bash
-cd frontend
-npm run dev
-```
+### Frontend no conecta con backend
+- Verifica proxy en `frontend/vite.config.js`.
+- Verifica CORS en `backend/src/main/java/com/realprint/realprintbackend/config/CorsConfig.java`.
+- Verifica que backend responda en `http://localhost:8080/api`.
 
-### Build para producción
+## Produccion (referencia)
 
-**Backend:**
-```bash
-cd backend
-mvn clean package -DskipTests
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm run build
-```
-
-## 📞 Contacto & Soporte
-
-Para reportar bugs o sugerencias, contacta al equipo de desarrollo.
+Para despliegue, revisa:
+- `docker/docker-compose.prod.yml`
+- `scripts/deploy-prod.sh`
+- `docs/md/LEVANTAR_PROYECTO_DESARROLLO_Y_PRODUCCION.md`
