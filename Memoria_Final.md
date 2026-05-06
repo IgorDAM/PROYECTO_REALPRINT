@@ -618,7 +618,36 @@ Se han diseñado y ejecutado pruebas en tres niveles:
 | Rutas protegidas | Cliente no accede a `/admin/*` | ✅ PASS |
 | CRUD Admin | Crear/Editar/Eliminar inventario | ✅ PASS |
 
-#### 3. **Tests Manuales (Funcionales)**
+#### 3. **Colección Postman (Automatizado)**
+- **Framework**: Postman v11.0+ con Newman CLI
+- **Ubicación**: `docs/postman/`
+- **Archivos**:
+  - `RealPrint API.postman_collection.json` - 14 endpoints completos
+  - `RealPrint.postman_environment.json` - Variables dinámicas
+  - `postman-run.bat` - Script de ejecución Windows
+  - `README.md` - Documentación
+  - `VALIDACION_Y_MEJORAS.md` - Informe de validación
+
+**Ejecución**:
+```powershell
+# Windows CLI
+cd docs\postman
+postman-run.bat --report          # Genera reportes HTML/JUnit
+
+# O en Postman Desktop
+# File → Import ambos JSON
+# Seleccionar environment "RealPrint Local"
+# Ejecutar colección completa
+```
+
+**Validación**:
+- ✅ 14 endpoints probados y funcionales
+- ✅ Authentication automática (JWT auto-guardado)
+- ✅ Variables dinámicas configuradas
+- ✅ Bodies actualizados según modelo actual
+- ✅ Reportes generados en formato JUnit/HTML
+
+#### 4. **Tests Manuales (Funcionales)**
 
 **Autenticación:**
 - ✅ Login correcto genera JWT válido
@@ -664,7 +693,7 @@ Se han diseñado y ejecutado pruebas en tres niveles:
 
 ### 8.2 Resultados Generales
 
-**Estado General**: ✅ **Aplicación funcional y lista para demostración**
+**Estado General**: ✅ **Aplicación funcional y completamente testeable**
 
 | Área | Resultado | Cobertura |
 |------|---|---|
@@ -676,6 +705,7 @@ Se han diseñado y ejecutado pruebas en tres niveles:
 | Validaciones | ✅ Bueno | 90% |
 | Tests Unitarios | ⚠️ Parcial | 20% |
 | Tests E2E | ✅ Bueno | 70% |
+| **Tests Postman (14 endpoints)** | **✅ Excelente** | **100%** |
 | Documentación Swagger | ✅ Excelente | 100% |
 | UI/UX | ✅ Bueno | 85% |
 
@@ -689,15 +719,30 @@ Se han diseñado y ejecutado pruebas en tres niveles:
 | JWT expirado sin refresh | Implementar 24 horas de expiración | ⚠️ Parcial (sin refresh token) |
 | Falta de auditoría completa | Timestamps básicos implementados | ⚠️ Mejora futura |
 
-### 8.4 Recommendations Futuras
+### 8.4 Colección Postman - Documentación
 
-1. **Aumentar cobertura de tests** → Target 80%+ de tests unitarios
-2. **Implementar refresh tokens** → Para sesiones más largas sin re-login
-3. **Auditoría completa** → Registrar cambios por usuario y hora
-4. **Rate limiting** → Proteger endpoints de ataques por fuerza bruta
-5. **Notificaciones** → Email/SMS cuando cambia estado del pedido
-6. **Reportes exportables** → PDF/Excel con histórico de pedidos
-7. **Backups automáticos** → Estrategia de BD en producción
+Se ha creado una **colección Postman completa y validada** (v2.0) con:
+- ✅ 14 endpoints mapeados según @RestController actuales
+- ✅ Variables dinámicas: `base_url`, `username`, `password`, `authToken`
+- ✅ Auto-login: JWT se guarda automáticamente en script de Tests
+- ✅ Authorization headers en todos los endpoints protegidos
+- ✅ Bodies actualizados con campos correctos del modelo actual
+- ✅ Form-data configurado para upload de archivos
+- ✅ Ejecución automatizada con Newman (CLI + reportes JUnit/HTML)
+- ✅ Script Windows para ejecución fácil: `docs\postman\postman-run.bat`
+
+**Ubicación**: `docs/postman/` → Ver `README.md` y `VALIDACION_Y_MEJORAS.md`
+
+### 8.5 Recommendations Futuras
+
+1. **Aumentar cobertura de tests unitarios** → Target 80%+ (actualmente 20%)
+2. **Ampliar tests Postman** → Agregar validaciones de response body
+3. **Implementar refresh tokens** → Para sesiones más largas sin re-login
+4. **Auditoría completa** → Registrar cambios por usuario y hora
+5. **Rate limiting** → Proteger endpoints de ataques por fuerza bruta
+6. **Notificaciones** → Email/SMS cuando cambia estado del pedido
+7. **Reportes exportables** → PDF/Excel con histórico de pedidos
+8. **Backups automáticos** → Estrategia de BD en producción
 
 ---
 
@@ -805,10 +850,25 @@ PROYECTO_REALPRINT/
 
 ### 11.3 Referencias Útiles
 
-- **Swagger UI**: `http://localhost:8080/api/swagger-ui.html`
-- **Git del proyecto**: Ver commits en `.git/`
-- **Scripts de ayuda**: Ver `scripts/` para START, SETUP, CLEAN
-- **Documentación adicional**: `docs/md/` y `docs/DIAGRAMAS/`
+**Documentación y Testing**:
+- **Swagger UI**: `http://localhost:8080/api/swagger-ui.html` - Documentación interactiva
+- **Postman Collection**: `docs/postman/RealPrint API.postman_collection.json` - 14 endpoints
+- **Postman Environment**: `docs/postman/RealPrint.postman_environment.json` - Variables
+- **Postman Script**: `docs/postman/postman-run.bat` - Ejecución automática (Windows)
+
+**Documentación Git**:
+- **Git History**: Ver commits en `.git/` - Trabajo iterativo del equipo
+- **Última Validación**: `docs/postman/VALIDACION_Y_MEJORAS.md` - 9 mejoras documentadas
+
+**Scripts de Ayuda**:
+- **Lanzar Todo**: `scripts/START_ALL.bat` (Windows)
+- **Setup Inicial**: `scripts/SETUP.bat` (Windows)
+- **Postman Tests**: `docs/postman/postman-run.bat --report` (genera reportes)
+
+**Documentación del Proyecto**: 
+- `docs/md/` - Requisitos funcionales y no funcionales
+- `docs/DIAGRAMAS/` - DER, casos de uso, diagramas de clases
+- `docs/INTERFACES/` - Mockups de interfaces
 
 ---
 

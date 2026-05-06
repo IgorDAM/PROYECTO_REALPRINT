@@ -63,6 +63,26 @@ Usuarios de prueba:
 - `admin` / `admin123`
 - `cliente1` / `cliente123`
 
+## Testing de API con Postman
+
+Se incluye **colección Postman completa** con los 14 endpoints:
+
+### Uso rápido (Windows)
+```powershell
+cd docs\postman
+postman-run.bat                    # Ejecución simple con CLI
+postman-run.bat --report           # Con reportes HTML/JUnit
+```
+
+### Uso en Postman Desktop
+1. `File → Import` → `RealPrint API.postman_collection.json`
+2. `File → Import` → `RealPrint.postman_environment.json`
+3. Selecciona environment **"RealPrint Local"**
+4. Ejecuta endpoint **Login** → token se guarda automáticamente
+5. ¡Todos los endpoints ya tienen autenticación configurada!
+
+**Ver**: `docs/postman/README.md` para documentación completa
+
 ## Endpoints principales
 
 ### Autenticacion
