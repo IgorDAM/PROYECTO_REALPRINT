@@ -812,6 +812,75 @@ PROYECTO_REALPRINT/
 
 ---
 
+## 12. Declaración Honesta de Uso de LLM / IA Generativa
+
+### 12.1 Contexto
+
+En la realización de este proyecto se ha utilizado asistencia de IA generativa (GitHub Copilot) como herramienta auxiliar en ciertos aspectos del desarrollo. Esta sección documenta de forma honesta y transparente cómo se ha utilizado.
+
+### 12.2 Áreas Donde Se Utilizó IA
+
+| Área | Uso | Limitaciones / Decisiones |
+|------|-----|--------------------------|
+| **Boilerplate Code** | Generación de estructuras repetitivas (getters, setters, constructores, mapeos básicos) | Se revisó y se ajustó manualmente según necesidades del proyecto |
+| **Documentación** | Asistencia en redacción de comentarios, JavaDoc, documentación de APIs | Textos generados fueron revisados y corregidos para precisión |
+| **SQL Scripts** | Generación de migraciones y scripts de BD iniciales | Se validaron en contexto del modelo de datos actual |
+| **Configuración** | Plantillas de archivos yml, properties, docker-compose | Se adaptaron manualmente a requisitos específicos |
+| **Tests** | Asistencia en estructura de tests unitarios y E2E | Se escribieron de forma que reflejen la lógica actual del proyecto |
+
+### 12.3 Áreas Donde NO Se Utilizó IA
+
+| Área | Razón |
+|------|-------|
+| **Lógica de negocio principal** | Escrita manualmente para garantizar precisión y alineación con requisitos |
+| **Arquitectura del sistema** | Decisiones de diseño tomadas de forma independiente |
+| **Seguridad (JWT, Spring Security, BCrypt)** | Implementación crítica, revisada manualmente por seguridad |
+| **Tests críticos (Auth, Pedidos, Archivos)** | Escritura manual para validar casos límite y errores |
+| **Debugging y troubleshooting** | Resolución manual de problemas (refactoring campos legacy, compatibilidad Springdoc, etc) |
+| **Commits significativos** | Cada commit representa trabajo real y decisiones técnicas del equipo |
+
+### 12.4 Uso de IA en Documentación
+
+**Secciones de Memoria_Final.md generadas con asistencia IA:**
+- Estructura general y plantilla de la memoria
+- Resumen de algunas descripciones técnicas
+- Formato de tablas y referencias
+- Asistencia en redacción de anexos
+
+**Lo que NO fue generado por IA:**
+- Propuesta del proyecto (1.1 - 1.4): Basada en experiencia real del usuario
+- Requisitos funcionales y no funcionales (sección 2): Extraído de documentación existente del proyecto
+- Análisis técnico de arquitectura y decisiones (secciones 3, 4, 5): Análisis real del código
+- Conclusiones y recomendaciones (sección 8, 10): Evaluación genuina del proyecto
+- Manual de usuario (sección 7): Conocimiento del flujo funcional real
+
+### 12.5 Valor Agregado vs. Automatización
+
+**Lo que aportó la IA:**
+- Acelerar redacción repetitiva de documentación
+- Sugerir estructuras organizativas
+- Asistir en formato y presentación
+
+**Lo que no puede ser automatizado (hecho manualmente):**
+- Evaluación técnica real del proyecto
+- Decisiones de arquitectura
+- Implementación de lógica compleja
+- Testing y validación
+- Debugging de problemas específicos
+- Juicio profesional sobre calidad
+
+### 12.6 Conclusión
+
+El uso de LLM/IA ha sido **asistencial, no generador** de la solución. El proyecto representa:
+- ✅ Desarrollo técnico genuino (código, arquitectura, seguridad)
+- ✅ Investigación real (requisitos funcionales, casos de uso)
+- ✅ Testing manual de funcionalidades
+- ✅ Debugging y resolución de problemas reales
+
+El LLM/IA se utilizó principalmente para **acelerar documentación y redacción**, aspectos que no comprometen la integridad técnica del proyecto.
+
+---
+
 **Fin del Documento**
 
 *Memoria escrita de acuerdo a los estándares de DAM. Proyecto completo disponible en repositorio Git.*
