@@ -1,0 +1,97 @@
+name: Postman Collection Tests
+
+on:
+  push:
+    paths:
+      - 'backend/src/**'
+      - 'docs/postman/**'
+  pull_request:
+    paths:
+      - 'backend/src/**'
+      - 'docs/postman/**'
+  workflow_dispatch:
+
+jobs:
+  postman:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: realprint_db
+        options: >-
+          --health-cmd="mysqladmin ping -u root -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Build Backend
+        run: |
+          cd backend
+          mvn clean package -DskipTests
+          cd ..
+
+      - name: Start Backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: realprint_db
+          DB_USER: root
+          DB_PASSWORD: root
+          JWT_SECRET: test-secret-key-for-ci-testing-only-do-not-use-in-production
+          SPRING_PROFILE: development
+        run: |
+          cd backend
+          java -jar target/realprint-backend-0.0.1-SNAPSHOT.jar &
+          cd ..
+          sleep 15
+
+      - name: Run Postman Collection
+        run: |
+          newman run docs/postman/RealPrint.postman_collection.json \
+            -e docs/postman/RealPrint.postman_environment.json \
+            --delay-request 500 \
+            --timeout-request 10000 \
+            --reporters cli,junit,html \
+            --reporter-junit-export newman-results.xml \
+            --reporter-html-export newman-report.html
+
+      - name: Upload Newman Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Newman Test Reports
+          path: |
+            newman-results.xml
+            newman-report.html
+
+      - name: Publish Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: newman-results.xml
+          check_name: Postman API Tests
+
