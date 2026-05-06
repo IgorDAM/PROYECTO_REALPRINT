@@ -12,7 +12,7 @@ Colección completa de **14 endpoints** para probar la API REST de RealPrint de 
 ### 1. Importar la colección y environment
 
 En Postman:
-- **File → Import** → selecciona `RealPrint.postman_collection.json`
+- **File → Import** → selecciona `RealPrint.postman_collection.json` (SIN ESPACIOS)
 - **File → Import** → selecciona `RealPrint.postman_environment.json`
 
 ### 2. Seleccionar el environment

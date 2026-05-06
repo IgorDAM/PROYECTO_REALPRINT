@@ -852,7 +852,7 @@ PROYECTO_REALPRINT/
 
 **Documentación y Testing**:
 - **Swagger UI**: `http://localhost:8080/api/swagger-ui.html` - Documentación interactiva
-- **Postman Collection**: `docs/postman/RealPrint API.postman_collection.json` - 14 endpoints
+- **Postman Collection**: `docs/postman/RealPrint.postman_collection.json` - 14 endpoints
 - **Postman Environment**: `docs/postman/RealPrint.postman_environment.json` - Variables
 - **Postman Script**: `docs/postman/postman-run.bat` - Ejecución automática (Windows)
 

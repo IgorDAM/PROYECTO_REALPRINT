@@ -12,23 +12,23 @@ sequenceDiagram
     participant LS as localStorage
     participant API as Backend /api/auth/login
 
-    U->>+L: Enviar credenciales
-    L->>+A: login(username, password)
-    A->>+S: authService.login()
+    U->>L: Enviar credenciales
+    L->>A: login(username, password)
+    A->>S: authService.login()
 
     alt Modo actual (VITE_USE_LOCAL_AUTH=true)
         S->>LS: Validar usuario demo
         S->>LS: Guardar user + token local
-        S-->>-A: success
+        S-->>A: Respuesta local (user + token)
     else API real (VITE_USE_LOCAL_AUTH=false)
-        S->>+API: POST /api/auth/login
-        API-->>-S: { token, user }
+        S->>API: POST /api/auth/login
+        API-->>S: { token, user }
         S->>LS: Guardar user + token
-        S-->>-A: success
+        S-->>A: Respuesta API (user + token)
     end
 
-    A-->>-L: Resultado login
-    L-->>-U: Redirigir a /admin o /cliente
+    A-->>L: Resultado login
+    L-->>U: Redirigir a /admin o /cliente
 ```
 
 ## 2) Creacion de pedido (flujo actual)
@@ -41,33 +41,33 @@ sequenceDiagram
     participant O as orderService
     participant D as pedidosDomain
     participant API as Backend /api
-    participant MEM as Estado local
+    participant MEM as Estado local (React)
 
-    C->>+F: Completar formulario
-    F->>+O: uploadFile(file)
+    C->>F: Completar formulario
+    F->>O: uploadFile(file)
 
     alt Upload OK
-        O->>+API: POST /api/upload
-        API-->>-O: { url }
-        O-->>-F: url
+        O->>API: POST /api/upload
+        API-->>O: { url }
+        O-->>F: url archivo
     else Upload falla
-        O-->>-F: error
-        F->>F: Usar nombre de archivo
+        O-->>F: error
+        F->>F: Usar nombre de archivo local
     end
 
-    C->>+F: Confirmar pedido
-    F->>+D: createPedidoSafe(payload)
+    C->>F: Confirmar pedido
+    F->>D: createPedidoSafe(payload)
 
     alt Modo actual (VITE_USE_PEDIDOS_SERVICE_CREATE=false)
-        D->>MEM: addPedido()
-        D-->>-F: Pedido creado local
+        D->>MEM: addPedido() en memoria/local
+        D-->>F: Pedido creado local
     else API real (VITE_USE_PEDIDOS_SERVICE_CREATE=true)
-        D->>+API: POST /api/pedidos
-        API-->>-D: 201 Created
-        D-->>-F: Pedido creado remoto
+        D->>API: POST /api/pedidos (fileUrls -> fileUrlsJson)
+        API-->>D: 201 Created + pedido
+        D-->>F: Pedido creado remoto
     end
 
-    F-->>-C: Toast de exito + ir a /cliente
+    F-->>C: Toast de éxito + navegar a /cliente
 ```
 
 ## Nota

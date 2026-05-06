@@ -75,7 +75,7 @@ postman-run.bat --report           # Con reportes HTML/JUnit
 ```
 
 ### Uso en Postman Desktop
-1. `File → Import` → `RealPrint API.postman_collection.json`
+1. `File → Import` → `RealPrint.postman_collection.json`
 2. `File → Import` → `RealPrint.postman_environment.json`
 3. Selecciona environment **"RealPrint Local"**
 4. Ejecuta endpoint **Login** → token se guarda automáticamente
