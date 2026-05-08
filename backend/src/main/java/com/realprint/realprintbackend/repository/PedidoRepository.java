@@ -21,12 +21,10 @@ import com.realprint.realprintbackend.entity.PedidoEstado;
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
 	// Lista de pedidos de un cliente concreto, útil para "Mis pedidos".
-	// @EntityGraph carga cliente y creadoPor para evitar lazy loading
 	@EntityGraph(attributePaths = {"cliente"})
 	List<Pedido> findByClienteId(Long clienteId);
 
-	// Consulta por estado, muy útil en el dashboard de administración.
-	// @EntityGraph carga cliente y creadoPor
+	// Consulta por estado, útil en el dashboard de administración.
 	@EntityGraph(attributePaths = {"cliente"})
 	List<Pedido> findByEstado(PedidoEstado estado);
 

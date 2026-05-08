@@ -3,11 +3,11 @@ import { getToken } from './tokenStorage';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 export const orderService = {
-  // Crear orden
+  // Crear pedido
   createOrder: async (orderData) => {
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE}/orders`, {
+      const res = await fetch(`${API_BASE}/pedidos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -18,7 +18,7 @@ export const orderService = {
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Error creating order');
+        throw new Error(error.message || 'Error al crear pedido');
       }
 
       return res.json();
@@ -28,17 +28,17 @@ export const orderService = {
     }
   },
 
-  // Obtener todas las órdenes del cliente
+  // Obtener todos los pedidos
   getOrders: async () => {
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE}/orders`, {
+      const res = await fetch(`${API_BASE}/pedidos`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
 
-      if (!res.ok) throw new Error('Error fetching orders');
+      if (!res.ok) throw new Error('Error al obtener pedidos');
       return res.json();
     } catch (error) {
       console.error('Error en orderService.getOrders:', error);
@@ -46,17 +46,17 @@ export const orderService = {
     }
   },
 
-  // Obtener orden por ID
+  // Obtener pedido por ID
   getOrderById: async (id) => {
     try {
       const token = getToken();
-      const res = await fetch(`${API_BASE}/orders/${id}`, {
+      const res = await fetch(`${API_BASE}/pedidos/${id}`, {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
         },
       });
 
-      if (!res.ok) throw new Error('Error fetching order');
+      if (!res.ok) throw new Error('Error al obtener pedido');
       return res.json();
     } catch (error) {
       console.error('Error en orderService.getOrderById:', error);
@@ -64,11 +64,9 @@ export const orderService = {
     }
   },
 
-  // Subir archivo
+  // Subir archivo (POST /upload)
   uploadFile: async (file) => {
     try {
-      // Comentario didáctico: en multipart no enviamos Content-Type manual,
-      // el navegador lo calcula con el boundary correcto.
       const formData = new FormData();
       formData.append('file', file);
 
@@ -81,7 +79,7 @@ export const orderService = {
         body: formData,
       });
 
-      if (!res.ok) throw new Error('Error uploading file');
+      if (!res.ok) throw new Error('Error al subir archivo');
       const data = await res.json();
       return data.url || data.fileUrl;
     } catch (error) {
@@ -90,4 +88,3 @@ export const orderService = {
     }
   },
 };
-

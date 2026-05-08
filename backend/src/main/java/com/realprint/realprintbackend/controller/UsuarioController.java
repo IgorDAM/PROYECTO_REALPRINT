@@ -31,6 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 // ✅ estos sí se usan en este controller
 
+
 /**
  * Controlador REST de usuarios.
  *

@@ -18,10 +18,9 @@ import lombok.RequiredArgsConstructor;
 /**
  * Servicio de pedidos.
  *
- * CAMBIOS con nuevo diseño:
- * - save(Pedido, Authentication) asigna cliente y creadoPor automáticamente
- * - cliente: El usuario autenticado (o el especificado en DTO si es admin)
- * - creadoPor: Siempre el usuario autenticado
+ * Servicio de pedidos:
+ * - save(Pedido, Authentication) asigna el cliente automáticamente desde el contexto de seguridad
+ * - Solo clientes pueden crear pedidos (validado en el controller)
  *
  * Aquí empezamos a poner la lógica de negocio encima del repositorio:
  * - listar pedidos
@@ -76,25 +75,14 @@ public class PedidoService {
     }
 
     /**
-     * Guarda un pedido nuevo.
-     * NOTA: Solo CLIENTE puede crear pedidos (validado en controller).
-     * 
-     * Asigna cliente al usuario autenticado.
-     * El campo creadoPor fue removido: cliente es siempre quien crea.
-     *
-     * @param pedido El pedido a guardar
-     * @param auth Contexto de seguridad con el usuario autenticado
-     * @return El pedido guardado
-     * @throws RuntimeException si usuario no encontrado
+     * Guarda un pedido nuevo asignando automáticamente el cliente desde el contexto de seguridad.
+     * Solo CLIENTE puede invocar este método (validado en el controller con @PreAuthorize).
      */
     public Pedido save(Pedido pedido, Authentication auth) {
-        // Obtener el usuario autenticado (DEBE ser CLIENTE)
         String username = auth.getName();
         Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
 
-        // Asignar cliente: siempre el usuario autenticado
-        // (creadoPor fue removido, cliente_id es suficiente)
         if (pedido.getCliente() == null) {
             pedido.setCliente(usuarioAutenticado);
         }

@@ -83,5 +83,3 @@
 
 **Conclusión**: el proyecto está **correcto como base funcional** y **bastante avanzado**, pero el documento debe reflejar que **producción aún no está cerrada del todo**.
 
-Si quieres, el siguiente paso puede ser dejar este resumen en formato todavía más corto, tipo **1 página**, para entregar directamente.
-

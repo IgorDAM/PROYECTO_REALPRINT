@@ -65,6 +65,30 @@ public class SecurityRulesService {
         return currentUser != null && Objects.equals(currentUser.getId(), usuarioId);
     }
 
+    public boolean canUpdatePedido(Authentication authentication, Long pedidoId) {
+        if (pedidoId == null) {
+            return false;
+        }
+
+        // Admin siempre puede actualizar
+        if (hasAuthority(authentication, "ROLE_ADMIN")) {
+            return true;
+        }
+
+        // Cliente solo puede actualizar sus propios pedidos
+        if (hasAuthority(authentication, "ROLE_CLIENTE")) {
+            Usuario currentUser = currentUser(authentication);
+            if (currentUser == null) {
+                return false;
+            }
+            // Aquí simplemente permitimos que el cliente actualice
+            // El servicio de pedidos se encargará de validar que sea el propietario
+            return true;
+        }
+
+        return false;
+    }
+
     private boolean hasAuthority(Authentication authentication, String authority) {
         return authentication != null
                 && authentication.getAuthorities() != null

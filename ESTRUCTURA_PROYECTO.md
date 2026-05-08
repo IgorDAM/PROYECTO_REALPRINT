@@ -52,8 +52,8 @@ src/main/
 ├── 📁 java/com/realprint/realprintbackend/
 │   ├── 📁 config/
 │   │   ├── CorsConfig.java          Configura CORS para permitir requests desde frontend (http://localhost:5173).
+│   │   ├── DataInitializer.java     Crea usuarios de prueba (admin/cliente1) al iniciar si la BD está vacía.
 │   │   ├── JwtAuthenticationFilter.java  Interceptor que valida JWT en cada request. Extrae token del header.
-│   │   ├── JwtTokenProvider.java     Genera y valida tokens JWT. Encripta información del usuario.
 │   │   ├── SecurityConfig.java       Configura Spring Security. Define qué endpoints requieren autenticación y roles.
 │   │   └── WebConfig.java            Configuración general de Spring Boot (path context, encoding, etc).
 │   │
@@ -61,39 +61,41 @@ src/main/
 │   │   ├── AuthController.java       Endpoint POST /auth/login. Autentica usuarios y devuelve JWT.
 │   │   ├── PedidoController.java     Endpoints CRUD de pedidos. GET, POST, PUT, DELETE con validaciones.
 │   │   ├── UsuarioController.java    Endpoints para gestionar usuarios. Crear, listar, editar, eliminar.
-│   │   ├── FileController.java       Endpoints para subir y descargar archivos. Maneja uploads de PDF.
-│   │   └── AdminController.java      Endpoints solo para admins. Reportes, estadísticas, etc (si existe).
+│   │   └── FileController.java       Endpoints para subir (CLIENTE) y descargar (ADMIN) archivos. Soporta PDF, JPG, PNG.
 │   │
-│   ├── 📁 model/ (Entity)
-│   │   ├── Usuario.java              Entidad JPA de usuario. Mapea tabla 'usuarios' en BD. Contiene rol (ADMIN/CLIENTE).
-│   │   ├── Pedido.java               Entidad JPA de pedido. Mapea tabla 'pedidos'. Relación one-to-many con Usuario.
-│   │   ├── Archivo.java              Entidad para archivos adjuntos (si existe). Almacena ruta y metadata de archivos.
-│   │   └── (otras entidades)
+│   ├── 📁 entity/
+│   │   ├── Pedido.java               Entidad JPA de pedido. Mapea tabla 'pedidos'. Relación ManyToOne con Usuario.
+│   │   ├── PedidoArchivo.java        Entidad para archivos adjuntos a un pedido. Almacena ruta y metadata.
+│   │   ├── PedidoEstado.java         Enum con los estados: PENDIENTE, EN_PROCESO, COMPLETADO, ENVIADO, CANCELADO.
+│   │   ├── RolUsuario.java           Enum con los roles: ADMIN, CLIENTE.
+│   │   └── Usuario.java              Entidad JPA de usuario. Mapea tabla 'usuarios'. Contiene rol (ADMIN/CLIENTE).
 │   │
 │   ├── 📁 service/
-│   │   ├── UsuarioService.java       Lógica de negocio para usuarios. Crear, validar, buscar, actualizar.
-│   │   ├── PedidoService.java        Lógica de negocio para pedidos. Validar estado, cambiar estado, listar.
 │   │   ├── AuthService.java          Lógica de login. Valida credenciales y genera JWT.
-│   │   ├── FileService.java          Lógica de manejo de archivos. Guardar, verificar, obtener archivos.
-│   │   └── EmailService.java         Envía emails a usuarios (si está implementado).
+│   │   ├── FileStorageService.java   Lógica de manejo de archivos. Guardar, verificar y servir archivos del sistema.
+│   │   ├── PedidoService.java        Lógica de negocio para pedidos. Asignar cliente, cambiar estado, listar.
+│   │   ├── SecurityRulesService.java Reglas de autorización: quién puede crear/leer/modificar pedidos y usuarios.
+│   │   └── UsuarioService.java       Lógica de negocio para usuarios. Crear, validar, buscar, actualizar.
 │   │
 │   ├── 📁 repository/
-│   │   ├── UsuarioRepository.java     Interface de acceso a datos de usuarios. Métodos findByUsername, etc.
-│   │   ├── PedidoRepository.java      Interface de acceso a datos de pedidos. Queries personalizadas.
-│   │   └── (otros repositories)       Extienden JpaRepository de Spring Data para operaciones CRUD.
+│   │   ├── PedidoArchivoRepository.java Interface de acceso a datos de archivos de pedido.
+│   │   ├── PedidoRepository.java        Interface de acceso a datos de pedidos. Queries por cliente, estado y findAll con @EntityGraph.
+│   │   └── UsuarioRepository.java       Interface de acceso a datos de usuarios. Incluye findByUsername.
 │   │
 │   ├── 📁 dto/
 │   │   ├── LoginRequest.java         DTO para request de login (username, password).
 │   │   ├── LoginResponse.java        DTO para response de login (token, user info).
-│   │   ├── PedidoDTO.java            DTO para crear/actualizar pedidos. Valida datos de entrada.
-│   │   ├── UsuarioDTO.java           DTO para usuarios. Evita exponer contraseñas.
-│   │   └── (otros DTOs)
+│   │   ├── PedidoDTO.java            DTO para pedidos. Incluye clienteId, clienteNombre, estado, total, medidas.
+│   │   └── UsuarioDTO.java           DTO para usuarios. Evita exponer passwordHash en respuestas.
+│   │
+│   ├── 📁 mapper/
+│   │   ├── PedidoMapper.java         Convierte entre Pedido (entity) ↔ PedidoDTO.
+│   │   └── UsuarioMapper.java        Convierte entre Usuario (entity) ↔ UsuarioDTO.
 │   │
 │   ├── 📁 exception/
-│   │   ├── NotFoundException.java     Excepción cuando un recurso no existe. Lanza 404.
-│   │   ├── UnauthorizedException.java Excepción cuando falta autenticación. Lanza 401.
-│   │   ├── ForbiddenException.java    Excepción cuando no tienes permisos. Lanza 403.
-│   │   └── GlobalExceptionHandler.java Manejo centralizado de excepciones. Formatea errores en respuestas JSON.
+│   │   ├── PedidoNoEncontradoException.java Excepción cuando un pedido no existe. Lanza 404.
+│   │   ├── UnauthorizedException.java       Excepción cuando falta autenticación. Lanza 401.
+│   │   └── GlobalExceptionHandler.java      Manejo centralizado de excepciones. Formatea errores en respuestas JSON.
 │   │
 │   └── RealprintBackendApplication.java  Clase principal con @SpringBootApplication. Punto de entrada de la app.
 │

@@ -135,17 +135,7 @@ export function createPedidosDomain({
     }
 
     try {
-      // ✅ TRANSFORMAR fileUrls → fileUrlsJson para compatibilidad backend
-      const pedidoPayload = {
-        ...pedido,
-        fileUrlsJson: Array.isArray(pedido.fileUrls) && pedido.fileUrls.length > 0
-          ? JSON.stringify(pedido.fileUrls)
-          : undefined,
-      };
-      // Remover fileUrls para evitar conflictos (backend no espera este campo)
-      delete pedidoPayload.fileUrls;
-
-      return await pedidosService.create(pedidoPayload);
+      return await pedidosService.create(pedido);
     } catch {
       return addPedido(pedido);
     }

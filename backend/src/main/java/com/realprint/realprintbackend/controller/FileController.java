@@ -41,9 +41,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses; // ✅ faltaba este
  * - Admin gestiona archivos durante la producción
  */
 @RestController
-@RequestMapping
+@RequestMapping("")
 @RequiredArgsConstructor
-@Tag (name = "Archivos", description = "Operaciones relacionadas con la gestión de archivos para pedidos")
+@Tag(name = "Archivos", description = "Operaciones relacionadas con la gestión de archivos para pedidos")
 public class FileController {
 
     private final FileStorageService fileStorageService;

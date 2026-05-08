@@ -18,7 +18,6 @@ import com.realprint.realprintbackend.repository.UsuarioRepository;
  * Usuarios creados:
  * - admin / admin123 (Rol: ADMIN)
  * - cliente1 / cliente123 (Rol: CLIENTE)
- * - operario1 / operario123 (Rol: OPERARIO)
  */
 @Configuration
 public class DataInitializer {

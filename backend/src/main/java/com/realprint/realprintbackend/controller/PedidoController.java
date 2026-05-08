@@ -148,28 +148,30 @@ public class PedidoController {
     /**
      * PUT /pedidos/{id}
      *
-     * Actualizar un pedido existente (gestión de admin).
-     * Acepta actualizaciones de estado, precio, etc.
-     * NO modifica cliente (propietario del pedido).
+     * Actualizar un pedido existente.
+     * - ADMIN: Puede actualizar cualquier pedido (estado, precio, etc.)
+     * - CLIENTE: Solo puede actualizar sus propios pedidos pendientes (archivos, descripción)
      *
      * @param id ID del pedido a actualizar
      * @param pedidoDTO Los datos actualizados
+     * @param auth Contexto de seguridad
      * @return El PedidoDTO actualizado
      */
     @Operation  (summary = "Actualizar un pedido",
-                description = "Permite a los administradores actualizar los detalles de un pedido existente," +
-                            "como su estado o precio. No se permite modificar el cliente asociado al pedido.")
+                description = "Permite a los administradores actualizar cualquier pedido, " +
+                            "y a los clientes actualizar sus propios pedidos pendientes (archivos, descripción).")
     @ApiResponses (value = {
         @ApiResponse(responseCode = "200", description = "Pedido actualizado exitosamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden actualizar pedidos."),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado."),
         @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")  // Solo ADMIN actualiza
+    @PreAuthorize("@securityRules.canUpdatePedido(authentication, #id)")
     public ResponseEntity<PedidoDTO> actualizarPedido(
             @PathVariable Long id,
-            @RequestBody PedidoDTO pedidoDTO) {
-        
+            @RequestBody PedidoDTO pedidoDTO,
+            Authentication auth) {
+
         // Convertir DTO → Entity
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO);
 

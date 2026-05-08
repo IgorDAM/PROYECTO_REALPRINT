@@ -166,5 +166,3 @@ Esta guia refleja el flujo real del proyecto:
 - MySQL en Docker
 - produccion con `docker/docker-compose.prod.yml`
 - despliegue con `scripts/deploy-prod.sh`
-
-Si quieres, puedo dejar esta misma guia todavia mas corta, tipo una sola pagina.
