@@ -83,7 +83,7 @@ public class FileController {
         // Construir URL para acceso por admin
         String fileUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("/api/files/")
+                .path("/files/")
                 .path(storedName)
                 .toUriString();
 
