@@ -68,9 +68,26 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/usuarios",
+              "raw": "{{base_url}}/usuarios?page=0&size=20&sort=id,desc",
               "host": ["{{base_url}}"],
-              "path": ["usuarios"]
+              "path": ["usuarios"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número de página (empieza en 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Usuarios por página"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "description": "Ordenar por ID descendente (más recientes primero)"
+                }
+              ]
             }
           }
         },
@@ -107,7 +124,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"username\": \"usuario_test\", \"nombre\": \"Usuario Test\", \"email\": \"test@ejemplo.com\", \"passwordHash\": \"password123\", \"rol\": \"CLIENTE\", \"activo\": true}"
+              "raw": "{\"username\": \"usuario_test\", \"nombre\": \"Usuario Test\", \"email\": \"test@ejemplo.com\", \"password\": \"password123\", \"role\": \"cliente\", \"activo\": true}"
             },
             "url": {
               "raw": "{{base_url}}/usuarios",
@@ -175,9 +192,26 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/pedidos",
+              "raw": "{{base_url}}/pedidos?page=0&size=20&sort=id,desc",
               "host": ["{{base_url}}"],
-              "path": ["pedidos"]
+              "path": ["pedidos"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número de página (empieza en 0)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Pedidos por página"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,desc",
+                  "description": "Ordenar por ID descendente (más recientes primero)"
+                }
+              ]
             }
           }
         },
@@ -214,7 +248,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"servicio\": \"DTF\", \"descripcion\": \"Camisetas DTF\", \"cantidad\": 100, \"medidas\": {\"widthCm\": 21, \"heightCm\": 29}, \"estado\": \"PENDIENTE\", \"total\": 250.00}"
+              "raw": "{\"servicio\": \"DTF\", \"descripcion\": \"Camisetas DTF\", \"cantidad\": 100, \"measurementWidthCm\": 21, \"measurementHeightCm\": 29, \"estado\": \"pendiente\", \"total\": 250.00}"
             },
             "url": {
               "raw": "{{base_url}}/pedidos",
@@ -239,7 +273,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"estado\": \"EN_PROCESO\", \"total\": 250.00}"
+              "raw": "{\"estado\": \"en_proceso\", \"total\": 250.00}"
             },
             "url": {
               "raw": "{{base_url}}/pedidos/{{pedido_id}}",
@@ -318,6 +352,16 @@
       ]
     }
   ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
   "variable": [
     {
       "key": "base_url",

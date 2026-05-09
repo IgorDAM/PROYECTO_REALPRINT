@@ -55,5 +55,17 @@ public class UsuarioDTO {
 
     /** Estado activo/inactivo (si es null, el backend asigna true por defecto) */
     private Boolean activo;
+
+    /**
+     * Contraseña en texto plano (solo para creación de usuario).
+     *
+     * IMPORTANTE:
+     * - Este campo se usa SOLO cuando se crea un nuevo usuario
+     * - NO se devuelve en respuestas GET (toDTO lo ignora)
+     * - El backend lo hashea antes de guardarlo
+     * - No confundir con passwordHash (que es el hash almacenado)
+     */
+    @Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+    private String password;
 }
 

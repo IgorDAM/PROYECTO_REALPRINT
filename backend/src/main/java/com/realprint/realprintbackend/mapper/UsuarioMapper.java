@@ -77,7 +77,8 @@ public class UsuarioMapper {
      * Convierte un UsuarioDTO a Entidad Usuario.
      *
      * Útil para operaciones de creación/actualización desde el frontend.
-     * **Nota**: El passwordHash debe establecerse por separado en el controller.
+     * **Nota**: Si el DTO contiene password (texto plano), se copia a passwordHash
+     * para que UsuarioService lo hashee antes de guardar.
      *
      * @param dto El DTO del usuario
      * @return La entidad del usuario
@@ -95,7 +96,8 @@ public class UsuarioMapper {
                 // SEGURIDAD: Convertir string minúscula a enum
                 .rol(stringToRolEnum(dto.getRole()))
                 .activo(dto.getActivo() != null ? dto.getActivo() : true)
-                // passwordHash: NO SE COPIA (debe venir del login/crear)
+                // Si el DTO trae password (creación), copiarlo a passwordHash para que se hashee
+                .passwordHash(dto.getPassword())
                 .build();
     }
 }
