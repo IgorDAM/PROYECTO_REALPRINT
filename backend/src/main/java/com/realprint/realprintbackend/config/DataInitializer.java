@@ -48,7 +48,7 @@ public class DataInitializer {
 
             // Crear usuario CLIENTE
             Usuario cliente = Usuario.builder()
-                    .username("cliente1")
+                    .username("cliente")
                     .nombre("Cliente Prueba")
                     .passwordHash(passwordEncoder.encode("cliente123"))
                     .rol(RolUsuario.CLIENTE)
