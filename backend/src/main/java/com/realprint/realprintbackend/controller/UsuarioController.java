@@ -2,6 +2,10 @@ package com.realprint.realprintbackend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.realprint.realprintbackend.dto.UsuarioDTO;
@@ -21,6 +26,7 @@ import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.mapper.UsuarioMapper;
 import com.realprint.realprintbackend.service.UsuarioService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -64,29 +70,47 @@ public class UsuarioController {
     /**
      * GET /api/usuarios
      *
-     * Listar todos los usuarios (solo para ADMIN).
+     * Listar todos los usuarios con paginación (solo para ADMIN).
      * Usado en dashboard de administración para gestión de usuarios.
      *
-     * @return Lista de UsuarioDTO con todos los usuarios
+     * @param page Número de página (por defecto 0)
+     * @param size Tamaño de página (por defecto 20)
+     * @param sort Campo y dirección de ordenamiento (por defecto "id,asc")
+     * @return Página de UsuarioDTO con todos los usuarios
      */
-    @Operation(summary = "Listar usuarios",
-               description = "Obtiene una lista de todos los usuarios registrados. Solo accesible para administradores.")
-    @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente",
+    @Operation(summary = "Listar usuarios (paginado)",
+               description = "Obtiene una lista paginada de todos los usuarios registrados. Solo accesible para administradores." +
+                             "Soporta paginación y ordenamiento mediante parámetros de consulta.")
+    @ApiResponse(responseCode = "200", description = "Página de usuarios obtenida exitosamente",
                  content = @Content(mediaType = "application/json",
-                 array = @ArraySchema(schema = @Schema(implementation = UsuarioDTO.class))))
+                 schema = @Schema(implementation = Page.class)))
     @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo administradores pueden acceder a esta información.")
     @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para acceder a esta información.")
     @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
     @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
-    @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioService.findAll();
-        List<UsuarioDTO> dtos = usuarios.stream()
-                .map(UsuarioMapper::toDTO)
-                .toList();
-        return ResponseEntity.ok(dtos);
+    public ResponseEntity<Page<UsuarioDTO>> listarUsuarios(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id,asc") String[] sort) {
+
+        // Construir Sort
+        Sort.Direction direction = sort.length > 1 && sort[1].equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+        Sort sortObj = Sort.by(direction, sort[0]);
+
+        // Construir Pageable
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+
+        // Obtener página de usuarios
+        Page<Usuario> usuariosPage = usuarioService.findAll(pageable);
+
+        // Convertir a DTOs
+        Page<UsuarioDTO> dtosPage = usuariosPage.map(UsuarioMapper::toDTO);
+
+        return ResponseEntity.ok(dtosPage);
     }
 
     /**
@@ -132,13 +156,13 @@ public class UsuarioController {
     @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente",
                  content = @Content(mediaType = "application/json",
                  schema = @Schema(implementation = UsuarioDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
     @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden crear nuevos usuarios.")
     @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para crear un nuevo usuario.")
     @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
-    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UsuarioDTO> crearUsuario(@RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<UsuarioDTO> crearUsuario(@Valid @RequestBody UsuarioDTO usuarioDTO) {
         // Convertir DTO → Entity
         Usuario usuario = UsuarioMapper.toEntity(usuarioDTO);
 
@@ -165,16 +189,16 @@ public class UsuarioController {
     @ApiResponse(responseCode = "200", description = "Usuario actualizado exitosamente",
                  content = @Content(mediaType = "application/json",
                  schema = @Schema(implementation = UsuarioDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
     @ApiResponse(responseCode = "403", description = "Acceso denegado. No tienes permiso para actualizar esta información.")
     @ApiResponse(responseCode = "401", description = "No autenticado. Se requiere autenticación para actualizar la información del usuario.")
     @ApiResponse(responseCode = "500", description = "Error interno del servidor. Ocurrió un error al procesar la solicitud.")
-    @ApiResponse(responseCode = "400", description = "Solicitud inválida. La solicitud no cumple con los requisitos necesarios.")
     @ApiResponse(responseCode = "404", description = "No encontrado. El recurso solicitado no existe.")
     @PutMapping("/{id}")
     @PreAuthorize("@securityRules.canUpdateUsuario(authentication, #id)")
     public ResponseEntity<UsuarioDTO> actualizarUsuario(
             @PathVariable Long id,
-            @RequestBody UsuarioDTO usuarioDTO) {
+            @Valid @RequestBody UsuarioDTO usuarioDTO) {
         // Convertir DTO → Entity
         Usuario usuario = UsuarioMapper.toEntity(usuarioDTO);
 

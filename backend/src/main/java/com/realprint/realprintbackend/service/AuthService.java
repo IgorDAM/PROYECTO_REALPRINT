@@ -9,6 +9,7 @@ import com.realprint.realprintbackend.dto.LoginResponse;
 import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.exception.UnauthorizedException;
 import com.realprint.realprintbackend.repository.UsuarioRepository;
+import com.realprint.realprintbackend.security.RateLimiter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,11 +17,12 @@ import lombok.RequiredArgsConstructor;
  * Servicio de autenticación.
  *
  * **Responsabilidades:**
- * 1) Buscar usuario en BD por username
- * 2) Verificar que el usuario esté activo
- * 3) Validar contraseña contra hash almacenado
- * 4) Generar token JWT válido
- * 5) Devolver respuesta en formato esperado por frontend
+ * 1) Prevenir ataques de fuerza bruta con rate limiting
+ * 2) Buscar usuario en BD por username
+ * 3) Verificar que el usuario esté activo
+ * 4) Validar contraseña contra hash almacenado
+ * 5) Generar token JWT válido
+ * 6) Devolver respuesta en formato esperado por frontend
  *
  * **Contrato con frontend:**
  * El frontend espera una respuesta LoginResponse con estructura:
@@ -33,32 +35,53 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RateLimiter rateLimiter;
 
     /**
-     * Ejecuta el proceso de login.
+     * Ejecuta el proceso de login con protección contra fuerza bruta.
+     *
      * @param request Credenciales enviadas por el frontend (username + password)
      * @return Response con token y datos del usuario
-     * @throws UnauthorizedException Si usuario no existe, contraseña es incorrecta o usuario está inactivo
+     * @throws UnauthorizedException Si usuario no existe, contraseña es incorrecta, usuario está inactivo,
+     *                              o se alcanzó el límite de intentos
      */
     public LoginResponse login(LoginRequest request) {
-        // Buscamos el usuario por su nombre de acceso.
-        Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UnauthorizedException("Usuario o contraseña incorrectos"));
+        String username = request.getUsername();
 
-        // Un usuario desactivado no puede entrar.
-        if (!usuario.isActivo()) {
+        // 1. Verificar rate limiting
+        if (!rateLimiter.allowAttempt(username)) {
+            int remaining = rateLimiter.getRemainingAttempts(username);
+            throw new UnauthorizedException(
+                "Demasiados intentos de login. Intenta de nuevo en 5 minutos. Intentos restantes: " + remaining
+            );
+        }
+
+        // 2. Buscar usuario por su nombre de acceso
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    rateLimiter.recordFailedAttempt(username);
+                    return new UnauthorizedException("Usuario o contraseña incorrectos");
+                });
+
+        // 3. Verificar que el usuario esté activo
+        if (usuario.getActivo() == null || !usuario.getActivo()) {
+            rateLimiter.recordFailedAttempt(username);
             throw new UnauthorizedException("Usuario inactivo");
         }
 
-        // Comparamos la contraseña en texto con el hash guardado en la base de datos.
+        // 4. Validar contraseña
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash())) {
+            rateLimiter.recordFailedAttempt(username);
             throw new UnauthorizedException("Usuario o contraseña incorrectos");
         }
 
-        // Si todo es correcto, generamos el token JWT real.
+        // 5. Login exitoso: resetear contador de intentos
+        rateLimiter.resetAttempts(username);
+
+        // 6. Generar token JWT
         String token = jwtService.generateToken(usuario);
 
-        // Construimos la respuesta con estructura anidada 'user' como espera el frontend.
+        // 7. Construir respuesta con estructura esperada por el frontend
         return LoginResponse.builder()
                 .token(token)
                 .user(
@@ -66,7 +89,7 @@ public class AuthService {
                         .id(usuario.getId())
                         .username(usuario.getUsername())
                         .name(usuario.getNombre())
-                        .role(usuario.getRol().name().toLowerCase()) // Convertir a minúsculas para consistencia
+                        .role(usuario.getRol().name().toLowerCase())
                         .build()
                 )
                 .build();

@@ -51,7 +51,7 @@ Click en el ojo → **Environment** → verifica:
    - `DELETE /pedidos/{id}` — eliminar
 
 4. **Archivos** (Archivos folder)
-   - `POST /upload` — subir file (form-data, requiere rol CLIENTE)
+   - `POST /files` — subir file (form-data, requiere rol CLIENTE)
    - `GET /files/{fileName}` — descargar archivo (requiere rol ADMIN)
 
 ## 🔧 Usarios de Prueba
@@ -121,11 +121,11 @@ Crea un nuevo environment en Postman con estos valores y cambia según necesites
 ### Validación de roles
 - ✅ `GET /usuarios` — ADMIN only → Cliente obtiene 403
 - ✅ `POST /pedidos` — CLIENTE only → Admin obtiene 403
-- ✅ `POST /upload` — CLIENTE only → Admin obtiene 403
+- ✅ `POST /files` — CLIENTE only → Admin obtiene 403
 - ✅ `GET /files/{fileName}` — ADMIN only → Cliente obtiene 403
 
 ### Upload de archivos
-- En el request `POST /upload`, selecciona tu archivo en el campo `file` (tipo file)
+- En el request `POST /files`, selecciona tu archivo en el campo `file` (tipo file)
 - Formatos permitidos: PDF, JPG, PNG
 - Tamaño máximo: 10 MB
 
@@ -133,6 +133,53 @@ Crea un nuevo environment en Postman con estos valores y cambia según necesites
 - `{{usuario_id}}` y `{{pedido_id}}` son variables
 - Cambia sus valores en el environment según los IDs que obtengas de GET requests
 - O copia la URL completa: `{{base_url}}/usuarios/2` en lugar de `{{base_url}}/usuarios/{{usuario_id}}`
+
+### Paginación
+Los endpoints de listado soportan paginación mediante query parameters:
+- `page` — número de página (default: 0)
+- `size` — elementos por página (default: 20)
+- `sort` — campo y dirección (formato: `campo,asc|desc`, default: `id,desc`)
+
+**Ejemplos:**
+```
+GET {{base_url}}/pedidos?page=0&size=10&sort=fechaCreacion,desc
+GET {{base_url}}/usuarios?page=1&size=5&sort=username,asc
+```
+
+**Respuesta paginada:**
+```json
+{
+  "content": [...],
+  "totalElements": 42,
+  "totalPages": 5,
+  "size": 10,
+  "number": 0,
+  "first": true,
+  "last": false
+}
+```
+
+### Validación de datos
+Todos los endpoints POST/PUT validan datos con Bean Validation:
+- Respuesta HTTP **400 Bad Request** en caso de error
+- Body detallado con campos inválidos:
+```json
+{
+  "error": "Validation failed",
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "errors": {
+    "username": "El username es obligatorio",
+    "email": "Email inválido"
+  }
+}
+```
+
+### Rate limiting en login
+El endpoint `/auth/login` tiene protección contra fuerza bruta:
+- Máximo **5 intentos** por username en **5 minutos**
+- Después de 5 intentos fallidos, bloqueo temporal
+- Respuesta HTTP **401** con mensaje: "Demasiados intentos de login. Intenta de nuevo en 5 minutos"
 
 ## 🐛 Troubleshooting
 
@@ -169,7 +216,7 @@ cors.allowed-origins: http://localhost:5173
 | POST | `/pedidos` | ✅ | CLIENTE |
 | PUT | `/pedidos/{id}` | ✅ | ADMIN |
 | DELETE | `/pedidos/{id}` | ✅ | ADMIN |
-| POST | `/upload` | ✅ | CLIENTE |
+| POST | `/files` | ✅ | CLIENTE |
 | GET | `/files/{fileName}` | ✅ | ADMIN |
 
 ---

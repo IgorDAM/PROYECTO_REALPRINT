@@ -1,7 +1,12 @@
 package com.realprint.realprintbackend.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -56,6 +61,55 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.builder()
                         .status(HttpStatus.UNAUTHORIZED.value())
                         .message("No autorizado")
+                        .error(ex.getMessage())
+                        .build());
+    }
+
+    /**
+     * Maneja errores de validación de Bean Validation (@Valid en controllers).
+     * Status HTTP: 400 Bad Request
+     *
+     * Cuando un DTO con @NotBlank, @Email, etc. falla la validación,
+     * Spring lanza MethodArgumentNotValidException.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+
+        Map<String, String> fieldErrors = new HashMap<>();
+
+        // Extraer todos los errores de validación
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            fieldErrors.put(fieldName, errorMessage);
+        });
+
+        log.warn("Errores de validación: {}", fieldErrors);
+
+        // Construir respuesta
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("message", "Los datos enviados no son válidos");
+        response.put("errors", fieldErrors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * Maneja IllegalArgumentException lanzadas por servicios.
+     * Status HTTP: 400 Bad Request
+     *
+     * Por ejemplo, cuando se intenta crear un usuario con username duplicado.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex) {
+        log.warn("Argumento inválido: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .message("Solicitud inválida")
                         .error(ex.getMessage())
                         .build());
     }

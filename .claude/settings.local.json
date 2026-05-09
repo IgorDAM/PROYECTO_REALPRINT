@@ -6,7 +6,8 @@
       "Bash(Sort-Object)",
       "Bash(Get-ChildItem -Path . -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(xargs grep -l \"orderService\\\\|pedidosService\")"
     ]
   }
 }

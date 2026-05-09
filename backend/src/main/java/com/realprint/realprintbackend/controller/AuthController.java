@@ -8,13 +8,16 @@ import com.realprint.realprintbackend.dto.LoginResponse;
 import com.realprint.realprintbackend.exception.UnauthorizedException;
 import com.realprint.realprintbackend.service.AuthService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses; // ✅ faltaba este
-// Content, Schema, ArraySchema eliminados — no se usan en este controller
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Controlador REST de autenticación (Cap13 REST).
@@ -30,13 +33,51 @@ public class AuthController {
     /**
      * Endpoint de login esperado por el frontend.
      */
-    @Operation  (summary = "Login de usuario", description = "Autentica al usuario y devuelve un token JWT")
-    @ApiResponses  (value = {
-        @ApiResponse(responseCode = "200", description = "Login exitoso"),
+    @Operation(
+        summary = "Login de usuario",
+        description = "Autentica al usuario y devuelve un token JWT",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Credenciales de acceso",
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = LoginRequest.class),
+                examples = @ExampleObject(
+                    name = "Login de administrador",
+                    value = "{\n" +
+                        "  \"username\": \"admin\",\n" +
+                        "  \"password\": \"admin123\"\n" +
+                        "}"
+                )
+            )
+        )
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Login exitoso",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = LoginResponse.class),
+                examples = @ExampleObject(
+                    name = "Respuesta exitosa",
+                    value = "{\n" +
+                        "  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n" +
+                        "  \"user\": {\n" +
+                        "    \"id\": 1,\n" +
+                        "    \"username\": \"admin\",\n" +
+                        "    \"nombre\": \"Administrador\",\n" +
+                        "    \"role\": \"admin\"\n" +
+                        "  }\n" +
+                        "}"
+                )
+            )
+        ),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
         @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 

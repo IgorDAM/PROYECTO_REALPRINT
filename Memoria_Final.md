@@ -291,7 +291,7 @@ DELETE /api/pedidos/{id}          → Eliminar (ADMIN)
 
 #### FileController
 ```
-POST   /api/upload                → Subir archivo (multipart/form-data)
+POST   /api/files                 → Subir archivo (multipart/form-data)
 GET    /api/files/{fileName}      → Descargar archivo
 Response: Binary + headers (Content-Type, Content-Disposition)
 ```

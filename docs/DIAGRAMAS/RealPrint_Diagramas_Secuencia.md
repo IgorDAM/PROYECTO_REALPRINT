@@ -47,7 +47,7 @@ sequenceDiagram
     F->>O: uploadFile(file)
 
     alt Upload OK
-        O->>API: POST /api/upload
+        O->>API: POST /api/files
         API-->>O: { url }
         O-->>F: url archivo
     else Upload falla

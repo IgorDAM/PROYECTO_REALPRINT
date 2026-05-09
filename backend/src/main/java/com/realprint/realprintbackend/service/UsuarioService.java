@@ -2,6 +2,8 @@ package com.realprint.realprintbackend.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +49,20 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public List<Usuario> findAll() {
         return usuarioRepository.findAll();
+    }
+
+    /**
+     * Devuelve todos los usuarios registrados con paginación.
+     *
+     * **Seguridad:**
+     * Este método debería llamarse solo desde controladores protegidos por @PreAuthorize("hasRole('ADMIN')").
+     *
+     * @param pageable Configuración de paginación y ordenamiento
+     * @return Página de usuarios
+     */
+    @Transactional(readOnly = true)
+    public Page<Usuario> findAll(Pageable pageable) {
+        return usuarioRepository.findAll(pageable);
     }
 
     /**
@@ -100,6 +116,11 @@ public class UsuarioService {
             usuario.setPasswordHash(passwordEncoder.encode(usuario.getPasswordHash()));
         }
 
+        // Establecer activo = true por defecto si es null
+        if (usuario.getActivo() == null) {
+            usuario.setActivo(true);
+        }
+
         return usuarioRepository.save(usuario);
     }
 
@@ -122,7 +143,10 @@ public class UsuarioService {
         usuarioExistente.setNombre(usuarioActualizado.getNombre());
         usuarioExistente.setEmail(usuarioActualizado.getEmail());
         usuarioExistente.setRol(usuarioActualizado.getRol());
-        usuarioExistente.setActivo(usuarioActualizado.isActivo());
+        // Solo actualizar activo si se proporciona, sino mantener el valor actual
+        if (usuarioActualizado.getActivo() != null) {
+            usuarioExistente.setActivo(usuarioActualizado.getActivo());
+        }
         // NUNCA actualizar passwordHash desde aquí
 
         return usuarioRepository.save(usuarioExistente);

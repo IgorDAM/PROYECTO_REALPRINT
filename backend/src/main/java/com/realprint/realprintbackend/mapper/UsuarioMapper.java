@@ -68,7 +68,7 @@ public class UsuarioMapper {
                 .email(usuario.getEmail())
                 // SEGURIDAD: Convertir enum a minúsculas
                 .role(rolEnumToString(usuario.getRol()))
-                .activo(usuario.isActivo())
+                .activo(usuario.getActivo() != null ? usuario.getActivo() : true)
                 // INTENCIONALMENTE EXCLUIDO: passwordHash
                 .build();
     }
@@ -94,7 +94,7 @@ public class UsuarioMapper {
                 .email(dto.getEmail())
                 // SEGURIDAD: Convertir string minúscula a enum
                 .rol(stringToRolEnum(dto.getRole()))
-                .activo(dto.isActivo())
+                .activo(dto.getActivo() != null ? dto.getActivo() : true)
                 // passwordHash: NO SE COPIA (debe venir del login/crear)
                 .build();
     }

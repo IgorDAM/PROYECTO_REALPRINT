@@ -36,7 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return User.builder()
                 .username(usuario.getUsername())
                 .password(usuario.getPasswordHash())
-                .disabled(!usuario.isActivo())
+                .disabled(usuario.getActivo() == null || !usuario.getActivo())
                 .authorities(List.of(new SimpleGrantedAuthority(role)))
                 .build();
     }

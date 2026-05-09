@@ -31,6 +31,7 @@ interface CrudService {
   create(payload: Omit<Pedido, "id" | "clienteId" | "clienteNombre">): Promise<Pedido>;
   update(id: number | string, payload: Partial<Pedido>): Promise<Pedido>;
   remove(id: number | string): Promise<void>;
+  uploadFile(file: File): Promise<string>;
 }
 
 export const pedidosService: CrudService = {
@@ -52,5 +53,29 @@ export const pedidosService: CrudService = {
 
   remove(id) {
     return httpClient.delete(`/pedidos/${id}`) as Promise<void>;
+  },
+
+  async uploadFile(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('realprint_token');
+
+    // Para multipart/form-data, NO usar httpClient que fuerza Content-Type: application/json
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/files`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        // NO incluir Content-Type para que fetch lo establezca automáticamente con el boundary
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al subir archivo');
+    }
+
+    const data = await response.json();
+    return data.url || data.fileUrl;
   },
 };

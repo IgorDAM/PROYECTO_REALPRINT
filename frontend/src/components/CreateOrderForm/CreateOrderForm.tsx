@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePedidosData } from '../../hooks/usePedidosData';
 import { usePricingConfig } from '../../hooks/usePricingConfig';
 import { calculateOrderPricing } from './pricing';
-import { orderService } from '../../services/orderService';
+import { pedidosService } from '../../services/pedidosService';
 
 export function CreateOrderForm() {
   const { user } = useAuth();
@@ -45,7 +45,7 @@ export function CreateOrderForm() {
     // Intentamos persistir en backend para que admin pueda descargar.
     // Si falla (modo local o backend no disponible), usamos nombres para no bloquear UX.
     try {
-      const uploaded = await Promise.all(files.map((file) => orderService.uploadFile(file)));
+      const uploaded = await Promise.all(files.map((file) => pedidosService.uploadFile(file)));
       return uploaded.map((url, index) => (typeof url === 'string' && url.trim() ? url : files[index].name));
     } catch {
       toast.info('No se pudo completar la subida remota. Se guardarán nombres de archivo en local.');
@@ -90,44 +90,43 @@ export function CreateOrderForm() {
     setLoading(true);
     try {
       const serviceLabel = 'serigrafia';
-      const subservicioLabel = 'solo_serigrafia';
       const fechaEntrega = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split('T')[0];
 
+      // Payload sincronizado con PedidoDTO.java del backend
       const pedidoPayload = {
-        clienteId: user.id,
-        cliente: user.name || user.username || 'Cliente',
+        // NO enviar clienteId - el backend lo asigna automáticamente desde Authentication
+
         servicio: serviceLabel,
-        subservicio: subservicioLabel,
-        opcion: 'cliente_ropa',
-        pedido: `Pedido ${new Date().toISOString().split('T')[0]}`,
+
+        // Consolidar toda la información útil en descripción
         descripcion: [
-          `Tipo: Solo serigrafia`,
+          `Tipo: Serigrafía`,
           currentItem.unitWidthCm && currentItem.unitHeightCm
-            ? `Unidad referencia: ${Number(currentItem.unitWidthCm).toFixed(1)} x ${Number(currentItem.unitHeightCm).toFixed(1)} cm`
+            ? `Medidas unidad: ${Number(currentItem.unitWidthCm).toFixed(1)} x ${Number(currentItem.unitHeightCm).toFixed(1)} cm`
             : '',
-          currentItem.linearMeters ? `Metros lineales por unidad: ${Number(currentItem.linearMeters).toFixed(2)} m` : '',
-          currentItem.linearMetersRaw ? `Metros lineales reales: ${Number(currentItem.linearMetersRaw).toFixed(2)} m` : '',
-          currentItem.spacingCm ? `Distancia entre unidades: ${currentItem.spacingCm} cm` : '',
-          currentItem.rows && currentItem.unitsPerRow ? `Distribucion: ${currentItem.unitsPerRow} por fila x ${currentItem.rows} filas` : '',
-          currentItem.billableLinearMeters ? `Metros lineales facturables: ${currentItem.billableLinearMeters} m` : '',
+          currentItem.linearMeters ? `Metros lineales/unidad: ${Number(currentItem.linearMeters).toFixed(2)} m` : '',
+          currentItem.linearMetersRaw ? `Total metros lineales: ${Number(currentItem.linearMetersRaw).toFixed(2)} m` : '',
+          currentItem.spacingCm ? `Espaciado: ${currentItem.spacingCm} cm` : '',
+          currentItem.rows && currentItem.unitsPerRow ? `Distribución: ${currentItem.unitsPerRow} x ${currentItem.rows}` : '',
+          currentItem.billableLinearMeters ? `Metros facturables: ${currentItem.billableLinearMeters} m` : '',
           currentItem.fileUrls?.length ? `Archivos: ${currentItem.fileUrls.join(', ')}` : '',
         ]
           .filter(Boolean)
           .join(' | '),
+
         cantidad: Number(currentItem.quantity) || 1,
-        cantidadUnidades: Number(currentItem.quantity) || 1,
+
         fechaEntrega,
-        linearMeters: Number(currentItem.linearMetersRaw) || 0,
-        linearMetersPerUnit: Number(currentItem.linearMeters) || 0,
-        spacingCm: Number(currentItem.spacingCm) || 0,
-        materialWidthCm: 60,
-        unitWidthCm: Number(currentItem.unitWidthCm) || 0,
-        unitHeightCm: Number(currentItem.unitHeightCm) || 0,
-        filesWithDimensions: currentItem.filesWithDimensions || [],
-        billableLinearMeters: Number(currentItem.billableLinearMeters) || 0,
-        fileUrls: currentItem.fileUrls || [],
+
+        // Campos de medidas correctamente mapeados
+        measurementWidthCm: currentItem.unitWidthCm ? Number(currentItem.unitWidthCm) : undefined,
+        measurementHeightCm: currentItem.unitHeightCm ? Number(currentItem.unitHeightCm) : undefined,
+
+        // Estado inicial (opcional, backend lo asigna por defecto)
+        estado: 'pendiente',
+
         total: Number(currentItem.totalPrice) || 0,
       };
 

@@ -2,6 +2,10 @@ package com.realprint.realprintbackend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,6 +27,7 @@ import com.realprint.realprintbackend.entity.Pedido;
 import com.realprint.realprintbackend.mapper.PedidoMapper;
 import com.realprint.realprintbackend.service.PedidoService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,25 +66,44 @@ public class PedidoController {
     /**
      * GET /pedidos
      *
-     * Listar todos los pedidos (solo para ADMIN).
+     * Listar todos los pedidos con paginación (solo para ADMIN).
      * Usado en el dashboard de administración para gestión global.
      *
-     * @return Lista de PedidoDTO con todos los pedidos
+     * @param page Número de página (por defecto 0)
+     * @param size Tamaño de página (por defecto 20)
+     * @param sort Campo y dirección de ordenamiento (por defecto "id,desc")
+     * @return Página de PedidoDTO con todos los pedidos
      */
-    @Operation(summary = "Listar todos los pedidos",
-                description = "Obtiene una lista de todos los pedidos registrados en el sistema. Solo accesible para usuarios con rol ADMIN.")
+    @Operation(summary = "Listar todos los pedidos (paginado)",
+                description = "Obtiene una lista paginada de todos los pedidos registrados en el sistema. Solo accesible para usuarios con rol ADMIN." +
+                              "Soporta paginación y ordenamiento mediante parámetros de consulta.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de pedidos obtenida exitosamente"),
+        @ApiResponse(responseCode = "200", description = "Página de pedidos obtenida exitosamente"),
         @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo ADMIN puede acceder a esta información.")
     })
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<PedidoDTO>> listarPedidos() {
-        List<Pedido> pedidos = pedidoService.findAll();
-        List<PedidoDTO> dtos = pedidos.stream()
-                .map(PedidoMapper::toDTO)
-                .toList();
-        return ResponseEntity.ok(dtos);
+    public ResponseEntity<Page<PedidoDTO>> listarPedidos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id,desc") String[] sort) {
+
+        // Construir Sort
+        Sort.Direction direction = sort.length > 1 && sort[1].equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+        Sort sortObj = Sort.by(direction, sort[0]);
+
+        // Construir Pageable
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+
+        // Obtener página de pedidos
+        Page<Pedido> pedidosPage = pedidoService.findAll(pageable);
+
+        // Convertir a DTOs
+        Page<PedidoDTO> dtosPage = pedidosPage.map(PedidoMapper::toDTO);
+
+        return ResponseEntity.ok(dtosPage);
     }
 
     /**
@@ -127,12 +152,13 @@ public class PedidoController {
                                  "El sistema asignará automáticamente el cliente, la fecha de creación y el estado inicial del pedido.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Pedido creado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
         @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los clientes pueden crear pedidos.")
     })
     @PostMapping
     @PreAuthorize("@securityRules.canCreatePedido(authentication)")
     public ResponseEntity<PedidoDTO> crearPedido(
-            @RequestBody PedidoDTO pedidoDTO,
+            @Valid @RequestBody PedidoDTO pedidoDTO,
             Authentication auth) {
         // Convertir DTO → Entity
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO);
@@ -162,6 +188,7 @@ public class PedidoController {
                             "y a los clientes actualizar sus propios pedidos pendientes (archivos, descripción).")
     @ApiResponses (value = {
         @ApiResponse(responseCode = "200", description = "Pedido actualizado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
         @ApiResponse(responseCode = "403", description = "Acceso denegado."),
         @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
     })
@@ -169,7 +196,7 @@ public class PedidoController {
     @PreAuthorize("@securityRules.canUpdatePedido(authentication, #id)")
     public ResponseEntity<PedidoDTO> actualizarPedido(
             @PathVariable Long id,
-            @RequestBody PedidoDTO pedidoDTO,
+            @Valid @RequestBody PedidoDTO pedidoDTO,
             Authentication auth) {
 
         // Convertir DTO → Entity

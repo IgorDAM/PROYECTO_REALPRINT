@@ -103,7 +103,7 @@ postman-run.bat --report           # Con reportes HTML/JUnit
 - `DELETE /api/usuarios/{id}` - Eliminar usuario (ADMIN)
 
 ### Archivos
-- `POST /api/upload` - Subir archivo (CLIENTE)
+- `POST /api/files` - Subir archivo (CLIENTE)
 - `GET /api/files/{fileName}` - Descargar archivo (ADMIN)
 
 ## Stack tecnologico

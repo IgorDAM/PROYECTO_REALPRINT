@@ -92,6 +92,7 @@ async function parseResponse(response: Response): Promise<unknown> {
  * - cabeceras comunes,
  * - token Bearer automatico si existe,
  * - normalizacion de errores.
+ * - Soporte para FormData (multipart) y JSON automático.
  */
 async function request(path: string, { method = "GET", body, headers = {}, timeout = DEFAULT_TIMEOUT_MS } = {} as RequestOptions): Promise<unknown> {
   const controller = new AbortController();
@@ -99,16 +100,37 @@ async function request(path: string, { method = "GET", body, headers = {}, timeo
 
   try {
     const token = getToken();
+
+    // Construir headers dinámicamente
+    const requestHeaders: Record<string, string> = {
+      // Inyecta auth solo cuando hay sesion activa.
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      // Headers personalizados tienen prioridad
+      ...headers,
+    };
+
+    // Determinar si necesitamos serializar el body
+    let processedBody: BodyInit | undefined;
+
+    if (body) {
+      // Si body es FormData, fetch maneja Content-Type automáticamente (con boundary)
+      if (body instanceof FormData) {
+        processedBody = body;
+        // NO establecer Content-Type - fetch lo hace automáticamente
+      } else {
+        // Para objetos normales, serializar como JSON
+        processedBody = JSON.stringify(body);
+        // Solo agregar Content-Type si no se especificó uno personalizado
+        if (!requestHeaders['Content-Type']) {
+          requestHeaders['Content-Type'] = 'application/json';
+        }
+      }
+    }
+
     const response = await fetch(buildUrl(path), {
       method,
-      headers: {
-        // Estandariza payload JSON para toda la app.
-        "Content-Type": "application/json",
-        // Inyecta auth solo cuando hay sesion activa.
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...headers,
-      },
-      body: body ? JSON.stringify(body) : undefined,
+      headers: requestHeaders,
+      body: processedBody,
       signal: controller.signal,
     });
 

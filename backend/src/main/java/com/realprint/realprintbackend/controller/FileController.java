@@ -41,7 +41,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses; // ✅ faltaba este
  * - Admin gestiona archivos durante la producción
  */
 @RestController
-@RequestMapping("")
+@RequestMapping("/files")
 @RequiredArgsConstructor
 @Tag(name = "Archivos", description = "Operaciones relacionadas con la gestión de archivos para pedidos")
 public class FileController {
@@ -49,7 +49,7 @@ public class FileController {
     private final FileStorageService fileStorageService;
 
     /**
-     * POST /upload
+     * POST /files
      *
      * Subir archivo a una orden.
      * RESTRICCIÓN: Solo CLIENTE puede subir archivos.
@@ -73,7 +73,7 @@ public class FileController {
         @ApiResponse(responseCode = "400", description = "Archivo inválido (tamaño o formato no permitido)."),
         @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los clientes pueden subir archivos.")
     })
-    @PostMapping("/upload")
+    @PostMapping
     @PreAuthorize("@securityRules.canUploadFile(authentication)")
     public ResponseEntity<Map<String, String>> upload(
             @RequestParam("file") MultipartFile file) {
@@ -83,7 +83,7 @@ public class FileController {
         // Construir URL para acceso por admin
         String fileUrl = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
-                .path("/files/")
+                .path("/api/files/")
                 .path(storedName)
                 .toUriString();
 
@@ -115,7 +115,7 @@ public class FileController {
         @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo los administradores pueden descargar archivos."),
         @ApiResponse(responseCode = "404", description = "Archivo no encontrado.")
     })
-    @GetMapping("/files/{fileName:.+}")
+    @GetMapping("/{fileName:.+}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> download(
             @PathVariable String fileName) {

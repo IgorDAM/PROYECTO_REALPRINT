@@ -292,9 +292,9 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/upload",
+              "raw": "{{base_url}}/files",
               "host": ["{{base_url}}"],
-              "path": ["upload"]
+              "path": ["files"]
             }
           }
         },

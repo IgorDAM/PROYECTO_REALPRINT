@@ -58,5 +58,5 @@ public class Usuario {
     // Permite desactivar el acceso sin borrar el usuario.
     @Column(nullable = false)
     @Builder.Default
-    private boolean activo = true;
+    private Boolean activo = true;
 }

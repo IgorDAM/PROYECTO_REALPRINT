@@ -1,5 +1,9 @@
 package com.realprint.realprintbackend.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,18 +35,25 @@ public class UsuarioDTO {
     private Long id;
 
     /** Username único para login */
+    @NotBlank(message = "El username es obligatorio")
+    @Size(min = 3, max = 50, message = "El username debe tener entre 3 y 50 caracteres")
     private String username;
 
     /** Nombre visible del usuario */
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(max = 100, message = "El nombre no puede exceder 100 caracteres")
     private String nombre;
 
     /** Email de contacto */
+    @Email(message = "Email inválido")
+    @Size(max = 100, message = "El email no puede exceder 100 caracteres")
     private String email;
 
     /** Rol funcional (admin, cliente) - en minúsculas para consistencia JSON */
+    @Pattern(regexp = "admin|cliente", message = "Rol inválido. Valores permitidos: admin, cliente")
     private String role;
 
-    /** Estado activo/inactivo */
-    private boolean activo;
+    /** Estado activo/inactivo (si es null, el backend asigna true por defecto) */
+    private Boolean activo;
 }
 

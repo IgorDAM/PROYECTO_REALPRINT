@@ -1,5 +1,7 @@
 package com.realprint.realprintbackend.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,10 +19,12 @@ import com.realprint.realprintbackend.repository.UsuarioRepository;
  *
  * Usuarios creados:
  * - admin / admin123 (Rol: ADMIN)
- * - cliente1 / cliente123 (Rol: CLIENTE)
+ * - cliente / cliente123 (Rol: CLIENTE)
  */
 @Configuration
 public class DataInitializer {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
     /**
      * Bean que se ejecuta al iniciar la aplicación.
@@ -31,11 +35,11 @@ public class DataInitializer {
         return args -> {
             // Si la BD ya tiene usuarios, no hacer nada (evitar duplicados)
             if (usuarioRepository.count() > 0) {
-                System.out.println("✓ Base de datos ya contiene usuarios. Saltando inicialización.");
+                logger.info("Base de datos ya contiene usuarios. Saltando inicialización.");
                 return;
             }
 
-            System.out.println("Inicializando usuarios de prueba...");
+            logger.info("Inicializando usuarios de prueba...");
 
             // Crear usuario ADMIN
             Usuario admin = Usuario.builder()
@@ -58,9 +62,9 @@ public class DataInitializer {
             // Guardar en BD
             usuarioRepository.saveAll(java.util.List.of(admin, cliente));
 
-            System.out.println("✓ Usuarios de prueba creados exitosamente:");
-            System.out.println("  - admin / admin123");
-            System.out.println("  - cliente1 / cliente123");
+            logger.info("Usuarios de prueba creados exitosamente");
+            logger.info("  - admin / admin123 (ADMIN)");
+            logger.info("  - cliente / cliente123 (CLIENTE)");
         };
     }
 }
