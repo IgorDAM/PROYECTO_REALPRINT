@@ -10,7 +10,10 @@
       "Bash(xargs grep -l \"orderService\\\\|pedidosService\")",
       "Bash(mvn test *)",
       "Bash(curl -s http://localhost:8080/api/usuarios)",
-      "Bash(./mvnw spring-boot:run)"
+      "Bash(./mvnw spring-boot:run)",
+      "Bash(mvn -version)",
+      "Bash(mvn clean *)",
+      "Bash(mvn exec:java -Dexec.mainClass=\"com.patrones.MainPrincipal\")"
     ]
   }
 }
