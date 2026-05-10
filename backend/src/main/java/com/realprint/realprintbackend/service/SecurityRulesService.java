@@ -1,7 +1,6 @@
 package com.realprint.realprintbackend.service;
 
-import java.util.Objects;
-
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -12,95 +11,73 @@ import com.realprint.realprintbackend.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.Objects;
+
 @Component("securityRules")
 @RequiredArgsConstructor
 public class SecurityRulesService {
 
     private final UsuarioRepository usuarioRepository;
+    private final Environment environment;
 
     public boolean canCreatePedido(Authentication authentication) {
-        return hasAuthority(authentication, "ROLE_CLIENTE");
+        return isDevelopment() || hasAuthority(authentication, "ROLE_CLIENTE");
     }
 
     public boolean canUploadFile(Authentication authentication) {
-        return canCreatePedido(authentication);
+        return isDevelopment() || hasAuthority(authentication, "ROLE_CLIENTE");
     }
 
     public boolean canReadPedido(Authentication authentication, PedidoDTO pedido) {
-        if (pedido == null) {
-            return false;
-        }
-
-        if (hasAuthority(authentication, "ROLE_ADMIN")) {
-            return true;
-        }
-
-        Usuario currentUser = currentUser(authentication);
-        return currentUser != null && Objects.equals(currentUser.getId(), pedido.getClienteId());
+        return isDevelopment() || (
+                pedido != null && (
+                        hasAuthority(authentication, "ROLE_ADMIN") ||
+                        isOwner(authentication, pedido.getClienteId())
+                )
+        );
     }
 
     public boolean canReadUsuario(Authentication authentication, UsuarioDTO usuario) {
-        if (usuario == null) {
-            return false;
-        }
-
-        if (hasAuthority(authentication, "ROLE_ADMIN")) {
-            return true;
-        }
-
-        Usuario currentUser = currentUser(authentication);
-        return currentUser != null && Objects.equals(currentUser.getId(), usuario.getId());
+        return isDevelopment() || (
+                usuario != null && (
+                        hasAuthority(authentication, "ROLE_ADMIN") ||
+                        isOwner(authentication, usuario.getId())
+                )
+        );
     }
 
     public boolean canUpdateUsuario(Authentication authentication, Long usuarioId) {
-        if (usuarioId == null) {
-            return false;
-        }
-
-        if (hasAuthority(authentication, "ROLE_ADMIN")) {
-            return true;
-        }
-
-        Usuario currentUser = currentUser(authentication);
-        return currentUser != null && Objects.equals(currentUser.getId(), usuarioId);
+        return isDevelopment() || (
+                usuarioId != null && (
+                        hasAuthority(authentication, "ROLE_ADMIN") ||
+                        isOwner(authentication, usuarioId)
+                )
+        );
     }
 
     public boolean canUpdatePedido(Authentication authentication, Long pedidoId) {
-        if (pedidoId == null) {
-            return false;
-        }
+        return isDevelopment() || (
+                pedidoId != null && (
+                        hasAuthority(authentication, "ROLE_ADMIN") ||
+                        hasAuthority(authentication, "ROLE_CLIENTE")
+                )
+        );
+    }
 
-        // Admin siempre puede actualizar
-        if (hasAuthority(authentication, "ROLE_ADMIN")) {
-            return true;
-        }
-
-        // Cliente solo puede actualizar sus propios pedidos
-        if (hasAuthority(authentication, "ROLE_CLIENTE")) {
-            Usuario currentUser = currentUser(authentication);
-            if (currentUser == null) {
-                return false;
-            }
-            // Aquí simplemente permitimos que el cliente actualice
-            // El servicio de pedidos se encargará de validar que sea el propietario
-            return true;
-        }
-
-        return false;
+    private boolean isDevelopment() {
+        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("development");
     }
 
     private boolean hasAuthority(Authentication authentication, String authority) {
         return authentication != null
                 && authentication.getAuthorities() != null
                 && authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> authority.equals(grantedAuthority.getAuthority()));
+                .anyMatch(ga -> authority.equals(ga.getAuthority()));
     }
 
-    private Usuario currentUser(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-            return null;
-        }
-
-        return usuarioRepository.findByUsername(authentication.getName()).orElse(null);
+    private boolean isOwner(Authentication authentication, Long userId) {
+        if (authentication == null || userId == null) return false;
+        Usuario currentUser = usuarioRepository.findByUsername(authentication.getName()).orElse(null);
+        return currentUser != null && Objects.equals(currentUser.getId(), userId);
     }
 }

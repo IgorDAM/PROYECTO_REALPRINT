@@ -13,7 +13,11 @@
       "Bash(./mvnw spring-boot:run)",
       "Bash(mvn -version)",
       "Bash(mvn clean *)",
-      "Bash(mvn exec:java -Dexec.mainClass=\"com.patrones.MainPrincipal\")"
+      "Bash(mvn exec:java -Dexec.mainClass=\"com.patrones.MainPrincipal\")",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(pkill -f \"vite\")"
     ]
   }
 }

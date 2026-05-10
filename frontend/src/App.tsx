@@ -6,6 +6,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Login from "./pages/Login";
+import LandingPage from "./pages/LandingPage";
 import Configuracion from "./pages/Configuracion";
 
 // Paginas de administrador
@@ -32,8 +33,8 @@ export default function App() {
           <AuthProvider>
             <Routes>
               {/* Rutas publicas */}
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Navigate to="/login" replace />} />
 
               {/* Rutas de administrador */}
               <Route

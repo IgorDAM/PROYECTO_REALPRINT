@@ -90,12 +90,14 @@ public class PedidoService {
      * Solo CLIENTE puede invocar este método (validado en el controller con @PreAuthorize).
      */
     public Pedido save(Pedido pedido, Authentication auth) {
-        String username = auth.getName();
-        Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+        if (auth != null && auth.getName() != null) {
+            String username = auth.getName();
+            Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
 
-        if (pedido.getCliente() == null) {
-            pedido.setCliente(usuarioAutenticado);
+            if (pedido.getCliente() == null) {
+                pedido.setCliente(usuarioAutenticado);
+            }
         }
 
         return pedidoRepository.save(pedido);
