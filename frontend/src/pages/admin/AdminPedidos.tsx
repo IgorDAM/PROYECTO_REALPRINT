@@ -205,11 +205,11 @@ export default function AdminPedidos() {
   const tabPedidos = getPedidosByTab(activeTab);
 
   const filteredPedidos = (tabPedidos as PedidoItem[])
-    .filter(pedido => pedido && typeof pedido === "object" && pedido.id && pedido.cliente)
+    .filter(pedido => pedido && typeof pedido === "object" && pedido.id)
     .filter((pedido) => {
       const matchesSearch =
         String(pedido.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (pedido.pedido ? String(pedido.pedido).toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
+        (pedido.clienteNombre ? String(pedido.clienteNombre).toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
         (pedido.servicio ? String(pedido.servicio).toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
         (pedido.descripcion ? String(pedido.descripcion).toLowerCase().includes(searchTerm.toLowerCase()) : false);
       const matchesFilter = !filterEstado || pedido.estado === filterEstado;
@@ -280,7 +280,7 @@ export default function AdminPedidos() {
 
   const columns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
-    { key: "pedido", label: "Pedido" },
+    { key: "clienteNombre", label: "Cliente" },
     { key: "fechaEntrega", label: "Entrega" },
     { key: "estado", label: "Estado", render: (value) => (
       <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>
@@ -347,7 +347,7 @@ export default function AdminPedidos() {
       {/* Filters - Responsive stacking */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
         <Input
-          placeholder="Buscar por ID, pedido..."
+          placeholder="Buscar por ID, cliente, servicio..."
           value={searchTerm}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
         />
@@ -388,8 +388,8 @@ export default function AdminPedidos() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-surface-500 text-sm">Pedido</p>
-                <p className="font-medium">{selectedPedido.pedido}</p>
+                <p className="text-surface-500 text-sm">Cliente</p>
+                <p className="font-medium">{selectedPedido.clienteNombre}</p>
               </div>
               <div>
                 <p className="text-surface-500 text-sm">Servicio</p>

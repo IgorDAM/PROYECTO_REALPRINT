@@ -17,7 +17,15 @@
       "Bash(npm install *)",
       "Bash(npm run *)",
       "Bash(taskkill /F /IM node.exe)",
-      "Bash(pkill -f \"vite\")"
+      "Bash(pkill -f \"vite\")",
+      "Read(//d/DAM/2DAM/PROYECTO_II/**)",
+      "Bash(find docs/postman -name \"*.json\")",
+      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
+      "Bash(mysql -h localhost -P 3306 -u realprint -p'${DB_PASSWORD}' realprint_db -e \"SELECT id, username, nombre, rol FROM usuarios WHERE username='admin';\")",
+      "Bash(./mvnw spring-boot:run -Dspring-boot.run.profiles=development)",
+      "Bash(curl -s http://localhost:8080/actuator/health)",
+      "Bash(curl -s http://localhost:8080/api/pedidos)",
+      "Bash(curl -s http://localhost:8080/api/pedidos/mis-pedidos)"
     ]
   }
 }

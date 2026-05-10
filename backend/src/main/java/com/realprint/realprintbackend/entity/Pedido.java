@@ -51,8 +51,8 @@ public class Pedido {
     private Long id;
 
     // Relación: Cliente propietario del pedido
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "cliente_id", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_cliente"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id", foreignKey = @jakarta.persistence.ForeignKey(name = "fk_pedido_cliente"))
     private Usuario cliente;
 
     // Relación: Archivos asociados al pedido

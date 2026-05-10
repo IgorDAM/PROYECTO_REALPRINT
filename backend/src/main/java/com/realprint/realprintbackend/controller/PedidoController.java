@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.entity.Pedido;
+import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.mapper.PedidoMapper;
 import com.realprint.realprintbackend.service.PedidoService;
 
@@ -104,6 +105,39 @@ public class PedidoController {
         Page<PedidoDTO> dtosPage = pedidosPage.map(PedidoMapper::toDTO);
 
         return ResponseEntity.ok(dtosPage);
+    }
+
+    /**
+     * GET /pedidos/mis-pedidos
+     *
+     * Obtener los pedidos del cliente autenticado.
+     * Solo accesible para usuarios con rol CLIENTE.
+     *
+     * @param auth Contexto de seguridad
+     * @return Lista de PedidoDTO del cliente
+     */
+    @Operation(summary = "Obtener mis pedidos",
+                description = "Obtiene todos los pedidos del cliente autenticado. Solo accesible para usuarios con rol CLIENTE.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Pedidos obtenidos exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo CLIENTE puede acceder.")
+    })
+    @GetMapping("/mis-pedidos")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ResponseEntity<List<PedidoDTO>> obtenerMisPedidos(Authentication auth) {
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autenticado");
+        }
+
+        String username = auth.getName();
+        Usuario usuario = pedidoService.findUsuarioByUsername(username);
+
+        List<Pedido> pedidos = pedidoService.findByClienteId(usuario.getId());
+        List<PedidoDTO> dtos = pedidos.stream()
+                .map(PedidoMapper::toDTO)
+                .toList();
+
+        return ResponseEntity.ok(dtos);
     }
 
     /**

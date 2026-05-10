@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
   const pedidosColumns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-mono text-primary-600">#{value}</span> },
-    { key: "cliente", label: "Cliente" },
+    { key: "clienteNombre", label: "Cliente" },
     { key: "servicio", label: "Servicio" },
     {
       key: "estado",
@@ -76,7 +76,7 @@ export default function AdminDashboard() {
 
   const pedidosOperativosColumns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
-    { key: "cliente", label: "Cliente" },
+    { key: "clienteNombre", label: "Cliente" },
     { key: "servicio", label: "Servicio", render: (value) => <span className="truncate">{value}</span> },
     {
       key: "estado",

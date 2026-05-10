@@ -17,9 +17,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.realprint.realprintbackend.service.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -31,10 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // getRequestURI() devuelve la URL completa incluyendo el context-path (/api)
-        // por eso aquí SÍ se mantiene el prefijo /api
         String path = request.getRequestURI();
 
+        // 🔓 Rutas públicas (no pasan por JWT)
         if (path.startsWith("/api/swagger-ui") ||
                 path.startsWith("/api/v3/api-docs") ||
                 path.startsWith("/api/auth") ||
@@ -46,33 +47,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
+        // 🔓 Sin token → sigue el filtro normal (Spring decidirá si es 403)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String jwt = authHeader.substring(7);
-        String username = jwtService.extractUsername(jwt);
+        try {
+            // 🔐 Extraer token
+            String jwt = authHeader.substring(7);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            String username = jwtService.extractUsername(jwt);
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            // 🔐 Solo autenticar si no hay ya contexto
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                // 🔐 Validar token
+                if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
 
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    log.warn("JWT inválido para usuario: {}", username);
+                }
             }
+
+        } catch (Exception e) {
+            log.warn("Error procesando JWT: {}", e.getMessage());
+            // NO limpiar el contexto aquí, dejar que otros filtros lo manejen
         }
 
         filterChain.doFilter(request, response);

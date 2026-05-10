@@ -135,7 +135,10 @@ export function createPedidosDomain({
     }
 
     try {
-      return await pedidosService.create(pedido);
+      const createdPedido = await pedidosService.create(pedido);
+      // Add the created pedido to local state so it appears in the UI immediately
+      setPedidos((prev) => [createdPedido, ...prev]);
+      return createdPedido;
     } catch {
       return addPedido(pedido);
     }

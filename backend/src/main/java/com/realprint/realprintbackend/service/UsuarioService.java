@@ -36,7 +36,8 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder; // Inyectamos el PasswordEncoder para manejar contraseñas de forma segura
+
 
     /**
      * Devuelve todos los usuarios registrados.

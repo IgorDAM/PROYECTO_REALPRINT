@@ -12,6 +12,7 @@
  */
 import {
   type ReactNode,
+  useEffect,
 } from "react";
 import type { DataContextValue } from "./data/dataContext.types";
 import {
@@ -23,7 +24,7 @@ import {
   INITIAL_TAREAS,
 } from "./data/initialData";
 import { DataContext, useDataContextStrict } from "./DataContextCore";
-import { pedidosService, usuariosService } from "../services";
+import { pedidosService, usuariosService, authService } from "../services";
 import { createDataValue } from "./data/createDataValue";
 import { dataConfig } from "./data/dataConfig";
 import { ESTADOS_PEDIDO, SERVICIOS } from "./data/uiContracts";
@@ -60,6 +61,34 @@ export function DataProvider({ children }: DataProviderProps) {
     initialUsuarios: INITIAL_USUARIOS,
     initialTareas: INITIAL_TAREAS,
   });
+
+  // Fetch pedidos from backend when component mounts
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      try {
+        const user = authService.getCurrentUser() as any;
+        if (!user) return;
+
+        let fetchedPedidos;
+        if (user.role === "admin") {
+          // Admin can fetch all pedidos
+          fetchedPedidos = await pedidosService.list();
+        } else if (user.role === "cliente") {
+          // Cliente fetches only their own pedidos
+          fetchedPedidos = await pedidosService.listMisPedidos();
+        }
+
+        if (fetchedPedidos && fetchedPedidos.length > 0) {
+          setPedidos(fetchedPedidos);
+        }
+      } catch (error) {
+        console.error("Error fetching pedidos:", error);
+        // Keep using localStorage data on error
+      }
+    };
+
+    fetchPedidos();
+  }, [setPedidos]);
 
   const {
     setCatalogoEmpresa,

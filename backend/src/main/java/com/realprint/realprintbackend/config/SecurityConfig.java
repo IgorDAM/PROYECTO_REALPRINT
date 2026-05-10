@@ -30,6 +30,8 @@ public class SecurityConfig {
     @Bean
     @Profile("development")
     public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
+        DevAuthenticationFilter devAuthFilter = new DevAuthenticationFilter();
+
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
@@ -37,6 +39,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(devAuthFilter, JwtAuthenticationFilter.class)
                 .build();
     }
 

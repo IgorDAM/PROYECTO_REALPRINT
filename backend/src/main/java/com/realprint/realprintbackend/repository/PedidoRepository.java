@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.realprint.realprintbackend.entity.Pedido;
 import com.realprint.realprintbackend.entity.PedidoEstado;
@@ -37,12 +38,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 	@EntityGraph(attributePaths = {"cliente"})
 	List<Pedido> findByEstado(PedidoEstado estado);
 
-	// Override findAll para cargar relaciones (sin paginación)
-	@EntityGraph(attributePaths = {"cliente"})
-	List<Pedido> findAll();
+	// Método custom con JOIN FETCH para paginación
+	@Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente")
+	List<Pedido> findAllWithCliente();
 
-	// Override findAll con paginación para cargar relaciones
-	@EntityGraph(attributePaths = {"cliente"})
-	Page<Pedido> findAll(Pageable pageable);
+	// Método custom con JOIN FETCH para paginación
+	@Query(value = "SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente",
+	       countQuery = "SELECT COUNT(p) FROM Pedido p")
+	Page<Pedido> findAllWithCliente(Pageable pageable);
 
 }

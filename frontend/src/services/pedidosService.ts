@@ -27,6 +27,7 @@ export interface Pedido {
 
 interface CrudService {
   list(): Promise<Pedido[]>;
+  listMisPedidos(): Promise<Pedido[]>;
   getById(id: number | string): Promise<Pedido>;
   create(payload: Omit<Pedido, "id" | "clienteId" | "clienteNombre">): Promise<Pedido>;
   update(id: number | string, payload: Partial<Pedido>): Promise<Pedido>;
@@ -37,6 +38,10 @@ interface CrudService {
 export const pedidosService: CrudService = {
   list() {
     return httpClient.get("/pedidos") as Promise<Pedido[]>;
+  },
+
+  listMisPedidos() {
+    return httpClient.get("/pedidos/mis-pedidos") as Promise<Pedido[]>;
   },
 
   getById(id) {

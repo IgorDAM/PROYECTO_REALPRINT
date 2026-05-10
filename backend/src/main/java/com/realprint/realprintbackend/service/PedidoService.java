@@ -45,7 +45,7 @@ public class PedidoService {
      */
     @Transactional(readOnly = true)
     public List<Pedido> findAll() {
-        return pedidoRepository.findAll();
+        return pedidoRepository.findAllWithCliente();
     }
 
     /**
@@ -54,7 +54,7 @@ public class PedidoService {
      */
     @Transactional(readOnly = true)
     public Page<Pedido> findAll(Pageable pageable) {
-        return pedidoRepository.findAll(pageable);
+        return pedidoRepository.findAllWithCliente(pageable);
     }
 
     /**
@@ -77,6 +77,16 @@ public class PedidoService {
     }
 
     /**
+     * Busca un usuario por username.
+     * Usado para obtener el ID del usuario autenticado.
+     */
+    @Transactional(readOnly = true)
+    public Usuario findUsuarioByUsername(String username) {
+        return usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+    }
+
+    /**
      * Devuelve los pedidos filtrados por estado.
      * Útil para el tablero de administración.
      */
@@ -88,16 +98,15 @@ public class PedidoService {
     /**
      * Guarda un pedido nuevo asignando automáticamente el cliente desde el contexto de seguridad.
      * Solo CLIENTE puede invocar este método (validado en el controller con @PreAuthorize).
+     *
+     * En desarrollo, DevAuthenticationFilter inyecta automáticamente un usuario mock.
      */
     public Pedido save(Pedido pedido, Authentication auth) {
-        if (auth != null && auth.getName() != null) {
+        if (pedido.getCliente() == null && auth != null) {
             String username = auth.getName();
             Usuario usuarioAutenticado = usuarioRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
-
-            if (pedido.getCliente() == null) {
-                pedido.setCliente(usuarioAutenticado);
-            }
+            pedido.setCliente(usuarioAutenticado);
         }
 
         return pedidoRepository.save(pedido);

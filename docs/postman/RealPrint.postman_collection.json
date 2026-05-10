@@ -2,30 +2,36 @@
   "info": {
     "_postman_id": "f18d58fb-98fc-497e-964a-ab29e305967b",
     "name": "RealPrint API",
-    "description": "Coleccion completa de endpoints para el sistema RealPrint (14 endpoints). Version 2.0 mejorada con variables, autorizacion automatica y bodies actualizados.",
+    "description": "Colección completa de endpoints RealPrint. En desarrollo funciona sin JWT (DevAuthenticationFilter inyecta usuario automáticamente).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "54260222",
-    "version": "2.0.0"
+    "version": "3.0.0"
+  },
+  "auth": {
+    "type": "noauth"
   },
   "item": [
     {
-      "name": "Autenticacion",
-      "description": "Endpoints de login y autenticacion",
+      "name": "Auth",
       "item": [
         {
-          "name": "Login de Usuario",
+          "name": "Login",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    let body = pm.response.json();",
-                  "    let token = body.token || body.accessToken || body.data?.token;",
+                  "    const response = pm.response.json();",
+                  "    const token = response.token || response.accessToken || response.data?.token;",
                   "    if (token) {",
                   "        pm.environment.set('authToken', token);",
-                  "        console.log('Token guardado: ' + token.substring(0, 20) + '...');",
+                  "        console.log('✓ Token guardado correctamente');",
+                  "    } else {",
+                  "        console.error('✗ No se encontró token en la respuesta');",
                   "    }",
+                  "} else {",
+                  "    console.error('✗ Login fallido:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -33,6 +39,9 @@
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
@@ -42,155 +51,48 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"username\": \"{{username}}\", \"password\": \"{{password}}\"}"
+              "raw": "{\n  \"username\": \"dev-user\",\n  \"password\": \"dev123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
               "host": ["{{base_url}}"],
               "path": ["auth", "login"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Usuarios",
-      "description": "Gestion de usuarios CRUD",
+      "name": "Pedidos",
       "item": [
         {
-          "name": "Listar Usuarios",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/usuarios?page=0&size=20&sort=id,desc",
-              "host": ["{{base_url}}"],
-              "path": ["usuarios"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "0",
-                  "description": "Número de página (empieza en 0)"
-                },
-                {
-                  "key": "size",
-                  "value": "20",
-                  "description": "Usuarios por página"
-                },
-                {
-                  "key": "sort",
-                  "value": "id,desc",
-                  "description": "Ordenar por ID descendente (más recientes primero)"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Obtener usuario por ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/usuarios/{{usuario_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["usuarios", "{{usuario_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Crear nuevo Usuario",
+          "name": "Crear Pedido",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"username\": \"usuario_test\", \"nombre\": \"Usuario Test\", \"email\": \"test@ejemplo.com\", \"password\": \"password123\", \"role\": \"cliente\", \"activo\": true}"
+              "raw": "{\n  \"servicio\": \"Serigrafía\",\n  \"descripcion\": \"Camisetas personalizadas con logo\",\n  \"cantidad\": 50,\n  \"measurementWidthCm\": 20,\n  \"measurementHeightCm\": 25,\n  \"estado\": \"pendiente\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/usuarios",
+              "raw": "{{base_url}}/pedidos",
               "host": ["{{base_url}}"],
-              "path": ["usuarios"]
+              "path": ["pedidos"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Actualizar Usuario",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"username\": \"usuario_test\", \"nombre\": \"Usuario Actualizado\", \"email\": \"test.actualizado@ejemplo.com\", \"rol\": \"CLIENTE\", \"activo\": true}"
-            },
-            "url": {
-              "raw": "{{base_url}}/usuarios/{{usuario_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["usuarios", "{{usuario_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Eliminar Usuario",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/usuarios/{{usuario_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["usuarios", "{{usuario_id}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Pedidos",
-      "description": "Gestion de pedidos CRUD",
-      "item": [
-        {
-          "name": "Listar todos los pedidos",
+          "name": "Listar Pedidos (Paginado)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
               "raw": "{{base_url}}/pedidos?page=0&size=20&sort=id,desc",
               "host": ["{{base_url}}"],
@@ -199,7 +101,7 @@
                 {
                   "key": "page",
                   "value": "0",
-                  "description": "Número de página (empieza en 0)"
+                  "description": "Número de página (0-indexed)"
                 },
                 {
                   "key": "size",
@@ -209,119 +111,180 @@
                 {
                   "key": "sort",
                   "value": "id,desc",
-                  "description": "Ordenar por ID descendente (más recientes primero)"
+                  "description": "Campo de ordenamiento (id,desc o id,asc)"
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Obtener un pedido por ID",
+          "name": "Obtener Pedido por ID",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/pedidos/{{pedido_id}}",
+              "raw": "{{base_url}}/pedidos/1",
               "host": ["{{base_url}}"],
-              "path": ["pedidos", "{{pedido_id}}"]
+              "path": ["pedidos", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Crear nuevo pedido",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"servicio\": \"DTF\", \"descripcion\": \"Camisetas DTF\", \"cantidad\": 100, \"measurementWidthCm\": 21, \"measurementHeightCm\": 29, \"estado\": \"pendiente\", \"total\": 250.00}"
-            },
-            "url": {
-              "raw": "{{base_url}}/pedidos",
-              "host": ["{{base_url}}"],
-              "path": ["pedidos"]
-            }
-          }
-        },
-        {
-          "name": "Actualizar un pedido",
+          "name": "Actualizar Pedido",
           "request": {
             "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"estado\": \"en_proceso\", \"total\": 250.00}"
+              "raw": "{\n  \"servicio\": \"Planchado\",\n  \"descripcion\": \"Actualización del pedido\",\n  \"cantidad\": 100,\n  \"measurementWidthCm\": 25,\n  \"measurementHeightCm\": 30,\n  \"estado\": \"en_proceso\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/pedidos/{{pedido_id}}",
+              "raw": "{{base_url}}/pedidos/1",
               "host": ["{{base_url}}"],
-              "path": ["pedidos", "{{pedido_id}}"]
+              "path": ["pedidos", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Eliminar un pedido",
+          "name": "Eliminar Pedido",
           "request": {
             "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pedidos/1",
+              "host": ["{{base_url}}"],
+              "path": ["pedidos", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Listar Usuarios (Paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/usuarios?page=0&size=20&sort=id,asc",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "id,asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/usuarios/1",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear Usuario",
+          "request": {
+            "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nuevo-cliente\",\n  \"nombre\": \"Cliente Nuevo\",\n  \"email\": \"cliente@example.com\",\n  \"passwordHash\": \"password123\",\n  \"rol\": \"CLIENTE\"\n}"
+            },
             "url": {
-              "raw": "{{base_url}}/pedidos/{{pedido_id}}",
+              "raw": "{{base_url}}/usuarios",
               "host": ["{{base_url}}"],
-              "path": ["pedidos", "{{pedido_id}}"]
+              "path": ["usuarios"]
             }
-          }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar Usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cliente-actualizado\",\n  \"nombre\": \"Cliente Actualizado\",\n  \"email\": \"actualizado@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/1",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Usuario",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/usuarios/1",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", "1"]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
       "name": "Archivos",
-      "description": "Gestion de archivos upload download",
       "item": [
         {
-          "name": "Subir archivo a una orden",
+          "name": "Subir Archivo",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "body": {
               "mode": "formdata",
               "formdata": [
                 {
                   "key": "file",
                   "type": "file",
-                  "src": ""
+                  "src": []
                 }
               ]
             },
@@ -330,63 +293,30 @@
               "host": ["{{base_url}}"],
               "path": ["files"]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "Descargar archivo de una orden",
+          "name": "Descargar Archivo",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              }
-            ],
+            "header": [],
             "url": {
               "raw": "{{base_url}}/files/nombre-archivo.pdf",
               "host": ["{{base_url}}"],
               "path": ["files", "nombre-archivo.pdf"]
             }
-          }
+          },
+          "response": []
         }
       ]
     }
   ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{authToken}}",
-        "type": "string"
-      }
-    ]
-  },
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:8080/api"
-    },
-    {
-      "key": "username",
-      "value": "admin"
-    },
-    {
-      "key": "password",
-      "value": "admin123"
-    },
-    {
-      "key": "authToken",
-      "value": ""
-    },
-    {
-      "key": "usuario_id",
-      "value": "1"
-    },
-    {
-      "key": "pedido_id",
-      "value": "1"
+      "value": "http://localhost:8080/api",
+      "type": "string"
     }
   ]
 }
-
