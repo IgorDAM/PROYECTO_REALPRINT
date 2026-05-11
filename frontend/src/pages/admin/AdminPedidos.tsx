@@ -24,8 +24,10 @@ import { useSearchParams } from "react-router-dom";
 import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
 import { useApiStatus } from "../../hooks/useApiStatus";
 import { usePedidosData } from "../../hooks/usePedidosData";
+import { useFileDownload } from "../../hooks/useFileDownload";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
-import { getToken } from "../../services/tokenStorage";
+import { FileList } from "../../components/FileList";
+import { fileService } from "../../services";
 
 type PedidoItem = Record<string, any>;
 
@@ -155,14 +157,14 @@ function getFileNameFromUrl(fileUrl: string, fallbackIndex: number): string {
 }
 
 export default function AdminPedidos() {
-  const [searchParams] = useSearchParams();
-  const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
-  const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
-  const [selectedPedido, setSelectedPedido] = useState<PedidoItem | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterEstado, setFilterEstado] = useState("");
-  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
+   const [searchParams] = useSearchParams();
+   const { pedidos, updatePedidoSafe, deletePedidoSafe } = usePedidosData();
+   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
+   const { downloadingFile, downloadFile: handleDownloadFile } = useFileDownload();
+   const [selectedPedido, setSelectedPedido] = useState<PedidoItem | null>(null);
+   const [isModalOpen, setIsModalOpen] = useState(false);
+   const [searchTerm, setSearchTerm] = useState("");
+   const [filterEstado, setFilterEstado] = useState("");
 
   /**
    * Detecta query param ?tab= para abrir la pestaña correspondiente.
@@ -230,55 +232,15 @@ export default function AdminPedidos() {
     }, "No se ha podido actualizar el estado del pedido");
   };
 
-  const handleDeletePedido = async (id: string | number) => {
-    const result = await runApi(
-      () => deletePedidoSafe(id),
-      "No se ha podido eliminar el pedido",
-    );
-    if (result !== null) setIsModalOpen(false);
-  };
+   const handleDeletePedido = async (id: string | number) => {
+     const result = await runApi(
+       () => deletePedidoSafe(id),
+       "No se ha podido eliminar el pedido",
+     );
+     if (result !== null) setIsModalOpen(false);
+   };
 
-  const handleDownloadFile = async (fileUrl: string, index: number) => {
-    if (!isDownloadableUrl(fileUrl)) return;
-
-    const token = getToken();
-
-    if ((fileUrl.startsWith("http://") || fileUrl.startsWith("https://")) && !fileUrl.includes("/api/files/")) {
-      window.open(fileUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    setDownloadingFile(fileUrl);
-    try {
-      const response = await fetch(fileUrl, {
-        method: "GET",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (!response.ok) {
-        window.open(fileUrl, "_blank", "noopener,noreferrer");
-        return;
-      }
-
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = objectUrl;
-      a.download = getFileNameFromUrl(fileUrl, index);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(objectUrl);
-    } catch {
-      window.open(fileUrl, "_blank", "noopener,noreferrer");
-    } finally {
-      setDownloadingFile((current) => (current === fileUrl ? null : current));
-    }
-  };
-
-  const columns: TableColumn[] = [
+   const columns: TableColumn[] = [
     { key: "id", label: "ID", render: (value) => <span className="font-medium">#{value}</span> },
     { key: "clienteNombre", label: "Cliente" },
     { key: "fechaEntrega", label: "Entrega" },
@@ -424,36 +386,15 @@ export default function AdminPedidos() {
               <p className="bg-surface-100 p-3 rounded-lg text-sm sm:text-base">{selectedPedido.descripcion}</p>
             </div>
 
-            <div>
-              <p className="text-surface-500 text-sm mb-2">Archivos del pedido</p>
-              {(() => {
-                const fileUrls = parseFileUrlsFromPedido(selectedPedido);
-
-                if (fileUrls.length === 0) {
-                  return <p className="text-sm text-surface-500">No hay archivos asociados.</p>;
-                }
-
-                return (
-                  <ul className="space-y-2">
-                    {fileUrls.map((fileUrl, index) => (
-                      <li key={`${fileUrl}-${index}`} className="rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm">
-                        {isDownloadableUrl(fileUrl) ? (
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadFile(fileUrl, index)}
-                            className="text-left text-primary-600 hover:text-primary-700 hover:underline break-all"
-                          >
-                            {downloadingFile === fileUrl ? "Descargando..." : `Descargar archivo ${index + 1}`}
-                          </button>
-                        ) : (
-                          <span className="text-surface-700 break-all">{fileUrl}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                );
-              })()}
-            </div>
+             <div>
+               <p className="text-surface-500 text-sm mb-2">Archivos del pedido</p>
+               <FileList
+                 fileUrls={parseFileUrlsFromPedido(selectedPedido)}
+                 onDownload={handleDownloadFile}
+                 downloadingFile={downloadingFile}
+                 isDownloadableUrl={fileService.isDownloadableUrl}
+               />
+             </div>
 
             <div>
               <p className="text-surface-500 text-sm mb-2">Cambiar Estado</p>

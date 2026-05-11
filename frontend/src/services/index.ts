@@ -8,6 +8,7 @@
 export { authService } from "./authService";
 export { pedidosService } from "./pedidosService";
 export { usuariosService } from "./usuariosService";
+export { fileService } from "./fileService";
 export { httpClient } from "./httpClient";
 export { ApiError, normalizeApiError } from "./errors";
 export { logger } from "./logger";

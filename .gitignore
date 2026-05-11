@@ -7,6 +7,7 @@
 .env.local
 .env.*.local
 .env.production
+.env.example
 
 # Dependencies
 node_modules/
@@ -93,3 +94,6 @@ pnpm-lock.yaml
 *.bak
 *.backup
 *~
+
+
+

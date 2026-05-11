@@ -41,7 +41,7 @@ Abre tu navegador y ve a: **http://localhost:5173**
 
 **Usuarios de prueba:**
 - Usuario: `admin` | Contraseña: `admin123`
-- Usuario: `cliente1` | Contraseña: `cliente123`
+- Usuario: `cliente` | Contraseña: `cliente123`
 
 ---
 

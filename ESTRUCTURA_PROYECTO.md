@@ -165,6 +165,7 @@ src/
 │   ├── 📄 ErrorBoundary.tsx         Boundary que captura errores React. Muestra UI de error.
 │   ├── 📄 ErrorBoundary.test.jsx    Test unitario del ErrorBoundary.
 │   ├── 📄 ErrorFallback.tsx         UI mostrada cuando hay error en ErrorBoundary.
+│   ├── 📄 FileList.tsx              Componente que renderiza lista de archivos descargables. Reutilizable.
 │   ├── 📄 PedidoCard.tsx            Card que muestra resumen de un pedido.
 │   ├── 📁 layout/                   Componentes de layout (header, nav, sidebar, etc).
 │   │   ├── Header.tsx               Header/navbar de la app.
@@ -175,6 +176,8 @@ src/
 │   │   ├── Modal.tsx                Modal/dialog reutilizable.
 │   │   ├── Table.tsx                Tabla reutilizable.
 │   │   ├── Badge.tsx                Badge para estados (Pendiente, En Proceso, etc).
+│   │   ├── Input.tsx                Input reutilizable.
+│   │   ├── Select.tsx               Select/dropdown reutilizable.
 │   │   └── (otros componentes UI)
 │   └── 📁 CreateOrderForm/          Componentes específicos para crear pedido.
 │       ├── FormStep.tsx             Un paso del formulario (wizard).
@@ -188,10 +191,15 @@ src/
 │   └── AuthProvider.tsx             Provider para envolver la app con AuthContext.
 │
 ├── 📁 services/                     Funciones para comunicación con backend (APIs).
-│   ├── 📄 api.ts                    Todas las llamadas fetch. Endpoints CRUD. Headers con JWT.
-│   ├── authService.ts               Funciones de login/logout. Gestiona token.
-│   ├── pedidoService.ts             Funciones para pedidos (crear, listar, actualizar estado).
-│   └── usuarioService.ts            Funciones para usuarios.
+│   ├── 📄 authService.ts            Funciones de login/logout. Gestiona token JWT.
+│   ├── 📄 fileService.ts            Servicio de descargas seguras. Valida URLs, JWT automático, fallbacks.
+│   ├── 📄 pedidoService.ts          Funciones CRUD de pedidos. Crear, listar, actualizar, eliminar, upload archivos.
+│   ├── 📄 usuarioService.ts         Funciones CRUD de usuarios. Crear, listar, actualizar, eliminar.
+│   ├── 📄 httpClient.ts             Cliente HTTP centralizado. Interceptor de JWT, manejo de errores, normalización.
+│   ├── 📄 tokenStorage.ts           Gestión segura de JWT en localStorage. Guarda/recupera token y usuario.
+│   ├── 📄 errors.ts                 Normalización de errores de API. Contrato único ApiError.
+│   ├── 📄 logger.ts                 Logging centralizado para debugging y análisis.
+│   └── 📄 index.ts                  Exportaciones públicas de servicios (re-exports).
 │
 ├── 📁 schemas/                      Esquemas de validación con Zod.
 │   ├── 📄 pedido.schema.ts          Validación de datos de pedido. Define tipos, límites, restricciones.
@@ -201,8 +209,12 @@ src/
 │
 ├── 📁 hooks/                        Custom hooks React personalizados para lógica reutilizable.
 │   ├── 📄 useAuth.ts                Hook para acceder al contexto de autenticación fácilmente.
-│   ├── useFetch.ts                  Hook personalizado para hacer fetch con manejo de loading/error.
-│   ├── useForm.ts                   Hook para manejar formularios (validación, cambios, submit).
+│   ├── 📄 useFetch.ts               Hook personalizado para fetch con manejo de loading/error.
+│   ├── 📄 useForm.ts                Hook para manejar formularios (validación, cambios, submit).
+│   ├── 📄 useFileDownload.ts        Hook para descargas de archivos. Maneja estado, errores, JWT automático.
+│   ├── 📄 useApiStatus.ts           Hook para gestionar estado de peticiones API (loading, error, result).
+│   ├── 📄 usePedidosData.ts         Hook que encapsula lógica de fetch de pedidos y actualización de estado.
+│   ├── 📄 useDataContext.ts         Hook para acceso a contexto global de datos.
 │   └── (otros hooks)
 │
 ├── 📁 utils/                        Funciones utilitarias/helpers.

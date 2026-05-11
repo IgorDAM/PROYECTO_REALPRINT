@@ -31,8 +31,8 @@ import lombok.RequiredArgsConstructor;
  * - findByUsername() - Buscar por nombre de usuario
  */
 @Service
-@RequiredArgsConstructor
-@Transactional
+@RequiredArgsConstructor // Lombok genera constructor con los campos finales (usuarioRepository, passwordEncoder)
+@Transactional // Todas las operaciones de este servicio se ejecutan dentro de una transacción de base de datos(begin,commit, rollback)
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
