@@ -1,8 +1,8 @@
 [build]
-  command = "cd frontend && npm ci && npm run build"
-  publish = "frontend/dist"
+  base = "frontend"
+  command = "npm ci && npm run build"
+  publish = "dist"
 
 [dev]
   command = "npm run dev"
   port = 3000
-

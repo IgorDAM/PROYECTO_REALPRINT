@@ -25,7 +25,14 @@
       "Bash(./mvnw spring-boot:run -Dspring-boot.run.profiles=development)",
       "Bash(curl -s http://localhost:8080/actuator/health)",
       "Bash(curl -s http://localhost:8080/api/pedidos)",
-      "Bash(curl -s http://localhost:8080/api/pedidos/mis-pedidos)"
+      "Bash(curl -s http://localhost:8080/api/pedidos/mis-pedidos)",
+      "Bash(npx toml-lint *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(git rebase *)"
     ]
   }
 }
