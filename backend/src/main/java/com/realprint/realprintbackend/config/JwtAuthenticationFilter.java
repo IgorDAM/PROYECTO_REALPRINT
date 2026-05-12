@@ -36,11 +36,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 🔓 Rutas públicas (no pasan por JWT)
-        if (path.startsWith("/api/swagger-ui") ||
-                path.startsWith("/api/v3/api-docs") ||
-                path.startsWith("/api/auth") ||
-                path.startsWith("/api/setup") ||
-                path.startsWith("/api/error")) {
+        // Nota: context-path es /api, así que las rutas internas no tienen ese prefijo
+        if (path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/auth") ||
+                path.startsWith("/setup") ||
+                path.startsWith("/error")) {
 
             filterChain.doFilter(request, response);
             return;

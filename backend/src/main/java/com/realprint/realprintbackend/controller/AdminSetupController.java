@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
  * Se auto-desactiva después del primer uso.
  */
 @RestController
-@RequestMapping("/api/setup")
+@RequestMapping("/setup")
 @RequiredArgsConstructor
 public class AdminSetupController {
 
