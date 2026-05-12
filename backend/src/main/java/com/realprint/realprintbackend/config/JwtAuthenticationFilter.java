@@ -19,6 +19,17 @@ import com.realprint.realprintbackend.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Filtro de autenticación JWT:
+ * - Intercepta cada solicitud entrante.
+ * - Permite rutas públicas sin token (Swagger, auth, error).
+ * - Para otras rutas, busca el token en el header "Authorization".
+ * - Si el token es válido, carga los detalles del usuario y establece la autenticación en el contexto de seguridad.
+ * - Maneja errores de token sin limpiar el contexto, dejando que otros filtros lo manejen (ej. para 403).
+ * - Usa Lombok para inyección de dependencias y logging.
+ * - Este filtro se ejecuta antes de que Spring Security procese la solicitud, asegurando que el contexto de seguridad esté configurado correctamente para rutas protegidas.
+ */
+
 @Component
 @RequiredArgsConstructor
 @Slf4j

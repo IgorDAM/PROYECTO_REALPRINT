@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  * }
  * ```
  */
-@RestControllerAdvice
+@RestControllerAdvice //Anotación especial que intercepta excepciones globalmente
 @Slf4j
 public class GlobalExceptionHandler {
 
