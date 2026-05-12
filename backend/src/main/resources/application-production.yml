@@ -17,8 +17,8 @@ spring:
       max-request-size: ${MAX_REQUEST_SIZE:12582912}
   
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:realprint_db}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATABASE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:realprint_db}?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
     username: ${DB_USER:root}
     password: ${DB_PASSWORD}
     hikari:
@@ -28,16 +28,16 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       auto-commit: true
-  
+
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
     open-in-view: false
     properties:
       hibernate:
         format_sql: false
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
         jdbc:
           batch_size: 20
           fetch_size: 50
