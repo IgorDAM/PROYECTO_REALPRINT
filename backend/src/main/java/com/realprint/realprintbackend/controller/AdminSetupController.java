@@ -1,6 +1,5 @@
 package com.realprint.realprintbackend.controller;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/setup")
 @RequiredArgsConstructor
-@Profile("production")
 public class AdminSetupController {
 
     private final UsuarioRepository usuarioRepository;
