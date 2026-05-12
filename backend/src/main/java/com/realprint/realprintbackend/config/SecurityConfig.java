@@ -28,24 +28,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("development")
-    public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-        DevAuthenticationFilter devAuthFilter = new DevAuthenticationFilter();
-
-        return http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(devAuthFilter, JwtAuthenticationFilter.class)
-                .build();
-    }
-
-    @Bean
-    @Profile("!development")
-    public SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
