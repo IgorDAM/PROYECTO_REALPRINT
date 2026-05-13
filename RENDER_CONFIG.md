@@ -30,9 +30,9 @@ SPRING_PROFILE=production
 
 ### CORS (REQUERIDO)
 ```
-CORS_ALLOWED_ORIGINS=https://tu-app.netlify.app
+CORS_ALLOWED_ORIGINS=https://app-realprint.netlify.app
 ```
-**IMPORTANTE:** Después de desplegar en Netlify, agrega aquí la URL exacta de tu frontend (ej: `https://realprint-app.netlify.app`). Si tienes múltiples dominios, sepáralos con comas.
+**IMPORTANTE:** Esta es la URL de tu frontend en Netlify. Si agregas un dominio personalizado después, separa las URLs con comas.
 
 ### Subida de Archivos
 ```
@@ -93,9 +93,9 @@ RATE_LIMIT_REQUESTS_PER_MINUTE=100
 ## Troubleshooting
 
 ### Error de conexión CORS
-- Verifica que `CORS_ALLOWED_ORIGINS` tenga la URL exacta de Netlify (sin trailing slash)
-- Ejemplo correcto: `https://mi-app.netlify.app`
-- Ejemplo incorrecto: `https://mi-app.netlify.app/`
+- Verifica que `CORS_ALLOWED_ORIGINS` tenga la URL exacta: `https://app-realprint.netlify.app` (sin trailing slash)
+- Ejemplo correcto: `https://app-realprint.netlify.app`
+- Ejemplo incorrecto: `https://app-realprint.netlify.app/`
 
 ### Error de base de datos
 - Verifica que la database esté conectada en Render

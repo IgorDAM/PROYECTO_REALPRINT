@@ -71,9 +71,9 @@ VITE_API_URL=https://tu-backend.onrender.com/api
 ## Post-Deploy
 
 ### 1. Actualizar CORS en Backend
-Después del deploy, anota tu URL de Netlify y actualízala en Render:
+Configura en Render (Environment variables):
 ```
-CORS_ALLOWED_ORIGINS=https://tu-app.netlify.app
+CORS_ALLOWED_ORIGINS=https://app-realprint.netlify.app
 ```
 
 ### 2. Actualizar URL del Frontend
@@ -101,9 +101,9 @@ Y haz redeploy.
 - Verifica que el nombre tenga el prefijo `VITE_`
 
 ### CORS errors
-- Verifica que `CORS_ALLOWED_ORIGINS` en Render tenga tu URL de Netlify
+- Verifica que `CORS_ALLOWED_ORIGINS` en Render sea: `https://app-realprint.netlify.app`
 - Verifica que la URL no tenga trailing slash
-- Ejemplo correcto: `https://mi-app.netlify.app`
+- Ejemplo correcto: `https://app-realprint.netlify.app`
 
 ### 404 en rutas
 - El archivo `netlify.toml` debe tener la configuración de redirects

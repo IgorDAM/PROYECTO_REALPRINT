@@ -37,8 +37,8 @@ En Render, agregar estas variables (Settings > Environment):
 - [ ] `JWT_SECRET` → Generar con: `openssl rand -base64 32`
 - [ ] `SPRING_PROFILE` → `production`
 
-**IMPORTANTE (actualizar después del deploy de Netlify):**
-- [ ] `CORS_ALLOWED_ORIGINS` → Por ahora: `https://localhost:5173`
+**IMPORTANTE:**
+- [ ] `CORS_ALLOWED_ORIGINS` → `https://app-realprint.netlify.app`
 
 **OPCIONALES (tienen valores por defecto):**
 - [ ] `JWT_EXPIRATION_MS` → `86400000`
@@ -101,13 +101,9 @@ En Netlify (Site settings > Environment variables):
 #### 2.4 Deploy y Verificación
 - [ ] Hacer deploy
 - [ ] Esperar build (~2-5 min)
-- [ ] Anotar la URL: `https://tu-app.netlify.app`
+- [ ] Tu URL será: `https://app-realprint.netlify.app`
 - [ ] Abrir la URL en el navegador
 - [ ] Verificar que carga sin errores
-
-#### 2.5 (Opcional) Cambiar Nombre del Sitio
-- [ ] Site settings > Site details > Change site name
-- [ ] Elegir nombre: `realprint-app` → `https://realprint-app.netlify.app`
 
 ---
 
@@ -115,9 +111,8 @@ En Netlify (Site settings > Environment variables):
 
 #### 3.1 Actualizar CORS en Backend
 - [ ] Ir a Render > tu-backend > Environment
-- [ ] Actualizar `CORS_ALLOWED_ORIGINS` → `https://tu-app.netlify.app`
-- [ ] (Usar la URL real de Netlify del paso 2.4)
-- [ ] Redeploy automático del backend
+- [ ] Configurar `CORS_ALLOWED_ORIGINS` → `https://app-realprint.netlify.app`
+- [ ] Guardar cambios (redeploy automático del backend)
 
 #### 3.2 Verificar Conectividad
 - [ ] Abrir frontend en Netlify
