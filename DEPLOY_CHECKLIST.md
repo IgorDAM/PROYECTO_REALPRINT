@@ -57,12 +57,12 @@ En Render, agregar estas variables (Settings > Environment):
 #### 1.5 Crear Usuario Admin
 Ejecutar en terminal:
 ```bash
-curl -X POST https://tu-backend.onrender.com/api/setup/admin \
+curl -X POST https://proyecto-realprint.onrender.com/api/setup/admin \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
     "nombre": "Administrador",
-    "password": "TU_PASSWORD_SEGURA"
+    "password": "admin123"
   }'
 ```
 - [ ] Admin creado exitosamente
@@ -72,10 +72,8 @@ curl -X POST https://tu-backend.onrender.com/api/setup/admin \
 ### Parte 2: Deploy del Frontend en Netlify
 
 #### 2.1 Actualizar Configuración Local
-**ANTES de hacer commit:**
-- [ ] Editar `frontend/.env.production`
-- [ ] Cambiar: `VITE_API_URL=https://tu-backend.onrender.com/api`
-- [ ] (Usar la URL real de Render del paso 1.4)
+✅ **Ya configurado:**
+- [x] `frontend/.env.production` → `VITE_API_URL=https://proyecto-realprint.onrender.com/api`
 
 #### 2.2 Crear Sitio en Netlify
 - [ ] Ir a Netlify Dashboard
@@ -92,7 +90,7 @@ curl -X POST https://tu-backend.onrender.com/api/setup/admin \
 En Netlify (Site settings > Environment variables):
 
 **OBLIGATORIA:**
-- [ ] `VITE_API_URL` → `https://tu-backend.onrender.com/api`
+- [ ] `VITE_API_URL` → `https://proyecto-realprint.onrender.com/api`
 
 **Verificar (ya están en .env.production):**
 - [ ] `VITE_USE_LOCAL_AUTH` → `false`
