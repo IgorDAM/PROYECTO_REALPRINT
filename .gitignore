@@ -6,8 +6,9 @@
 .env
 .env.local
 .env.*.local
-.env.production
-.env.example
+# .env.production y .env.example SÍ se commitean (no tienen secretos)
+# !.env.production
+# !.env.example
 
 # Dependencies
 node_modules/
@@ -82,7 +83,7 @@ yarn-error.log
 pnpm-debug.log
 
 # Package managers
-package-lock.json
+# package-lock.json NO debe ignorarse - es necesario para builds consistentes
 yarn.lock
 pnpm-lock.yaml
 
