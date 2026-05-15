@@ -16,9 +16,9 @@ import com.realprint.realprintbackend.entity.PedidoEstado;
  * Repositorio de pedidos.
  *
  * CAMBIOS:
- * - @EntityGraph carga automáticamente las relaciones cliente
+ * - @EntityGraph carga automáticamente las relaciones cliente y archivos
  * - Esto previene problemas de lazy loading cuando se devuelven DTOs
- * - Override de findById para asegurar que siempre carga la relación cliente
+ * - Override de findById para asegurar que siempre carga relaciones
  * - Override de findAll(Pageable) para soportar paginación con relaciones cargadas
  *
  * Con JpaRepository obtenemos operaciones CRUD básicas y luego podremos
@@ -27,24 +27,24 @@ import com.realprint.realprintbackend.entity.PedidoEstado;
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
 	// Override findById para cargar relaciones y prevenir LazyInitializationException
-	@EntityGraph(attributePaths = {"cliente"})
+	@EntityGraph(attributePaths = {"cliente", "archivos"})
 	Optional<Pedido> findById(Long id);
 
 	// Lista de pedidos de un cliente concreto, útil para "Mis pedidos".
-	@EntityGraph(attributePaths = {"cliente"})
+	@EntityGraph(attributePaths = {"cliente", "archivos"})
 	List<Pedido> findByClienteId(Long clienteId);
 
 	// Consulta por estado, útil en el dashboard de administración.
-	@EntityGraph(attributePaths = {"cliente"})
+	@EntityGraph(attributePaths = {"cliente", "archivos"})
 	List<Pedido> findByEstado(PedidoEstado estado);
 
-	// Método custom con JOIN FETCH para paginación
-	@Query("SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente")
+	// Método custom con JOIN FETCH para paginación - incluye archivos
+	@Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.archivos")
 	List<Pedido> findAllWithCliente();
 
-	// Método custom con JOIN FETCH para paginación
-	@Query(value = "SELECT p FROM Pedido p LEFT JOIN FETCH p.cliente",
-	       countQuery = "SELECT COUNT(p) FROM Pedido p")
+	// Método custom con JOIN FETCH para paginación - incluye archivos
+	@Query(value = "SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.archivos",
+	       countQuery = "SELECT COUNT(DISTINCT p) FROM Pedido p")
 	Page<Pedido> findAllWithCliente(Pageable pageable);
 
 }
