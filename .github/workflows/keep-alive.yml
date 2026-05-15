@@ -1,0 +1,51 @@
+name: Keep Backend Alive
+
+# Ejecutar cada 10 minutos para evitar cold start de Render
+on:
+  schedule:
+    # Cada 10 minutos (cron: minuto hora día mes día-semana)
+    - cron: '*/10 * * * *'
+
+  # Permitir ejecución manual desde GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping backend health endpoint
+        run: |
+          echo "🏓 Haciendo ping al backend..."
+
+          # Hacer petición al health endpoint
+          response=$(curl -s -w "\n%{http_code}" --max-time 60 \
+            https://proyecto-realprint.onrender.com/api/actuator/health)
+
+          # Extraer código HTTP
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+
+          echo "📊 Código HTTP: $http_code"
+          echo "📄 Respuesta: $body"
+
+          # Verificar que el servidor respondió correctamente
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Backend está funcionando correctamente"
+          else
+            echo "⚠️ Backend respondió con código inesperado: $http_code"
+            exit 1
+          fi
+
+      - name: Registro de ejecución
+        if: always()
+        run: |
+          echo "⏰ Última ejecución: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "🔄 Próxima ejecución: en ~10 minutos"
+
+      # Opcional: Notificar si falla
+      - name: Notificar fallo
+        if: failure()
+        run: |
+          echo "❌ El backend no respondió correctamente"
+          echo "🔍 Revisa los logs en Render: https://dashboard.render.com/"
