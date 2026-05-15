@@ -73,16 +73,20 @@ export function DataProvider({ children }: DataProviderProps) {
         const user = authService.getCurrentUser() as any;
         if (!user) return;
 
-        let fetchedPedidos;
+        let response;
         if (user.role === "admin") {
           // Admin can fetch all pedidos
-          fetchedPedidos = await pedidosService.list();
+          response = await pedidosService.list();
         } else if (user.role === "cliente") {
           // Cliente fetches only their own pedidos
-          fetchedPedidos = await pedidosService.listMisPedidos();
+          response = await pedidosService.listMisPedidos();
         }
 
-        if (fetchedPedidos && fetchedPedidos.length > 0) {
+        // Backend devuelve un objeto Page con estructura { content: [...], totalElements, ... }
+        // Extraer el array de pedidos del campo content
+        const fetchedPedidos = (response as any)?.content || response;
+
+        if (Array.isArray(fetchedPedidos) && fetchedPedidos.length > 0) {
           setPedidos(fetchedPedidos);
         }
       } catch (error) {
@@ -103,8 +107,13 @@ export function DataProvider({ children }: DataProviderProps) {
 
         // Only admin can fetch all usuarios
         if (user.role === "admin") {
-          const fetchedUsuarios = await usuariosService.list();
-          if (fetchedUsuarios && fetchedUsuarios.length > 0) {
+          const response = await usuariosService.list() as any;
+
+          // Backend devuelve un objeto Page con estructura { content: [...], totalElements, ... }
+          // Extraer el array de usuarios del campo content
+          const fetchedUsuarios = response?.content || response;
+
+          if (Array.isArray(fetchedUsuarios) && fetchedUsuarios.length > 0) {
             setUsuarios(fetchedUsuarios);
           }
         }
