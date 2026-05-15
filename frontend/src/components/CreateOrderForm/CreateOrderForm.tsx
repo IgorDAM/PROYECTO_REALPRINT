@@ -23,6 +23,7 @@ export function CreateOrderForm() {
     orderType: 'SCREENPRINTING',
     // Paso 1: detalles
     fileUrls: [] as string[],
+    pendingFiles: [] as File[], // Archivos pendientes de subir (se suben después de crear el pedido)
     filesWithDimensions: [] as Array<{ id: string; name: string; url?: string; widthCm?: number; heightCm?: number }> ,
     quantity: 1,
     linearMeters: 0,
@@ -42,15 +43,15 @@ export function CreateOrderForm() {
   };
 
   const handleUploadFiles = async (files: File[]) => {
-    // Intentamos persistir en backend para que admin pueda descargar.
-    // Si falla (modo local o backend no disponible), usamos nombres para no bloquear UX.
-    try {
-      const uploaded = await Promise.all(files.map((file) => pedidosService.uploadFile(file)));
-      return uploaded.map((url, index) => (typeof url === 'string' && url.trim() ? url : files[index].name));
-    } catch {
-      toast.info('No se pudo completar la subida remota. Se guardarán nombres de archivo en local.');
-      return files.map((file) => file.name);
-    }
+    // Guardar archivos pendientes para subirlos después de crear el pedido
+    // Esto permite asociarlos correctamente al pedido en la tabla pedido_archivos
+    setFormData((prev) => ({
+      ...prev,
+      pendingFiles: [...prev.pendingFiles, ...files],
+    }));
+
+    // Devolver nombres temporales para mostrar en UI
+    return files.map((file) => file.name);
   };
 
   const pricing = calculateOrderPricing({
@@ -111,7 +112,7 @@ export function CreateOrderForm() {
           currentItem.spacingCm ? `Espaciado: ${currentItem.spacingCm} cm` : '',
           currentItem.rows && currentItem.unitsPerRow ? `Distribución: ${currentItem.unitsPerRow} x ${currentItem.rows}` : '',
           currentItem.billableLinearMeters ? `Metros facturables: ${currentItem.billableLinearMeters} m` : '',
-          currentItem.fileUrls?.length ? `Archivos: ${currentItem.fileUrls.join(', ')}` : '',
+          formData.pendingFiles?.length ? `${formData.pendingFiles.length} archivo(s) adjunto(s)` : '',
         ]
           .filter(Boolean)
           .join(' | '),
@@ -130,8 +131,35 @@ export function CreateOrderForm() {
         total: Number(currentItem.totalPrice) || 0,
       };
 
-      await createPedidoSafe(pedidoPayload);
-      toast.success('¡Pedido creado exitosamente!');
+      // 1. Crear el pedido primero
+      const pedidoCreado = await createPedidoSafe(pedidoPayload);
+
+      if (!pedidoCreado?.id) {
+        throw new Error('No se pudo crear el pedido');
+      }
+
+      // 2. Subir archivos asociándolos al pedido creado
+      if (formData.pendingFiles && formData.pendingFiles.length > 0) {
+        toast.info(`Subiendo ${formData.pendingFiles.length} archivo(s)...`);
+
+        const uploadResults = await Promise.allSettled(
+          formData.pendingFiles.map((file) =>
+            pedidosService.uploadFileToOrder(pedidoCreado.id, file)
+          )
+        );
+
+        const failedUploads = uploadResults.filter(r => r.status === 'rejected').length;
+        const successUploads = uploadResults.filter(r => r.status === 'fulfilled').length;
+
+        if (failedUploads > 0) {
+          toast.warning(`Pedido creado. ${successUploads} archivo(s) subido(s), ${failedUploads} fallaron.`);
+        } else {
+          toast.success(`¡Pedido creado con ${successUploads} archivo(s) exitosamente!`);
+        }
+      } else {
+        toast.success('¡Pedido creado exitosamente!');
+      }
+
       navigate('/cliente');
     } catch (error) {
       toast.error(

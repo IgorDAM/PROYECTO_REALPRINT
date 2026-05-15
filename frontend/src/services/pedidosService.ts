@@ -25,6 +25,16 @@ export interface Pedido {
   [key: string]: any;
 }
 
+interface PedidoArchivoResponse {
+  id: number;
+  pedidoId: number;
+  nombreArchivo: string;
+  urlArchivo: string;
+  tipoMime: string;
+  tamaño: number;
+  createdAt: string;
+}
+
 interface CrudService {
   list(): Promise<Pedido[]>;
   listMisPedidos(): Promise<Pedido[]>;
@@ -33,6 +43,7 @@ interface CrudService {
   update(id: number | string, payload: Partial<Pedido>): Promise<Pedido>;
   remove(id: number | string): Promise<void>;
   uploadFile(file: File): Promise<string>;
+  uploadFileToOrder(pedidoId: number | string, file: File): Promise<PedidoArchivoResponse>;
 }
 
 export const pedidosService: CrudService = {
@@ -82,5 +93,39 @@ export const pedidosService: CrudService = {
 
     const data = await response.json();
     return data.url || data.fileUrl;
+  },
+
+  /**
+   * Sube un archivo y lo asocia a un pedido específico.
+   * Usa el nuevo endpoint POST /pedidos/{pedidoId}/archivos
+   * que crea el registro en pedido_archivos.
+   *
+   * @param pedidoId ID del pedido al que asociar el archivo
+   * @param file Archivo a subir
+   * @returns Información del archivo guardado
+   */
+  async uploadFileToOrder(pedidoId: number | string, file: File): Promise<PedidoArchivoResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('realprint_token');
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/pedidos/${pedidoId}/archivos`,
+      {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al subir archivo al pedido: ${errorText}`);
+    }
+
+    return await response.json();
   },
 };
