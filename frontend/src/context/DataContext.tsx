@@ -90,6 +90,29 @@ export function DataProvider({ children }: DataProviderProps) {
     fetchPedidos();
   }, [setPedidos]);
 
+  // Fetch usuarios from backend when component mounts (admin only)
+  useEffect(() => {
+    const fetchUsuarios = async () => {
+      try {
+        const user = authService.getCurrentUser() as any;
+        if (!user) return;
+
+        // Only admin can fetch all usuarios
+        if (user.role === "admin") {
+          const fetchedUsuarios = await usuariosService.list();
+          if (fetchedUsuarios && fetchedUsuarios.length > 0) {
+            setUsuarios(fetchedUsuarios);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching usuarios:", error);
+        // Keep using localStorage data on error
+      }
+    };
+
+    fetchUsuarios();
+  }, [setUsuarios]);
+
   const {
     setCatalogoEmpresa,
     getCatalogoEmpresa,
