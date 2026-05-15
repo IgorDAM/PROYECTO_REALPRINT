@@ -40,6 +40,10 @@ interface DataProviderProps {
 }
 
 export function DataProvider({ children }: DataProviderProps) {
+  // En producción: inicializar vacío y cargar solo desde backend
+  // En desarrollo: usar datos mock como fallback
+  const isDevelopment = import.meta.env.DEV;
+
   const {
     productosFinales,
     setProductosFinales,
@@ -54,12 +58,12 @@ export function DataProvider({ children }: DataProviderProps) {
     tareas,
     setTareas,
   } = useDataState({
-    initialProductosFinales: INITIAL_PRODUCTOS_FINALES,
-    initialCatalogosEmpresa: INITIAL_CATALOGOS_EMPRESA,
-    initialPedidos: INITIAL_PEDIDOS,
-    initialInventario: INITIAL_INVENTARIO,
-    initialUsuarios: INITIAL_USUARIOS,
-    initialTareas: INITIAL_TAREAS,
+    initialProductosFinales: isDevelopment ? INITIAL_PRODUCTOS_FINALES : [],
+    initialCatalogosEmpresa: isDevelopment ? INITIAL_CATALOGOS_EMPRESA : [],
+    initialPedidos: isDevelopment ? INITIAL_PEDIDOS : [],
+    initialInventario: isDevelopment ? INITIAL_INVENTARIO : [],
+    initialUsuarios: isDevelopment ? INITIAL_USUARIOS : [],
+    initialTareas: isDevelopment ? INITIAL_TAREAS : [],
   });
 
   // Fetch pedidos from backend when component mounts
