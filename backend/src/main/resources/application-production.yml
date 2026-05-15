@@ -61,7 +61,7 @@ logging:
 
 # CORS Configuration
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://realprint.com,https://www.realprint.com}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://app-realprint.netlify.app}
 
 jwt:
   secret: ${JWT_SECRET}
