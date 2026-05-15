@@ -6,7 +6,9 @@ import org.springframework.stereotype.Component;
 
 import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.dto.UsuarioDTO;
+import com.realprint.realprintbackend.entity.Pedido;
 import com.realprint.realprintbackend.entity.Usuario;
+import com.realprint.realprintbackend.repository.PedidoRepository;
 import com.realprint.realprintbackend.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.Objects;
 public class SecurityRulesService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PedidoRepository pedidoRepository;
     private final Environment environment;
 
     public boolean canCreatePedido(Authentication authentication) {
@@ -56,12 +59,26 @@ public class SecurityRulesService {
     }
 
     public boolean canUpdatePedido(Authentication authentication, Long pedidoId) {
-        return isDevelopment() || (
-                pedidoId != null && (
-                        hasAuthority(authentication, "ROLE_ADMIN") ||
-                        hasAuthority(authentication, "ROLE_CLIENTE")
-                )
-        );
+        if (isDevelopment()) return true;
+        if (pedidoId == null || authentication == null) return false;
+
+        // ADMIN puede actualizar cualquier pedido
+        if (hasAuthority(authentication, "ROLE_ADMIN")) {
+            return true;
+        }
+
+        // CLIENTE solo puede actualizar sus propios pedidos
+        if (hasAuthority(authentication, "ROLE_CLIENTE")) {
+            Usuario currentUser = usuarioRepository.findByUsername(authentication.getName()).orElse(null);
+            if (currentUser == null) return false;
+
+            Pedido pedido = pedidoRepository.findById(pedidoId).orElse(null);
+            if (pedido == null || pedido.getCliente() == null) return false;
+
+            return Objects.equals(pedido.getCliente().getId(), currentUser.getId());
+        }
+
+        return false;
     }
 
     private boolean isDevelopment() {
