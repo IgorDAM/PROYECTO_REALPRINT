@@ -152,12 +152,31 @@ public class PedidoService {
 
     /**
      * Elimina un pedido por id.
+     *
+     * 1. Obtiene el pedido con sus archivos asociados
+     * 2. Elimina los archivos físicos del sistema de archivos
+     * 3. Elimina el pedido (cascade eliminará automáticamente pedido_archivos)
+     *
      * En una versión real podríamos preferir borrado lógico, pero de momento mantenemos CRUD simple.
      */
     public void deleteById(Long id) {
-        if (!pedidoRepository.existsById(id)) {
-            throw new PedidoNoEncontradoException("Pedido no encontrado con id: " + id);
+        // Obtener pedido con archivos para eliminar físicamente
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new PedidoNoEncontradoException("Pedido no encontrado con id: " + id));
+
+        // Eliminar archivos físicos del sistema de archivos
+        if (pedido.getArchivos() != null && !pedido.getArchivos().isEmpty()) {
+            for (var archivo : pedido.getArchivos()) {
+                try {
+                    fileStorageService.delete(archivo.getUrlArchivo());
+                } catch (Exception e) {
+                    // Log error pero continuar con la eliminación del pedido
+                    System.err.println("Error al eliminar archivo físico: " + archivo.getUrlArchivo() + " - " + e.getMessage());
+                }
+            }
         }
+
+        // Eliminar pedido (cascade eliminará registros en pedido_archivos)
         pedidoRepository.deleteById(id);
     }
 

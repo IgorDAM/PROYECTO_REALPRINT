@@ -98,6 +98,37 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Elimina un archivo del sistema de archivos.
+     *
+     * @param fileName Nombre del archivo a eliminar
+     * @throws ResponseStatusException si el archivo no existe o no se puede eliminar
+     */
+    public void delete(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return; // Ignorar nombres vacíos
+        }
+
+        String normalizedName = Paths.get(fileName).getFileName().toString();
+        Path filePath = rootPath.resolve(normalizedName).normalize();
+
+        // Verificar que la ruta está dentro del directorio permitido
+        if (!filePath.startsWith(rootPath)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Ruta de archivo inválida");
+        }
+
+        // Si el archivo no existe, no lanzar error (ya fue eliminado previamente)
+        if (!Files.exists(filePath)) {
+            return;
+        }
+
+        try {
+            Files.delete(filePath);
+        } catch (IOException ex) {
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "No se pudo eliminar el archivo", ex);
+        }
+    }
+
     private String extractExtension(String fileName) {
         int dotIndex = fileName.lastIndexOf('.');
         if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
