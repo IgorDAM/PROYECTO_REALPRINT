@@ -1,7 +1,11 @@
 package com.realprint.realprintbackend.mapper;
 
+import java.util.stream.Collectors;
+
+import com.realprint.realprintbackend.dto.PedidoArchivoDTO;
 import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.entity.Pedido;
+import com.realprint.realprintbackend.entity.PedidoArchivo;
 import com.realprint.realprintbackend.entity.PedidoEstado;
 
 /**
@@ -81,6 +85,34 @@ public class PedidoMapper {
                 // CRÍTICO: Convertir enum a minúsculas
                 .estado(estadoEnumToString(pedido.getEstado()))
                 .total(pedido.getTotal())
+                // Incluir archivos asociados
+                .archivos(pedido.getArchivos() != null
+                        ? pedido.getArchivos().stream()
+                                .map(PedidoMapper::archivoToDTO)
+                                .collect(Collectors.toList())
+                        : null)
+                .build();
+    }
+
+    /**
+     * Convierte una Entidad PedidoArchivo a PedidoArchivoDTO.
+     *
+     * @param archivo La entidad del archivo
+     * @return El DTO del archivo
+     */
+    private static PedidoArchivoDTO archivoToDTO(PedidoArchivo archivo) {
+        if (archivo == null) {
+            return null;
+        }
+
+        return PedidoArchivoDTO.builder()
+                .id(archivo.getId())
+                .pedidoId(archivo.getPedido() != null ? archivo.getPedido().getId() : null)
+                .nombreArchivo(archivo.getNombreArchivo())
+                .urlArchivo(archivo.getUrlArchivo())
+                .tipoMime(archivo.getTipoMime())
+                .tamaño(archivo.getTamaño())
+                .createdAt(archivo.getCreatedAt())
                 .build();
     }
 

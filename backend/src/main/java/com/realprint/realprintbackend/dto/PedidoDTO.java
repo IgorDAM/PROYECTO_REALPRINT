@@ -2,6 +2,8 @@ package com.realprint.realprintbackend.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -70,4 +72,8 @@ public class PedidoDTO {
     // Total a pagar
     @DecimalMin(value = "0.0", inclusive = true, message = "El total no puede ser negativo")
     private BigDecimal total;
+
+    // Archivos asociados al pedido
+    @Builder.Default
+    private List<PedidoArchivoDTO> archivos = new ArrayList<>();
 }

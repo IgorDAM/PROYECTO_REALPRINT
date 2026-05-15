@@ -77,7 +77,20 @@ function parseFileUrlsFromPedido(pedido: PedidoItem): string[] {
     return null;
   };
 
-  // 1) Formato nuevo recomendado: array directo en fileUrls.
+  // 0) Formato NUEVO: array de objetos PedidoArchivoDTO desde backend (tabla pedido_archivos)
+  if (Array.isArray(pedido?.archivos) && pedido.archivos.length > 0) {
+    return pedido.archivos
+      .map((archivo: any) => {
+        // archivo.urlArchivo contiene el nombre del archivo guardado
+        if (archivo?.urlArchivo) {
+          return `/api/files/${archivo.urlArchivo}`;
+        }
+        return null;
+      })
+      .filter((item): item is string => item !== null);
+  }
+
+  // 1) Formato legacy: array directo en fileUrls.
   if (Array.isArray(pedido?.fileUrls)) {
     return pedido.fileUrls
       .map(normalizeToUrl)
