@@ -7,11 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.realprint.realprintbackend.entity.Pedido;
+import com.realprint.realprintbackend.entity.PedidoArchivo;
 import com.realprint.realprintbackend.entity.PedidoEstado;
 import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.exception.PedidoNoEncontradoException;
+import com.realprint.realprintbackend.repository.PedidoArchivoRepository;
 import com.realprint.realprintbackend.repository.PedidoRepository;
 import com.realprint.realprintbackend.repository.UsuarioRepository;
 
@@ -39,6 +42,8 @@ public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PedidoArchivoRepository pedidoArchivoRepository;
+    private final FileStorageService fileStorageService;
 
     /**
      * Devuelve todos los pedidos. Lo usaremos sobre todo en el panel de admin.
@@ -154,5 +159,36 @@ public class PedidoService {
             throw new PedidoNoEncontradoException("Pedido no encontrado con id: " + id);
         }
         pedidoRepository.deleteById(id);
+    }
+
+    /**
+     * Añade un archivo a un pedido existente.
+     *
+     * 1. Verifica que el pedido existe
+     * 2. Guarda el archivo físicamente usando FileStorageService
+     * 3. Crea el registro PedidoArchivo asociado al pedido
+     * 4. Devuelve el PedidoArchivo guardado
+     *
+     * @param pedidoId ID del pedido al que asociar el archivo
+     * @param file Archivo a subir
+     * @return PedidoArchivo creado con toda la información
+     */
+    public PedidoArchivo addArchivo(Long pedidoId, MultipartFile file) {
+        // Verificar que el pedido existe
+        Pedido pedido = findById(pedidoId);
+
+        // Guardar archivo físicamente
+        String storedFileName = fileStorageService.store(file);
+
+        // Crear registro de archivo asociado al pedido
+        PedidoArchivo pedidoArchivo = PedidoArchivo.builder()
+                .pedido(pedido)
+                .nombreArchivo(file.getOriginalFilename())
+                .urlArchivo(storedFileName)
+                .tipoMime(file.getContentType())
+                .tamaño(file.getSize())
+                .build();
+
+        return pedidoArchivoRepository.save(pedidoArchivo);
     }
 }

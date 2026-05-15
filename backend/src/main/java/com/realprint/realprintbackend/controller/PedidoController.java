@@ -20,10 +20,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.realprint.realprintbackend.dto.PedidoArchivoDTO;
 import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.entity.Pedido;
+import com.realprint.realprintbackend.entity.PedidoArchivo;
 import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.mapper.PedidoMapper;
 import com.realprint.realprintbackend.service.PedidoService;
@@ -265,5 +268,55 @@ public class PedidoController {
     public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {
         pedidoService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * POST /pedidos/{pedidoId}/archivos
+     *
+     * Subir un archivo y asociarlo a un pedido existente.
+     * Solo el cliente propietario del pedido puede subir archivos.
+     *
+     * Validaciones:
+     * - El pedido debe existir
+     * - El usuario debe ser el propietario del pedido (validado por SecurityRules)
+     * - Tamaño máximo: 10MB
+     * - Formatos permitidos: PDF, JPG, PNG
+     *
+     * @param pedidoId ID del pedido al que asociar el archivo
+     * @param file Archivo a subir
+     * @param auth Contexto de autenticación
+     * @return PedidoArchivoDTO con información del archivo guardado
+     */
+    @Operation(summary = "Subir archivo a un pedido",
+               description = "Permite a los clientes subir archivos y asociarlos a sus pedidos. " +
+                             "Solo el propietario del pedido puede subir archivos.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Archivo subido y asociado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Archivo inválido (tamaño o formato no permitido)"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado. Solo el propietario del pedido puede subir archivos."),
+        @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
+    @PostMapping("/{pedidoId}/archivos")
+    @PreAuthorize("@securityRules.canUpdatePedido(authentication, #pedidoId)")
+    public ResponseEntity<PedidoArchivoDTO> subirArchivo(
+            @PathVariable Long pedidoId,
+            @RequestParam("file") MultipartFile file,
+            Authentication auth) {
+
+        // Guardar archivo y asociarlo al pedido
+        PedidoArchivo archivo = pedidoService.addArchivo(pedidoId, file);
+
+        // Convertir a DTO
+        PedidoArchivoDTO dto = PedidoArchivoDTO.builder()
+                .id(archivo.getId())
+                .pedidoId(archivo.getPedido().getId())
+                .nombreArchivo(archivo.getNombreArchivo())
+                .urlArchivo(archivo.getUrlArchivo())
+                .tipoMime(archivo.getTipoMime())
+                .tamaño(archivo.getTamaño())
+                .createdAt(archivo.getCreatedAt())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 }
