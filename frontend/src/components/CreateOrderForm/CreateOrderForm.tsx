@@ -26,13 +26,37 @@ export function CreateOrderForm({ pedido, onCancel }: CreateOrderFormProps = {})
 
   // Función para inicializar el formData desde un pedido existente
   const initializeFromPedido = (pedido: any) => {
+    // Reconstruir filesWithDimensions desde los datos del pedido
+    // Si existe filesWithDimensions guardado, usarlo; sino, crear uno desde las medidas
+    let filesWithDimensions = [];
+
+    if (pedido.filesWithDimensions && Array.isArray(pedido.filesWithDimensions) && pedido.filesWithDimensions.length > 0) {
+      // Usar los archivos guardados con sus dimensiones individuales
+      filesWithDimensions = pedido.filesWithDimensions.map((file: any, index: number) => ({
+        id: file.id || `file-${index}`,
+        name: file.name || file.nombreArchivo || `Archivo ${index + 1}`,
+        url: file.url || file.urlArchivo || undefined,
+        widthCm: file.widthCm || file.measurementWidthCm || undefined,
+        heightCm: file.heightCm || file.measurementHeightCm || undefined,
+      }));
+    } else if ((pedido.unitWidthCm || pedido.measurementWidthCm) && (pedido.unitHeightCm || pedido.measurementHeightCm)) {
+      // Crear un archivo placeholder con las medidas generales del pedido
+      filesWithDimensions = [{
+        id: 'file-from-pedido',
+        name: 'Diseño del pedido',
+        url: undefined,
+        widthCm: pedido.unitWidthCm || pedido.measurementWidthCm,
+        heightCm: pedido.unitHeightCm || pedido.measurementHeightCm,
+      }];
+    }
+
     return {
       orderType: 'SCREENPRINTING',
-      fileUrls: pedido.fileUrls || [],
+      fileUrls: filesWithDimensions.map((f: any) => f.url || f.name).filter(Boolean),
       pendingFiles: [] as File[],
-      filesWithDimensions: pedido.filesWithDimensions || [],
-      quantity: pedido.quantity || pedido.cantidad || 1,
-      linearMeters: pedido.linearMetersPerUnit || pedido.linearMeters || 0,
+      filesWithDimensions,
+      quantity: pedido.cantidad || pedido.quantity || 1,
+      linearMeters: pedido.linearMetersPerUnit || (pedido.unitHeightCm || pedido.measurementHeightCm || 0) / 100,
       spacingCm: pedido.spacingCm || 0,
       unitWidthCm: pedido.unitWidthCm || pedido.measurementWidthCm || undefined,
       unitHeightCm: pedido.unitHeightCm || pedido.measurementHeightCm || undefined,
@@ -162,13 +186,18 @@ export function CreateOrderForm({ pedido, onCancel }: CreateOrderFormProps = {})
 
         total: Number(currentItem.totalPrice) || 0,
 
-        // Campos adicionales para compatibilidad
+        // Campos adicionales para compatibilidad y edición posterior
         linearMeters: currentItem.linearMetersRaw,
         linearMetersPerUnit: formData.linearMeters,
         spacingCm: formData.spacingCm,
         unitWidthCm: formData.unitWidthCm,
         unitHeightCm: formData.unitHeightCm,
         billableLinearMeters: currentItem.billableLinearMeters,
+
+        // NUEVO: Guardar información completa de archivos con sus dimensiones
+        // para poder reconstruir exactamente el pedido al editar
+        filesWithDimensions: formData.filesWithDimensions,
+        fileUrls: formData.fileUrls,
       };
 
       let pedidoResultante;
