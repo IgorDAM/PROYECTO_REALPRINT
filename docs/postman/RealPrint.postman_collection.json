@@ -2,10 +2,10 @@
   "info": {
     "_postman_id": "f18d58fb-98fc-497e-964a-ab29e305967b",
     "name": "RealPrint API",
-    "description": "Colección completa de endpoints RealPrint. En desarrollo funciona sin JWT (DevAuthenticationFilter inyecta usuario automáticamente).",
+    "description": "Colección completa de endpoints RealPrint. Incluye endpoints de cambio de contraseña y subir archivos a pedidos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "54260222",
-    "version": "3.0.0"
+    "version": "4.0.0"
   },
   "auth": {
     "type": "noauth"
