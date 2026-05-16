@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { CheckCircle, Printer, Zap, Shield, ArrowRight } from "lucide-react";
+import { CheckCircle, Printer, Zap, Shield, ArrowRight, Package, Clock, TrendingUp, Users } from "lucide-react";
+import { GlassCard, Badge } from "../components/ui";
 
 /**
  * Landing page pública de RealPrint.
- * Presenta servicios y redirige a /login.
+ * Presenta servicios, preview del dashboard y redirige a /login.
  */
 export default function LandingPage() {
   return (
@@ -106,8 +107,154 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Características Section */}
+      {/* Estadísticas Section */}
+      <section className="relative bg-gradient-to-br from-primary-700 to-primary-900 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { icon: Package, label: "Pedidos Gestionados", value: "500+" },
+              { icon: Clock, label: "Tiempo Ahorrado", value: "60%" },
+              { icon: TrendingUp, label: "Satisfacción", value: "98%" },
+              { icon: Users, label: "Clientes Activos", value: "50+" }
+            ].map((stat, index) => (
+              <div key={index} className="text-center text-white">
+                <stat.icon className="w-10 h-10 mx-auto mb-3 text-gold-400" />
+                <div className="text-3xl sm:text-4xl font-bold mb-2">{stat.value}</div>
+                <div className="text-white/80 text-sm sm:text-base">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview Section */}
       <section className="relative bg-surface-50 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl sm:text-4xl font-bold text-surface-900 mb-4">
+              Vista del Dashboard
+            </h3>
+            <p className="text-xl text-surface-600 max-w-2xl mx-auto">
+              Interfaz intuitiva diseñada para optimizar tu flujo de trabajo
+            </p>
+          </div>
+
+          {/* Dashboard Mockup - Vista Cliente */}
+          <div className="mb-16">
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant="primary">Panel Cliente</Badge>
+              <span className="text-surface-600 text-sm">Vista de gestión de pedidos</span>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-2xl p-6 border-4 border-surface-200">
+              {/* Header simulado */}
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-surface-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-surface-500">Bienvenido,</div>
+                    <div className="font-bold text-surface-900">Cliente Demo</div>
+                  </div>
+                </div>
+                <Badge variant="success">Activo</Badge>
+              </div>
+
+              {/* Cards de pedidos simulados */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { id: "#001", estado: "En Proceso", color: "primary", cantidad: "50 unidades" },
+                  { id: "#002", estado: "Completado", color: "success", cantidad: "100 unidades" },
+                  { id: "#003", estado: "Pendiente", color: "warning", cantidad: "25 unidades" }
+                ].map((pedido) => (
+                  <GlassCard key={pedido.id} className="p-4 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="text-xs text-surface-500">Pedido</div>
+                        <div className="font-bold text-surface-900">{pedido.id}</div>
+                      </div>
+                      <Badge variant={pedido.color as any}>{pedido.estado}</Badge>
+                    </div>
+                    <div className="text-sm text-surface-600 mb-2">
+                      Serigrafía • {pedido.cantidad}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-surface-500">
+                      <Clock className="w-4 h-4" />
+                      <span>Hace 2 días</span>
+                    </div>
+                  </GlassCard>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Dashboard Mockup - Vista Admin */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant="secondary">Panel Administrador</Badge>
+              <span className="text-surface-600 text-sm">Vista de gestión completa</span>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-2xl p-6 border-4 border-surface-200">
+              {/* Estadísticas simuladas */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {[
+                  { label: "Total Pedidos", value: "28", icon: Package, color: "bg-blue-100 text-blue-600" },
+                  { label: "En Proceso", value: "12", icon: Clock, color: "bg-yellow-100 text-yellow-600" },
+                  { label: "Completados", value: "14", icon: CheckCircle, color: "bg-green-100 text-green-600" },
+                  { label: "Ingresos", value: "€2.4k", icon: TrendingUp, color: "bg-purple-100 text-purple-600" }
+                ].map((stat, index) => (
+                  <div key={index} className="bg-surface-50 rounded-xl p-4">
+                    <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center mb-2`}>
+                      <stat.icon className="w-5 h-5" />
+                    </div>
+                    <div className="text-2xl font-bold text-surface-900">{stat.value}</div>
+                    <div className="text-xs text-surface-600">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tabla simulada */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface-100 text-surface-700">
+                    <tr>
+                      <th className="px-4 py-3 text-left rounded-tl-lg">ID</th>
+                      <th className="px-4 py-3 text-left">Cliente</th>
+                      <th className="px-4 py-3 text-left">Servicio</th>
+                      <th className="px-4 py-3 text-left">Estado</th>
+                      <th className="px-4 py-3 text-left rounded-tr-lg">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-surface-600">
+                    {[
+                      { id: "#001", cliente: "Cliente A", servicio: "Serigrafía", estado: "process", total: "€120" },
+                      { id: "#002", cliente: "Cliente B", servicio: "Planchado", estado: "completed", total: "€85" },
+                      { id: "#003", cliente: "Cliente C", servicio: "Personalizado", estado: "pending", total: "€200" }
+                    ].map((row) => (
+                      <tr key={row.id} className="border-b border-surface-100 hover:bg-surface-50">
+                        <td className="px-4 py-3 font-medium">{row.id}</td>
+                        <td className="px-4 py-3">{row.cliente}</td>
+                        <td className="px-4 py-3">{row.servicio}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={row.estado === "completed" ? "success" : row.estado === "process" ? "primary" : "warning"}>
+                            {row.estado === "completed" ? "Completado" : row.estado === "process" ? "En Proceso" : "Pendiente"}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 font-semibold">{row.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Características Section */}
+      <section className="relative bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
