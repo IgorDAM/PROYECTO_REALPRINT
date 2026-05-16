@@ -243,7 +243,8 @@ Entregar una aplicación funcional y profesional que demuestre competencia en de
 - ⚠️ Escalabilidad: Docker y MySQL listos, pero falta robustez adicional
 - ⚠️ Disponibilidad: Hay base, pero backups/replicación no están implementados
 - ⚠️ Auditoría: Avanzada todavía parcial (solo timestamps básicos)
-- ⚠️ Seguridad adicional: Falta rate limiting, hardening HTTPS en producción, rotación de secretos
+- ⚠️ Seguridad adicional: Hardening HTTPS en producción, rotación de secretos
+- ✅ Rate Limiting: Implementado (5 intentos por 5 minutos en login)
 - 🟡 **Estado General**: `Desarrollo/Staging` (✅ Listo para demostración) pero `❌ No 100% listo para producción`
 
 ---
@@ -464,9 +465,18 @@ Estos diagramas ilustran las interacciones entre las capas (Frontend → Control
 - CORS configurado para orígenes permitidos
 - Validación de entrada con Bean Validation
 
+**Rate Limiting (Protección contra Fuerza Bruta):**
+- Componente `RateLimiter` personalizado
+- Máximo 5 intentos de login por username en ventana de 5 minutos
+- Bloqueo automático por 5 minutos tras alcanzar el límite
+- Thread-safe con `ConcurrentHashMap`
+- Limpieza automática de entradas expiradas
+- Reseteo de contador tras login exitoso
+- Implementado en `AuthService`
+
 **Endpoints Públicos vs Protegidos:**
 ```
-Público:  POST /api/auth/login
+Público:  POST /api/auth/login (con rate limiting)
 Protegido: Todos los demás (requieren JWT válido)
 ```
 
@@ -1399,10 +1409,10 @@ Se ha creado una **colección Postman completa y validada** (v2.0) con:
 2. **Ampliar tests Postman** → Agregar validaciones de response body
 3. **Implementar refresh tokens** → Para sesiones más largas sin re-login
 4. **Auditoría completa** → Registrar cambios por usuario y hora
-5. **Rate limiting** → Proteger endpoints de ataques por fuerza bruta
-6. **Notificaciones** → Email/SMS cuando cambia estado del pedido
-7. **Reportes exportables** → PDF/Excel con histórico de pedidos
-8. **Backups automáticos** → Estrategia de BD en producción
+5. **Notificaciones** → Email/SMS cuando cambia estado del pedido
+6. **Reportes exportables** → PDF/Excel con histórico de pedidos
+7. **Backups automáticos** → Estrategia de BD en producción
+8. **Extender rate limiting** → Aplicar también a otros endpoints críticos (actualmente solo en login)
 
 ---
 
@@ -1446,11 +1456,12 @@ RealPrint es una **aplicación web full-stack funcional y completamente lista pa
 
 **Estado del Proyecto:**
 - ✅ **Desarrollo/Staging**: Completamente funcional
-- ⚠️ **Producción**: Parcialmente lista (falta rate limiting, backups, hardening HTTPS, monitores)
+- ⚠️ **Producción**: Parcialmente lista (falta backups automáticos, hardening HTTPS, monitores)
 
 **Fortalezas:**
 - ✅ Arquitectura limpia y escalable (MVC, DTOs, Services)
 - ✅ Autenticación y autorización robustas (JWT + roles + Spring Security)
+- ✅ Rate limiting implementado (protección contra fuerza bruta en login)
 - ✅ Tests incluidos (E2E con Playwright, unitarios con JUnit/Mockito)
 - ✅ Documentación técnica completa (Swagger, README, diagramas)
 - ✅ Código organizado y mantenible (paquetes bien estructurados)
@@ -1465,7 +1476,7 @@ RealPrint es una **aplicación web full-stack funcional y completamente lista pa
 **Áreas de Mejora (Futuro):**
 - ⚠️ Aumentar cobertura de tests unitarios (actualmente 20%)
 - ⚠️ Implementar auditoría completa
-- ⚠️ Añadir rate limiting para seguridad
+- ⚠️ Extender rate limiting a más endpoints (actualmente solo en login)
 - ⚠️ Backups automáticos y replicación BD para producción
 - ⚠️ Notificaciones (email/SMS) y reportes exportables
 - ⚠️ Hardening de seguridad (HTTPS, rotación secretos, etc)
