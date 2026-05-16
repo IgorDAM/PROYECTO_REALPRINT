@@ -18,24 +18,53 @@ jobs:
         run: |
           echo "🏓 Haciendo ping al backend..."
 
-          # Hacer petición al health endpoint
-          response=$(curl -s -w "\n%{http_code}" --max-time 60 \
-            https://proyecto-realprint.onrender.com/api/actuator/health)
+          # Función para hacer ping
+          ping_backend() {
+            local timeout=$1
+            local attempt=$2
 
-          # Extraer código HTTP
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | head -n-1)
+            echo "🔄 Intento $attempt (timeout: ${timeout}s)..."
+            response=$(curl -s -w "\n%{http_code}" --max-time $timeout \
+              https://proyecto-realprint.onrender.com/api/actuator/health 2>&1)
 
-          echo "📊 Código HTTP: $http_code"
-          echo "📄 Respuesta: $body"
+            http_code=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | head -n-1)
 
-          # Verificar que el servidor respondió correctamente
-          if [ "$http_code" -eq 200 ]; then
-            echo "✅ Backend está funcionando correctamente"
-          else
-            echo "⚠️ Backend respondió con código inesperado: $http_code"
-            exit 1
+            echo "📊 Código HTTP: $http_code"
+
+            if [ "$http_code" = "200" ]; then
+              echo "📄 Respuesta: $body"
+              echo "✅ Backend está funcionando correctamente"
+              return 0
+            else
+              echo "⚠️ Intento $attempt falló (código: $http_code)"
+              return 1
+            fi
+          }
+
+          # Intento 1: timeout largo para cold start
+          if ping_backend 120 1; then
+            exit 0
           fi
+
+          echo "⏳ Esperando 10s antes del siguiente intento..."
+          sleep 10
+
+          # Intento 2: timeout medio
+          if ping_backend 90 2; then
+            exit 0
+          fi
+
+          echo "⏳ Esperando 10s antes del último intento..."
+          sleep 10
+
+          # Intento 3: último intento
+          if ping_backend 60 3; then
+            exit 0
+          fi
+
+          echo "❌ Todos los intentos fallaron"
+          exit 1
 
       - name: Registro de ejecución
         if: always()
