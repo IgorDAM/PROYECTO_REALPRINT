@@ -58,14 +58,11 @@
             <scope>runtime</scope>
         </dependency>
         <!-- PostgreSQL runtime driver (for production on Render) -->
+        <!-- Version 42.7.11 fixes CVE-2026-42198 (SCRAM-SHA-256 DoS vulnerability) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
+            <version>42.7.11</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
