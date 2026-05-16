@@ -8,6 +8,7 @@ interface Step4ReviewProps {
   onSubmit: () => void;
   onPrev: () => void;
   loading?: boolean;
+  isEditMode?: boolean;
 }
 
 export function Step4Review({
@@ -18,6 +19,7 @@ export function Step4Review({
   onSubmit,
   onPrev,
   loading = false,
+  isEditMode = false,
 }: Step4ReviewProps) {
   const reviewItems = items.length > 0 ? items : currentItem ? [currentItem] : [];
   const subtotal = reviewItems.reduce(
@@ -141,7 +143,10 @@ export function Step4Review({
           }
           className="flex-1"
         >
-          {loading ? 'Creando pedido...' : 'Confirmar Pedido'}
+          {loading
+            ? (isEditMode ? 'Actualizando pedido...' : 'Creando pedido...')
+            : (isEditMode ? 'Actualizar Pedido' : 'Confirmar Pedido')
+          }
         </Button>
       </div>
     </div>

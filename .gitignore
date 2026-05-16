@@ -114,5 +114,8 @@ docs/notas/*.local.*
 docs/notas/credenciales*
 docs/notas/passwords*
 
+# Guión de videos (no subir)
+docs/md/GUION_VIDEOS.md
+
 
 

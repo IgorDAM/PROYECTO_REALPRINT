@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Step2Details } from './Step2Details';
 import { Step4Review } from './Step4Review';
@@ -10,30 +10,62 @@ import { usePricingConfig } from '../../hooks/usePricingConfig';
 import { calculateOrderPricing } from './pricing';
 import { pedidosService } from '../../services/pedidosService';
 
-export function CreateOrderForm() {
+interface CreateOrderFormProps {
+  pedido?: any; // Pedido existente para edición
+  onCancel?: () => void; // Función para cancelar edición
+}
+
+export function CreateOrderForm({ pedido, onCancel }: CreateOrderFormProps = {}) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { createPedidoSafe } = usePedidosData();
+  const { createPedidoSafe, updatePedidoSafe } = usePedidosData();
   const { pricingConfig } = usePricingConfig();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const isEditMode = !!pedido;
 
-  const [formData, setFormData] = useState({
-    // Tipo fijo para el flujo actual
-    orderType: 'SCREENPRINTING',
-    // Paso 1: detalles
-    fileUrls: [] as string[],
-    pendingFiles: [] as File[], // Archivos pendientes de subir (se suben después de crear el pedido)
-    filesWithDimensions: [] as Array<{ id: string; name: string; url?: string; widthCm?: number; heightCm?: number }> ,
-    quantity: 1,
-    linearMeters: 0,
-    spacingCm: 0,
-    unitWidthCm: undefined as number | undefined,
-    unitHeightCm: undefined as number | undefined,
-    // Paso 2: confirmacion
-    dataCorrect: false,
-    termsAccepted: false,
+  // Función para inicializar el formData desde un pedido existente
+  const initializeFromPedido = (pedido: any) => {
+    return {
+      orderType: 'SCREENPRINTING',
+      fileUrls: pedido.fileUrls || [],
+      pendingFiles: [] as File[],
+      filesWithDimensions: pedido.filesWithDimensions || [],
+      quantity: pedido.quantity || pedido.cantidad || 1,
+      linearMeters: pedido.linearMetersPerUnit || pedido.linearMeters || 0,
+      spacingCm: pedido.spacingCm || 0,
+      unitWidthCm: pedido.unitWidthCm || pedido.measurementWidthCm || undefined,
+      unitHeightCm: pedido.unitHeightCm || pedido.measurementHeightCm || undefined,
+      dataCorrect: false,
+      termsAccepted: false,
+    };
+  };
+
+  const [formData, setFormData] = useState(() => {
+    if (isEditMode && pedido) {
+      return initializeFromPedido(pedido);
+    }
+    return {
+      orderType: 'SCREENPRINTING',
+      fileUrls: [] as string[],
+      pendingFiles: [] as File[],
+      filesWithDimensions: [] as Array<{ id: string; name: string; url?: string; widthCm?: number; heightCm?: number }>,
+      quantity: 1,
+      linearMeters: 0,
+      spacingCm: 0,
+      unitWidthCm: undefined as number | undefined,
+      unitHeightCm: undefined as number | undefined,
+      dataCorrect: false,
+      termsAccepted: false,
+    };
   });
+
+  // Actualizar formData si cambia el pedido
+  useEffect(() => {
+    if (isEditMode && pedido) {
+      setFormData(initializeFromPedido(pedido));
+    }
+  }, [pedido, isEditMode]);
 
   const handleFieldChange = (field, value) => {
     setFormData((prev) => ({
@@ -91,7 +123,7 @@ export function CreateOrderForm() {
     setLoading(true);
     try {
       const serviceLabel = 'serigrafia';
-      const fechaEntrega = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      const fechaEntrega = pedido?.fechaEntrega || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split('T')[0];
 
@@ -129,41 +161,88 @@ export function CreateOrderForm() {
         estado: 'pendiente',
 
         total: Number(currentItem.totalPrice) || 0,
+
+        // Campos adicionales para compatibilidad
+        linearMeters: currentItem.linearMetersRaw,
+        linearMetersPerUnit: formData.linearMeters,
+        spacingCm: formData.spacingCm,
+        unitWidthCm: formData.unitWidthCm,
+        unitHeightCm: formData.unitHeightCm,
+        billableLinearMeters: currentItem.billableLinearMeters,
       };
 
-      // 1. Crear el pedido primero
-      const pedidoCreado = await createPedidoSafe(pedidoPayload);
+      let pedidoResultante;
 
-      if (!pedidoCreado?.id) {
-        throw new Error('No se pudo crear el pedido');
-      }
+      if (isEditMode && pedido?.id) {
+        // MODO EDICIÓN: Actualizar pedido existente
+        pedidoResultante = await updatePedidoSafe(pedido.id, pedidoPayload);
 
-      // 2. Subir archivos asociándolos al pedido creado
-      if (formData.pendingFiles && formData.pendingFiles.length > 0) {
-        toast.info(`Subiendo ${formData.pendingFiles.length} archivo(s)...`);
+        if (!pedidoResultante?.id) {
+          throw new Error('No se pudo actualizar el pedido');
+        }
 
-        const uploadResults = await Promise.allSettled(
-          formData.pendingFiles.map((file) =>
-            pedidosService.uploadFileToOrder(pedidoCreado.id, file)
-          )
-        );
+        // Subir archivos nuevos si hay
+        if (formData.pendingFiles && formData.pendingFiles.length > 0) {
+          toast.info(`Subiendo ${formData.pendingFiles.length} archivo(s)...`);
 
-        const failedUploads = uploadResults.filter(r => r.status === 'rejected').length;
-        const successUploads = uploadResults.filter(r => r.status === 'fulfilled').length;
+          const uploadResults = await Promise.allSettled(
+            formData.pendingFiles.map((file) =>
+              pedidosService.uploadFileToOrder(pedidoResultante.id, file)
+            )
+          );
 
-        if (failedUploads > 0) {
-          toast.warning(`Pedido creado. ${successUploads} archivo(s) subido(s), ${failedUploads} fallaron.`);
+          const failedUploads = uploadResults.filter(r => r.status === 'rejected').length;
+          const successUploads = uploadResults.filter(r => r.status === 'fulfilled').length;
+
+          if (failedUploads > 0) {
+            toast.warning(`Pedido actualizado. ${successUploads} archivo(s) subido(s), ${failedUploads} fallaron.`);
+          } else {
+            toast.success(`¡Pedido actualizado con ${successUploads} archivo(s) exitosamente!`);
+          }
         } else {
-          toast.success(`¡Pedido creado con ${successUploads} archivo(s) exitosamente!`);
+          toast.success('¡Pedido actualizado exitosamente!');
+        }
+
+        if (onCancel) {
+          onCancel();
+        } else {
+          navigate('/cliente');
         }
       } else {
-        toast.success('¡Pedido creado exitosamente!');
-      }
+        // MODO CREACIÓN: Crear nuevo pedido
+        pedidoResultante = await createPedidoSafe(pedidoPayload);
 
-      navigate('/cliente');
+        if (!pedidoResultante?.id) {
+          throw new Error('No se pudo crear el pedido');
+        }
+
+        // Subir archivos asociándolos al pedido creado
+        if (formData.pendingFiles && formData.pendingFiles.length > 0) {
+          toast.info(`Subiendo ${formData.pendingFiles.length} archivo(s)...`);
+
+          const uploadResults = await Promise.allSettled(
+            formData.pendingFiles.map((file) =>
+              pedidosService.uploadFileToOrder(pedidoResultante.id, file)
+            )
+          );
+
+          const failedUploads = uploadResults.filter(r => r.status === 'rejected').length;
+          const successUploads = uploadResults.filter(r => r.status === 'fulfilled').length;
+
+          if (failedUploads > 0) {
+            toast.warning(`Pedido creado. ${successUploads} archivo(s) subido(s), ${failedUploads} fallaron.`);
+          } else {
+            toast.success(`¡Pedido creado con ${successUploads} archivo(s) exitosamente!`);
+          }
+        } else {
+          toast.success('¡Pedido creado exitosamente!');
+        }
+
+        navigate('/cliente');
+      }
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Error al crear el pedido'
+        error instanceof Error ? error.message : `Error al ${isEditMode ? 'actualizar' : 'crear'} el pedido`
       );
     } finally {
       setLoading(false);
@@ -195,6 +274,7 @@ export function CreateOrderForm() {
             onSubmit={handleSubmit}
             onPrev={() => setCurrentStep(1)}
             loading={loading}
+            isEditMode={isEditMode}
           />
         );
 
@@ -203,13 +283,36 @@ export function CreateOrderForm() {
     }
   };
 
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      navigate('/cliente');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Crear Nuevo Pedido</h1>
-        <p className="text-gray-600">
-          Completa los pasos para realizar tu pedido de serigrafía con cálculo por metros lineales
-        </p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">
+            {isEditMode ? 'Editar Pedido' : 'Crear Nuevo Pedido'}
+          </h1>
+          <p className="text-gray-600">
+            {isEditMode
+              ? 'Modifica los detalles de tu pedido pendiente'
+              : 'Completa los pasos para realizar tu pedido de serigrafía con cálculo por metros lineales'
+            }
+          </p>
+        </div>
+        {isEditMode && (
+          <button
+            onClick={handleCancel}
+            className="text-gray-600 hover:text-gray-800 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            ✕ Cancelar
+          </button>
+        )}
       </div>
 
       {/* Progress Bar */}
