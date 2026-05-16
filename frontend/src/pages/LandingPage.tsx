@@ -142,7 +142,7 @@ export default function LandingPage() {
           {/* Dashboard Mockup - Vista Cliente */}
           <div className="mb-16">
             <div className="flex items-center gap-2 mb-4">
-              <Badge variant="primary">Panel Cliente</Badge>
+              <Badge variant="info">Panel Cliente</Badge>
               <span className="text-surface-600 text-sm">Vista de gestión de pedidos</span>
             </div>
 
@@ -163,18 +163,18 @@ export default function LandingPage() {
 
               {/* Cards de pedidos simulados */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                  { id: "#001", estado: "En Proceso", color: "primary", cantidad: "50 unidades" },
-                  { id: "#002", estado: "Completado", color: "success", cantidad: "100 unidades" },
-                  { id: "#003", estado: "Pendiente", color: "warning", cantidad: "25 unidades" }
-                ].map((pedido) => (
+                {([
+                  { id: "#001", estado: "En Proceso", color: "info" as const, cantidad: "50 unidades" },
+                  { id: "#002", estado: "Completado", color: "success" as const, cantidad: "100 unidades" },
+                  { id: "#003", estado: "Pendiente", color: "warning" as const, cantidad: "25 unidades" }
+                ] as const).map((pedido) => (
                   <GlassCard key={pedido.id} className="p-4 hover:shadow-lg transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <div className="text-xs text-surface-500">Pedido</div>
                         <div className="font-bold text-surface-900">{pedido.id}</div>
                       </div>
-                      <Badge variant={pedido.color as any}>{pedido.estado}</Badge>
+                      <Badge variant={pedido.color}>{pedido.estado}</Badge>
                     </div>
                     <div className="text-sm text-surface-600 mb-2">
                       Serigrafía • {pedido.cantidad}
@@ -192,7 +192,7 @@ export default function LandingPage() {
           {/* Dashboard Mockup - Vista Admin */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Badge variant="secondary">Panel Administrador</Badge>
+              <Badge variant="gold">Panel Administrador</Badge>
               <span className="text-surface-600 text-sm">Vista de gestión completa</span>
             </div>
 
@@ -238,7 +238,7 @@ export default function LandingPage() {
                         <td className="px-4 py-3">{row.cliente}</td>
                         <td className="px-4 py-3">{row.servicio}</td>
                         <td className="px-4 py-3">
-                          <Badge variant={row.estado === "completed" ? "success" : row.estado === "process" ? "primary" : "warning"}>
+                          <Badge variant={row.estado === "completed" ? "success" : row.estado === "process" ? "info" : "warning"}>
                             {row.estado === "completed" ? "Completado" : row.estado === "process" ? "En Proceso" : "Pendiente"}
                           </Badge>
                         </td>
