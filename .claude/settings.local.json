@@ -31,7 +31,13 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(git pull *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(./mvnw compile *)",
+      "Bash(xargs grep -l \"createPedidoSafe\")",
+      "Bash(curl * curl https://proyecto-realprint.onrender.com/api/actuator/health\r{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"})",
+      "Bash(curl *)",
+      "Bash(./mvnw clean *)",
+      "PowerShell(New-Item *)"
     ]
   }
 }

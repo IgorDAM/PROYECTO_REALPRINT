@@ -961,7 +961,7 @@ public Pedido findById(Long id, Authentication auth) {
 
 ### Resumen total
 
-El backend de `RealPrint` expone **14 endpoints funcionales** distribuidos en 4 controladores:
+El backend de `RealPrint` expone **16 endpoints funcionales** distribuidos en 4 controladores:
 
 | # | Área | Método | Endpoint completo | Rol / acceso | Propósito |
 |---|---|---|---|---|---|
@@ -972,13 +972,15 @@ El backend de `RealPrint` expone **14 endpoints funcionales** distribuidos en 4 
 | 5 | Pedidos | POST | `/api/pedidos` | CLIENTE | Crear un nuevo pedido |
 | 6 | Pedidos | PUT | `/api/pedidos/{id}` | ADMIN o cliente autorizado | Actualizar un pedido |
 | 7 | Pedidos | DELETE | `/api/pedidos/{id}` | ADMIN | Eliminar un pedido |
-| 8 | Usuarios | GET | `/api/usuarios` | ADMIN | Listar usuarios paginados |
-| 9 | Usuarios | GET | `/api/usuarios/{id}` | ADMIN o self | Ver detalle de un usuario |
-| 10 | Usuarios | POST | `/api/usuarios` | ADMIN | Crear usuario |
-| 11 | Usuarios | PUT | `/api/usuarios/{id}` | ADMIN o self | Actualizar usuario |
-| 12 | Usuarios | DELETE | `/api/usuarios/{id}` | ADMIN | Eliminar usuario |
-| 13 | Archivos | POST | `/api/files` | CLIENTE | Subir archivo al sistema |
-| 14 | Archivos | GET | `/api/files/{fileName}` | ADMIN | Descargar archivo |
+| 8 | Pedidos | POST | `/api/pedidos/{pedidoId}/archivos` | CLIENTE | Agregar archivo a un pedido |
+| 9 | Usuarios | GET | `/api/usuarios` | ADMIN | Listar usuarios paginados |
+| 10 | Usuarios | GET | `/api/usuarios/{id}` | ADMIN o self | Ver detalle de un usuario |
+| 11 | Usuarios | POST | `/api/usuarios` | ADMIN | Crear usuario |
+| 12 | Usuarios | PUT | `/api/usuarios/{id}` | ADMIN o self | Actualizar usuario |
+| 13 | Usuarios | PUT | `/api/usuarios/{id}/cambiar-password` | ADMIN o self | Cambiar contraseña |
+| 14 | Usuarios | DELETE | `/api/usuarios/{id}` | ADMIN | Eliminar usuario |
+| 15 | Archivos | POST | `/api/files` | CLIENTE | Subir archivo al sistema |
+| 16 | Archivos | GET | `/api/files/{fileName}` | ADMIN | Descargar archivo |
 
 ---
 
@@ -1032,7 +1034,15 @@ El backend de `RealPrint` expone **14 endpoints funcionales** distribuidos en 4 
 - **Acceso**: `ADMIN`
 - **Uso**: eliminar un pedido existente.
 
-**Observación**: este bloque cubre el ciclo completo de gestión de pedidos: listado global, listado personal, consulta, creación, edición y eliminación.
+#### `POST /api/pedidos/{pedidoId}/archivos`
+- **Controller**: `PedidoController`
+- **Acceso**: validación por regla personalizada (`@PreAuthorize`)
+- **Uso**: agregar un archivo a un pedido existente
+- **Formato**: `multipart/form-data`
+- **Tipos admitidos**: PDF, JPG, PNG
+- **Límite**: 10 MB
+
+**Observación**: este bloque cubre el ciclo completo de gestión de pedidos: listado global, listado personal, consulta, creación, edición, eliminación y gestión de archivos.
 
 ---
 
@@ -1057,6 +1067,13 @@ El backend de `RealPrint` expone **14 endpoints funcionales** distribuidos en 4 
 - **Controller**: `UsuarioController`
 - **Acceso**: `ADMIN` o el propio usuario
 - **Uso**: actualizar datos de usuario.
+
+#### `PUT /api/usuarios/{id}/cambiar-password`
+- **Controller**: `UsuarioController`
+- **Acceso**: `ADMIN` o el propio usuario
+- **Uso**: cambiar la contraseña de un usuario
+- **Entrada**: `ChangePasswordRequest { passwordActual, passwordNueva }`
+- **Validación**: verifica que la contraseña actual sea correcta antes de cambiarla
 
 #### `DELETE /api/usuarios/{id}`
 - **Controller**: `UsuarioController`
@@ -1106,7 +1123,7 @@ El backend de `RealPrint` expone **14 endpoints funcionales** distribuidos en 4 
 
 Si en la defensa te preguntan por los endpoints, la respuesta corta y correcta es:
 
-- El backend expone **14 endpoints**.
+- El backend expone **16 endpoints**.
 - Hay **4 controladores REST**: autenticación, pedidos, usuarios y archivos.
 - La seguridad combina **JWT**, **Spring Security** y reglas por rol con `@PreAuthorize` / `@PostAuthorize`.
 - El frontend React consume esos endpoints por `fetch`/servicios, enviando el token en `Authorization: Bearer <JWT>`.

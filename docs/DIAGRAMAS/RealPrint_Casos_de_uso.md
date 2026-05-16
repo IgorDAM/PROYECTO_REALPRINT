@@ -56,9 +56,7 @@ graph LR
     SISTEMA -.-> UC13
     SISTEMA -.-> UC14
     %% Estados visuales
-    classDef partial fill:#fff4cc,stroke:#d6a100,color:#333;
     classDef future fill:#f2f2f2,stroke:#999,color:#666,stroke-dasharray: 5 5;
-    class UC15 partial;
     class UC13,UC14 future;
 ```
 

@@ -65,7 +65,7 @@ Usuarios de prueba:
 
 ## Testing de API con Postman
 
-Se incluye **colección Postman completa** con los 14 endpoints:
+Se incluye **colección Postman completa** con los 16 endpoints:
 
 ### Uso rápido (Windows)
 ```powershell
@@ -90,16 +90,19 @@ postman-run.bat --report           # Con reportes HTML/JUnit
 
 ### Pedidos
 - `GET /api/pedidos` - Listar pedidos (ADMIN)
+- `GET /api/pedidos/mis-pedidos` - Listar mis pedidos (CLIENTE)
 - `GET /api/pedidos/{id}` - Obtener pedido por ID
 - `POST /api/pedidos` - Crear pedido (CLIENTE)
 - `PUT /api/pedidos/{id}` - Actualizar pedido (ADMIN)
 - `DELETE /api/pedidos/{id}` - Eliminar pedido (ADMIN)
+- `POST /api/pedidos/{pedidoId}/archivos` - Agregar archivo a pedido (CLIENTE)
 
 ### Usuarios
 - `GET /api/usuarios` - Listar usuarios (ADMIN)
 - `GET /api/usuarios/{id}` - Obtener usuario (ADMIN o self)
 - `POST /api/usuarios` - Crear usuario (ADMIN)
 - `PUT /api/usuarios/{id}` - Actualizar usuario (ADMIN o self)
+- `PUT /api/usuarios/{id}/cambiar-password` - Cambiar contraseña (ADMIN o self)
 - `DELETE /api/usuarios/{id}` - Eliminar usuario (ADMIN)
 
 ### Archivos
@@ -159,3 +162,16 @@ Para despliegue, revisa:
 - `docker/docker-compose.prod.yml`
 - `scripts/deploy-prod.sh`
 - `docs/md/LEVANTAR_PROYECTO_DESARROLLO_Y_PRODUCCION.md`
+
+## Documentacion adicional
+
+- **Guía de inicio rápido**: `docs/md/QUICK_START.md`
+- **Estructura del proyecto**: `docs/md/ESTRUCTURA_PROYECTO.md`
+- **Deploy en producción**: `docs/md/DEPLOY_CHECKLIST.md`
+- **Configuración Netlify**: `docs/md/NETLIFY_CONFIG.md`
+- **Configuración Render**: `docs/md/RENDER_CONFIG.md`
+- **Variables de entorno Render**: `docs/md/RENDER_ENV_VARS.md`
+- **Memoria final**: `docs/md/Memoria_Final.md`
+- **Flujo de endpoints**: `docs/md/RealPrint_Flujo_Endpoints.md`
+- **Diagramas**: `docs/DIAGRAMAS/`
+- **Colección Postman**: `docs/postman/`

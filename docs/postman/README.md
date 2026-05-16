@@ -1,6 +1,6 @@
 # 📮 Colección Postman - RealPrint API
 
-Colección completa de **14 endpoints** para probar la API REST de RealPrint de forma local o automatizada.
+Colección completa de **16 endpoints** para probar la API REST de RealPrint de forma local o automatizada.
 
 ## 📋 Contenido
 
@@ -41,14 +41,17 @@ Click en el ojo → **Environment** → verifica:
    - `GET /usuarios/{id}` — obtener uno específico
    - `POST /usuarios` — crear nuevo usuario
    - `PUT /usuarios/{id}` — actualizar
+   - `PUT /usuarios/{id}/cambiar-password` — cambiar contraseña (ADMIN o self)
    - `DELETE /usuarios/{id}` — eliminar
 
 3. **Pedidos** (Pedidos folder)
-   - `GET /pedidos` — listar todos
+   - `GET /pedidos` — listar todos (ADMIN)
+   - `GET /pedidos/mis-pedidos` — listar mis pedidos (CLIENTE)
    - `GET /pedidos/{id}` — obtener uno
    - `POST /pedidos` — crear nuevo (requiere rol CLIENTE)
    - `PUT /pedidos/{id}` — actualizar estado/precio
    - `DELETE /pedidos/{id}` — eliminar
+   - `POST /pedidos/{pedidoId}/archivos` — agregar archivo a pedido (CLIENTE)
 
 4. **Archivos** (Archivos folder)
    - `POST /files` — subir file (form-data, requiere rol CLIENTE)
@@ -210,17 +213,20 @@ cors.allowed-origins: http://localhost:5173
 | GET | `/usuarios/{id}` | ✅ | ADMIN / SELF |
 | POST | `/usuarios` | ✅ | ADMIN |
 | PUT | `/usuarios/{id}` | ✅ | ADMIN / SELF |
+| PUT | `/usuarios/{id}/cambiar-password` | ✅ | ADMIN / SELF |
 | DELETE | `/usuarios/{id}` | ✅ | ADMIN |
 | GET | `/pedidos` | ✅ | ADMIN |
+| GET | `/pedidos/mis-pedidos` | ✅ | CLIENTE |
 | GET | `/pedidos/{id}` | ✅ | ADMIN / SELF |
 | POST | `/pedidos` | ✅ | CLIENTE |
 | PUT | `/pedidos/{id}` | ✅ | ADMIN |
 | DELETE | `/pedidos/{id}` | ✅ | ADMIN |
+| POST | `/pedidos/{pedidoId}/archivos` | ✅ | CLIENTE |
 | POST | `/files` | ✅ | CLIENTE |
 | GET | `/files/{fileName}` | ✅ | ADMIN |
 
 ---
 
-**Última actualización**: 2026-05-06  
-**Versión**: 1.0.0
+**Última actualización**: 2026-05-16  
+**Versión**: 4.0.0
 

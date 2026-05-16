@@ -96,5 +96,23 @@ pnpm-lock.yaml
 *.backup
 *~
 
+# ===================================================================
+# Archivos con información sensible - NO COMMITEAR
+# ===================================================================
+# Nota: Si necesitas versiones con datos reales para desarrollo local,
+# crea archivos con extensión .local (ejemplo: INFORME.local.md)
+# y guárdalos solo en tu máquina
+
+# Archivos de configuración con credenciales reales
+**/RENDER_ENV_VARS.local.md
+**/INFORME_SESION*.local.md
+**/credenciales*.md
+**/secrets*.md
+
+# Archivos de notas personales que puedan contener información sensible
+docs/notas/*.local.*
+docs/notas/credenciales*
+docs/notas/passwords*
+
 
 
