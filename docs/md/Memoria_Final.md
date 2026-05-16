@@ -1063,7 +1063,7 @@ Admin:
   password: admin123
   
 Cliente:
-  username: cliente1
+  username: cliente
   password: cliente123
 ```
 
