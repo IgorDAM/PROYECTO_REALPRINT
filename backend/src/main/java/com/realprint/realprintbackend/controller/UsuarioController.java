@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.realprint.realprintbackend.dto.ChangePasswordRequest;
 import com.realprint.realprintbackend.dto.UsuarioDTO;
 import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.mapper.UsuarioMapper;
@@ -207,6 +208,39 @@ public class UsuarioController {
 
         // Convertir Entity → DTO
         return ResponseEntity.ok(UsuarioMapper.toDTO(usuarioActualizado));
+    }
+
+    /**
+     * PUT /api/usuarios/{id}/cambiar-password
+     *
+     * Cambiar la contraseña de un usuario (ADMIN o el usuario mismo).
+     *
+     * @param id ID del usuario
+     * @param request Objeto con contraseña actual y nueva
+     * @return El UsuarioDTO actualizado
+     */
+    @Operation(summary = "Cambiar contraseña",
+               description = "Permite a un usuario cambiar su contraseña. Se debe proporcionar la contraseña actual y la nueva." +
+                             "Los administradores pueden cambiar la contraseña de cualquier usuario, mientras que los clientes solo pueden cambiar su propia contraseña.")
+    @ApiResponse(responseCode = "200", description = "Contraseña cambiada exitosamente",
+                 content = @Content(mediaType = "application/json",
+                 schema = @Schema(implementation = UsuarioDTO.class)))
+    @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
+    @ApiResponse(responseCode = "401", description = "Contraseña actual incorrecta")
+    @ApiResponse(responseCode = "403", description = "Acceso denegado. No tienes permiso para cambiar esta contraseña.")
+    @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    @PutMapping("/{id}/cambiar-password")
+    @PreAuthorize("@securityRules.canUpdateUsuario(authentication, #id)")
+    public ResponseEntity<UsuarioDTO> cambiarPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        Usuario usuario = usuarioService.changePassword(
+                id,
+                request.getPasswordActual(),
+                request.getPasswordNueva()
+        );
+        return ResponseEntity.ok(UsuarioMapper.toDTO(usuario));
     }
 
     /**

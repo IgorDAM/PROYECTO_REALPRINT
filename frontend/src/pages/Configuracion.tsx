@@ -28,6 +28,8 @@ export default function Configuracion() {
     passwordConfirmar: "",
   });
   const [mensaje, setMensaje] = useState("");
+  const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
   // Maneja cambios en los campos del perfil
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +44,63 @@ export default function Configuracion() {
     setTimeout(() => setMensaje(""), 3000);
   };
 
+  // Maneja el cambio de contraseña
+  const handleCambiarPassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setMensaje("");
+
+    // Validaciones
+    if (!perfil.passwordActual || !perfil.passwordNueva || !perfil.passwordConfirmar) {
+      setError("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (perfil.passwordNueva !== perfil.passwordConfirmar) {
+      setError("Las contraseñas nuevas no coinciden");
+      return;
+    }
+
+    if (perfil.passwordNueva.length < 6) {
+      setError("La nueva contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    setCargando(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8080/api"}/usuarios/${user?.id}/cambiar-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          passwordActual: perfil.passwordActual,
+          passwordNueva: perfil.passwordNueva,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Error al cambiar contraseña" }));
+        throw new Error(errorData.message || "Contraseña actual incorrecta");
+      }
+
+      setMensaje("Contraseña cambiada correctamente");
+      setPerfil((prev) => ({
+        ...prev,
+        passwordActual: "",
+        passwordNueva: "",
+        passwordConfirmar: "",
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cambiar contraseña");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6 lg:mb-8">
@@ -53,6 +112,13 @@ export default function Configuracion() {
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm mb-6 flex items-center gap-2">
           <span className="material-symbols-outlined">check_circle</span>
           {mensaje}
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-6 flex items-center gap-2">
+          <span className="material-symbols-outlined">error</span>
+          {error}
         </div>
       )}
 
@@ -170,13 +236,14 @@ export default function Configuracion() {
       {/* Cambiar Contraseña */}
       <GlassCard className="p-4 sm:p-6 mb-6" hover={false}>
         <h2 className="text-lg sm:text-xl font-bold text-surface-900 mb-4">Cambiar Contraseña</h2>
-        <form className="space-y-4">
+        <form onSubmit={handleCambiarPassword} className="space-y-4">
           <Input
             label="Contraseña actual"
             name="passwordActual"
             type="password"
             value={perfil.passwordActual}
             onChange={handleChange}
+            required
           />
           <Input
             label="Nueva contraseña"
@@ -184,6 +251,7 @@ export default function Configuracion() {
             type="password"
             value={perfil.passwordNueva}
             onChange={handleChange}
+            required
           />
           <Input
             label="Confirmar nueva contraseña"
@@ -191,9 +259,12 @@ export default function Configuracion() {
             type="password"
             value={perfil.passwordConfirmar}
             onChange={handleChange}
+            required
           />
           <div className="pt-4">
-            <Button type="submit" variant="secondary">Cambiar Contraseña</Button>
+            <Button type="submit" variant="secondary" disabled={cargando}>
+              {cargando ? "Cambiando..." : "Cambiar Contraseña"}
+            </Button>
           </div>
         </form>
       </GlassCard>

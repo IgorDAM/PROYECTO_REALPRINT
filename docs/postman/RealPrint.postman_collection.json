@@ -165,6 +165,38 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Subir Archivo a Pedido",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Archivo a subir (PDF, PNG, JPG, etc.)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/pedidos/:pedidoId/archivos",
+              "host": ["{{base_url}}"],
+              "path": ["pedidos", ":pedidoId", "archivos"],
+              "variable": [
+                {
+                  "key": "pedidoId",
+                  "value": "1",
+                  "description": "ID del pedido al que se subirá el archivo"
+                }
+              ]
+            },
+            "description": "Sube un archivo a un pedido existente. Solo el propietario del pedido puede subir archivos."
+          },
+          "response": []
         }
       ]
     },
@@ -252,6 +284,36 @@
               "host": ["{{base_url}}"],
               "path": ["usuarios", "1"]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar Contraseña",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passwordActual\": \"password123\",\n  \"passwordNueva\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/usuarios/:id/cambiar-password",
+              "host": ["{{base_url}}"],
+              "path": ["usuarios", ":id", "cambiar-password"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "ID del usuario que cambiará su contraseña"
+                }
+              ]
+            },
+            "description": "Permite a un usuario cambiar su contraseña. Requiere la contraseña actual y la nueva. La nueva contraseña debe tener al menos 6 caracteres."
           },
           "response": []
         },
