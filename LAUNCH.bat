@@ -55,7 +55,7 @@ call scripts\CLEAN.bat
 goto menu
 
 :docs
-start "" QUICK_START.md
+start "" "docs\md\QUICK_START.md"
 goto menu
 
 :exit_menu

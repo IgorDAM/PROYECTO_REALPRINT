@@ -67,9 +67,9 @@ echo ===========================================================================
 echo.
 
 cd /d "%~dp0..\docker"
-docker-compose up -d
+docker compose up -d
 if %errorlevel% neq 0 (
-    echo [ERROR] Falló docker-compose
+    echo [ERROR] Falló docker compose
     pause
     exit /b 1
 )

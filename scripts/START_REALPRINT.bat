@@ -11,7 +11,7 @@ echo ======================================
 echo.
 
 echo [1/2] Compilando Backend...
-cd /d D:\DAM\2DAM\PROYECTO_II\PROYECTO_REALPRINT\realprint-backend
+cd /d "%~dp0..\backend"
 call mvn clean compile -q
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Fallo compilar backend
@@ -24,7 +24,7 @@ echo.
 echo [2/2] Iniciando servicios...
 echo.
 echo Terminal 1: Backend corriendo en localhost:8080
-start cmd /k "cd /d D:\DAM\2DAM\PROYECTO_II\PROYECTO_REALPRINT\realprint-backend && mvn spring-boot:run"
+start "RealPrint Backend" cmd /k "cd /d ""%~dp0..\backend"" && mvn spring-boot:run"
 
 echo.
 echo Esperando 8 segundos para que backend inicie...
@@ -32,7 +32,7 @@ timeout /t 8 /nobreak
 
 echo.
 echo Terminal 2: Frontend corriendo en localhost:5173
-start cmd /k "cd /d D:\DAM\2DAM\PROYECTO_II\PROYECTO_REALPRINT\App-RealPrint && npm run dev"
+start "RealPrint Frontend" cmd /k "cd /d ""%~dp0..\frontend"" && npm run dev"
 
 echo.
 echo ======================================

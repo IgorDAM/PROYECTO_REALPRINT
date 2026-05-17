@@ -1,6 +1,6 @@
 ﻿# RealPrint - Guia breve de arranque
 
-> Stack real: **React + Vite** · **Spring Boot 4 + Java 17** · **MySQL 8.0**
+> Stack real: **React + Vite** · **Spring Boot 4 + Java 17** · **MySQL 8.0 en desarrollo** · **PostgreSQL en producción**
 > En desarrollo, Docker se usa solo para MySQL.
 
 ---
@@ -29,7 +29,7 @@ realprint/
 |  |- START_FRONTEND.bat
 |  |- CLEAN.bat
 |  |- deploy-prod.sh
-|  `- realprint-database-mysql.sql
+|  `- mysql-init/
 `- LAUNCH.bat
 ```
 
@@ -80,7 +80,8 @@ npm run dev
 ### Notas rapidas
 - `application.yml` define el perfil activo por defecto y el `context-path` `/api`.
 - En desarrollo `ddl-auto=update`.
-- En produccion `ddl-auto=validate`.
+- En desarrollo MySQL se inicializa desde `docker/mysql-init/init.sql`.
+- En produccion `ddl-auto=validate` y la BD es PostgreSQL.
 - `JWT_SECRET` tiene valor por defecto en desarrollo, pero debe definirse en produccion.
 
 ---
@@ -113,7 +114,7 @@ docker compose -f docker/docker-compose.prod.yml up -d --build
 ### Servicios expuestos
 - Frontend: puerto `80`
 - Backend: puerto interno `8080` con contexto `/api`
-- MySQL: `3306`
+- PostgreSQL: `5432`
 
 ### Verificacion rapida
 ```bash
@@ -128,9 +129,11 @@ curl http://localhost/api/actuator/health
 - `DB_PASSWORD`
 - `DB_NAME=realprint_db`
 - `SERVER_CONTEXT_PATH=/api`
+- `DB_HOST=postgres` (si usas la referencia local de Compose)
 
 ### Checklist minimo
 - [ ] MySQL healthy
+- [ ] PostgreSQL healthy
 - [ ] Backend responde `/api/actuator/health`
 - [ ] Frontend abre en `http://<host>`
 - [ ] `JWT_SECRET` definido
@@ -152,6 +155,12 @@ docker ps
 docker logs realprint-mysql
 ```
 
+### PostgreSQL no arranca
+```powershell
+docker ps
+docker logs realprint-postgres
+```
+
 ### Frontend no conecta con backend
 - Comprueba `VITE_API_URL`
 - Comprueba que backend este en `http://localhost:8080/api`
@@ -164,5 +173,5 @@ docker logs realprint-mysql
 Esta guia refleja el flujo real del proyecto:
 - desarrollo local en Windows con `.bat`
 - MySQL en Docker
-- produccion con `docker/docker-compose.prod.yml`
+- produccion con PostgreSQL en `docker/docker-compose.prod.yml`
 - despliegue con `scripts/deploy-prod.sh`

@@ -32,7 +32,7 @@ docker ps | findstr realprint-mysql >nul 2>&1
 if %errorlevel% neq 0 (
     echo [INFO] Iniciando MySQL en Docker...
     cd /d "%~dp0..\docker"
-    docker-compose up -d
+    docker compose up -d
     if %errorlevel% neq 0 (
         echo [ERROR] Falló al iniciar Docker Compose
         pause

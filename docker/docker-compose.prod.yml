@@ -1,10 +1,9 @@
-version: '3.9'
 
 services:
   # Frontend (Nginx)
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
     container_name: realprint-frontend
     ports:
@@ -26,28 +25,28 @@ services:
   # Backend (Spring Boot)
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: realprint-backend
     expose:
       - "8080"
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
+      DB_HOST: postgres
+      DB_PORT: 5432
       DB_NAME: ${DB_NAME:-realprint_db}
-      DB_USER: ${DB_USER:-root}
+      DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-root123}
       JWT_SECRET: ${JWT_SECRET:-realprint-secret-key-prod-super-larga-32chars}
       SPRING_PROFILE: production
       SERVER_CONTEXT_PATH: /api
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - realprint_network
     restart: unless-stopped
     volumes:
-      - ./uploads:/app/uploads
+      - ../uploads:/app/uploads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
       interval: 30s
@@ -55,42 +54,33 @@ services:
       retries: 3
       start_period: 40s
 
-  # MySQL Database
-  mysql:
-    image: mysql:8.0
-    container_name: realprint-mysql
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: realprint-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123}
-      MYSQL_DATABASE: ${DB_NAME:-realprint_db}
-      MYSQL_USER: ${DB_USER:-realprint}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-realprint123}
+      POSTGRES_DB: ${DB_NAME:-realprint_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-root123}
       TZ: 'UTC'
     ports:
-      - "3306:3306"
+      - "5432:5432"
     expose:
-      - "3306"
+      - "5432"
     networks:
       - realprint_network
     restart: unless-stopped
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./scripts/realprint-database-mysql.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-root}", "-p${DB_PASSWORD:-root123}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-realprint_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 40s
-    command:
-      - --default-authentication-plugin=mysql_native_password
-      - --max_connections=1000
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --log-bin=mysql-bin
-      - --binlog-format=ROW
 
 volumes:
-  mysql_data:
+  postgres_data:
     driver: local
 
 networks:

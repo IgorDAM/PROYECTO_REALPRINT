@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   mysql:
@@ -17,7 +16,7 @@ services:
 
     volumes:
       - mysql_data:/var/lib/mysql
-      - ../scripts/realprint-database-mysql.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
 
     networks:
       - realprint_network

@@ -12,7 +12,7 @@ echo ========================================
 echo.
 
 echo [1/3] Compilando Backend (generar JAR)...
-cd /d D:\DAM\2DAM\PROYECTO_II\PROYECTO_REALPRINT\realprint-backend
+cd /d "%~dp0..\backend"
 call mvn clean package -q -DskipTests
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Fallo compilar backend
@@ -23,7 +23,7 @@ echo Ok - JAR compilado
 echo.
 
 echo [2/3] Iniciando Backend (JAR en puerto 8080)...
-start cmd /k "cd /d D:\DAM\2DAM\PROYECTO_II\PROYECTO_REALPRINT\realprint-backend && java -jar target/realprint-backend-0.0.1-SNAPSHOT.jar"
+start "RealPrint Backend" cmd /k "cd /d ""%~dp0..\backend"" && java -jar target/realprint-backend-0.0.1-SNAPSHOT.jar"
 
 echo.
 echo Esperando 15 segundos para que backend inicie...
@@ -31,7 +31,7 @@ timeout /t 15 /nobreak
 echo.
 
 echo [3/3] Iniciando Frontend (npm en puerto 5173)...
-start cmd /k "cd /d D:\DAM\2DAM\PROYECTO_II\PROYECTO_REALPRINT\App-RealPrint && npm run dev"
+start "RealPrint Frontend" cmd /k "cd /d ""%~dp0..\frontend"" && npm run dev"
 
 echo.
 echo ========================================

@@ -63,6 +63,12 @@ Usuarios de prueba:
 - `admin` / `admin123`
 - `cliente1` / `cliente123`
 
+### Nota de entornos
+
+- **Desarrollo local**: MySQL en Docker (`docker/docker-compose.yml`).
+- **Producción**: PostgreSQL (`docker/docker-compose.prod.yml` como referencia local y `backend/src/main/resources/application-production.yml` para Render).
+- El perfil por defecto es `development`, así que el backend espera la base de datos local levantada en Docker.
+
 ## Testing de API con Postman
 
 Se incluye **colección Postman completa** con los 16 endpoints:
@@ -131,7 +137,7 @@ postman-run.bat --report           # Con reportes HTML/JUnit
 
 - El backend usa `context-path` `/api` (configurado en `backend/src/main/resources/application.yml`).
 - Perfil por defecto: `SPRING_PROFILE=development`.
-- En desarrollo se usa `application-development.yml` (`ddl-auto=update`).
+- En desarrollo se usa `application-development.yml` apuntando a MySQL local (`ddl-auto=update`).
 - En produccion se usa `application-production.yml` (`ddl-auto=validate`).
 
 ## Troubleshooting rapido
@@ -147,8 +153,18 @@ mvn spring-boot:run
 ### Error de conexion a BD
 
 ```powershell
-docker ps | findstr realprint-mysql
-docker logs realprint-mysql
+cd docker
+docker compose up -d
+docker compose ps
+docker compose logs mysql
+```
+
+Si cambiaste el init SQL y necesitas recrear el volumen:
+
+```powershell
+cd docker
+docker compose down -v
+docker compose up -d
 ```
 
 ### Frontend no conecta con backend

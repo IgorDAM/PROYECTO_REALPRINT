@@ -21,7 +21,7 @@ scripts\SETUP.bat
 
 Esto:
 - ✅ Verifica Java, Maven, Node.js, MySQL
-- ✅ Crea la base de datos `realprint_db`
+- ✅ Levanta MySQL en Docker y ejecuta el init SQL
 - ✅ Instala dependencias del backend (Maven)
 - ✅ Instala dependencias del frontend (npm)
 
@@ -56,7 +56,7 @@ scripts\SETUP.bat
 
 **Qué hace:**
 - Verifica requisitos (Java, Maven, Node, MySQL)
-- Crea BD MySQL con esquema
+- Levanta MySQL en Docker con el esquema inicial
 - Instala dependencias del backend
 - Instala dependencias del frontend
 
@@ -89,7 +89,7 @@ scripts\START_BACKEND.bat
 
 **Requisitos:**
 - MySQL debe estar corriendo
-- BD `realprint_db` debe existir
+- BD `realprint_db` se crea desde el init SQL de Docker
 
 **Puerto:** `8080` con contexto `/api`
 
@@ -180,7 +180,7 @@ PROYECTO_REALPRINT/
 │   ├── START_BACKEND.bat
 │   ├── START_FRONTEND.bat
 │   ├── CLEAN.bat
-│   └── realprint-database-mysql.sql
+│   └── mysql-init/     ← Init SQL para MySQL en Docker
 └── README.md
 ```
 
@@ -210,6 +210,7 @@ PROYECTO_REALPRINT/
 - Usuario BD: `root`
 - Contraseña BD: `root123`
 - Base de datos: `realprint_db`
+- Inicialización: `docker/mysql-init/init.sql`
 
 ### Git
 Al cambiar ramas, ejecuta:

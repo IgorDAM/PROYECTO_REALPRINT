@@ -37,7 +37,7 @@ if %errorlevel% neq 0 (
     echo [WARNING] MySQL no detectado en Docker
     echo Iniciando MySQL via docker-compose...
     cd /d "%~dp0..\docker"
-    docker-compose up -d
+    docker compose up -d
     echo [INFO] Esperando 15 segundos para que MySQL esté listo...
     timeout /t 15 /nobreak
     cd /d "%~dp0..\backend"
