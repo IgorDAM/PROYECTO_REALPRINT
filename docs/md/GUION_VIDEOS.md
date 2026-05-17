@@ -9,125 +9,135 @@
 
 ## 📋 Contenido
 
-- [Video 1: Interfaz y Flujos Usuario (5 min)](#video-1--interfaz-y-flujos-usuario-5-min)
-- [Video 2: Explicación Técnica Frontend (5 min)](#video-2--explicación-técnica-frontend-5-min)
+- [Video 1: Motivacion + Interfaz y Flujos (5 min)](#video-1-motivacion--interfaz-y-flujos-5-min)
+- [Video 2: Codigo Frontend (5 min)](#video-2-codigo-frontend-5-min)
 
 ---
 
-## Video 1: Interfaz y Flujos Usuario (5 min)
+## Video 1: Motivacion + Interfaz y Flujos (5 min)
 
 ### Objetivo
-Mostrar visualmente cómo funciona la aplicación desde la perspectiva del usuario final, demostrando los 3 flujos principales.
+Presentar por que se construyo RealPrint (problema y motivacion) y despues mostrar la experiencia de uso en la interfaz, sin entrar en implementacion de codigo.
+
+**Regla del video 1:** centrarte en la app funcionando y en [`docs/md/Memoria_Final.md`](./Memoria_Final.md); evita abrir archivos tecnicos del frontend.
 
 ---
 
-### **[0:00-0:30] Introducción (30 seg)**
+### **[0:00-1:00] Problema y Motivacion (1 min)**
 
 **Lo que se ve:**
-- Pantalla de inicio (login)
-- Logo de RealPrint
+- [`docs/md/Memoria_Final.md`](./Memoria_Final.md) en 1.1 y 1.2
+- Pantalla de login para conectar problema con solucion
 
 **Lo que se dice:**
-> "Bienvenido al proyecto RealPrint, un sistema web moderno para gestionar pedidos de servicios de impresión personalizada. He construido esta aplicación con React, TypeScript y Tailwind CSS en el frontend, y Spring Boot en el backend. En este video, te mostraré cómo se ve y funciona la aplicación interactuando con sus principales característiscas."
+- **Frase 1:** "RealPrint nace porque en este sector habia procesos manuales, retrasos y poca visibilidad del estado de los pedidos."  
+  **Dirigete a:** [`docs/md/Memoria_Final.md`](./Memoria_Final.md) (1.1 Problema a Resolver)  
+  **Accion en pantalla:** resalta 2-3 puntos clave del problema.
+- **Frase 2:** "La motivacion fue optimizar tiempos, mejorar comunicacion y ordenar el flujo cliente-empresa."  
+  **Dirigete a:** [`docs/md/Memoria_Final.md`](./Memoria_Final.md) (1.2 Motivacion)  
+  **Accion en pantalla:** subraya la lista de motivaciones.
+- **Frase 3:** "Ahora te muestro como esa motivacion se traduce en una interfaz clara para cliente y administrador."  
+  **Dirigete a:** `http://localhost:5173`  
+  **Accion en pantalla:** vuelve al login para iniciar demo.
 
-**📁 Archivos relacionados:**
-- 🎨 Página de login: `frontend/src/pages/Login.tsx`
-- 🖼️ Logo: `frontend/public/` (buscar logo)
-- 🎵 Estilos globales: `frontend/src/App.css`
+**📁 Referencias de apoyo:**
+- [`docs/md/Memoria_Final.md`](./Memoria_Final.md) (1.1, 1.2)
+- `http://localhost:5173`
 
 ---
 
-### **[0:30-1:45] Flujo 1: Login (1 minuto 15 seg)**
+### **[1:00-2:00] Flujo 1: Login y Roles (1 min)**
 
 **Lo que se ve:**
 1. Pantalla de login completa
-2. Ingreso de credenciales (usuario: `admin` / contraseña: `admin123`)
-3. Animación de carga
-4. Redirección a dashboard
+2. Ingreso de credenciales
+3. Redireccion al dashboard por rol
 
 **Lo que se dice:**
-> "Empecemos con el **login**. La aplicación tiene dos tipos de usuarios: administradores y clientes. Vamos a ingresar con credenciales de admin. Como ves, la interfaz tiene un diseño moderno con gradientes y elementos decorativos. El formulario valida que ingresemos datos válidos antes de enviar. Una vez autenticado, el backend nos devuelve un token JWT que se almacena en localStorage, y la aplicación nos redirige automáticamente al dashboard correspondiente según nuestro rol."
+- **Frase 1:** "La entrada es unica, pero el sistema distingue entre roles de cliente y administrador."  
+  **Dirigete a:** login en navegador  
+  **Accion en pantalla:** ensena formulario con usuarios de prueba.
+- **Frase 2:** "Al autenticar, cada rol aterriza en su dashboard correspondiente."  
+  **Dirigete a:** dashboard admin y luego cliente  
+  **Accion en pantalla:** muestra diferencia visual entre ambos.
 
-**📁 Archivos relacionados:**
-- 🔐 Página Login: `frontend/src/pages/Login.tsx`
-- 📋 Formulario: `frontend/src/components/LoginForm.tsx` (validación, envío)
-- 🌍 Contexto Auth: `frontend/src/context/AuthContext.tsx` (almacena token JWT)
-- 🛂 Rutas protegidas: `frontend/src/components/ProtectedRoute.tsx`
-- ✅ Esquema validación: `frontend/src/schemas/auth.schema.ts` (Zod)
+**📁 Referencias de apoyo:**
+- [`docs/md/Memoria_Final.md`](./Memoria_Final.md) (2.1 Requisitos RF-001, RF-002)
+- `http://localhost:5173`
 
 ---
 
-### **[1:45-3:15] Flujo 2: Cliente Creando un Pedido (1 minuto 30 seg)**
+### **[2:00-3:20] Flujo 2: Cliente creando pedido (1 min 20 seg)**
 
 **Lo que se ve:**
-1. Logout de admin
-2. Login como cliente (`cliente1` / `cliente123`)
-3. Dashboard del cliente
-4. Acceso a "Nuevo Pedido"
-5. Formulario de pedido con campos:
-   - Tipo de impresión (dropdown)
-   - Cantidad
-   - Descripción
-   - Carga de archivo (PDF)
-6. Validación del formulario
-7. Envío del pedido
-8. Confirmación de éxito
+1. Login como cliente (`cliente1` / `cliente123`)
+2. Dashboard cliente
+3. Nuevo pedido + formulario
+4. Subida de archivo y confirmacion
 
 **Lo que se dice:**
-> "Ahora vamos como **cliente** para hacer un pedido. Primero cerramos sesión y nos conectamos como cliente. Como ves, el dashboard del cliente es diferente: muestra sus pedidos activos y le da acceso a crear nuevos pedidos. Cuando hacemos clic en 'Nuevo Pedido', se abre un formulario interactivo con validación en tiempo real. Aquí podemos seleccionar el tipo de servicio, cantidad deseada, escribir una descripción, y **cargar el archivo PDF** que queremos imprimir. Los clientes pueden subir archivos y verlos listados. Finalmente, al hacer clic en 'Enviar', el pedido se crea en la base de datos y recibimos una confirmación. El pedido ahora aparece en el historial del cliente."
+- **Frase 1:** "Desde cliente, el objetivo es crear pedidos de forma rapida y con toda la informacion necesaria."  
+  **Dirigete a:** panel cliente  
+  **Accion en pantalla:** enseña pedidos activos e historial.
+- **Frase 2:** "El formulario guia al usuario para completar tipo de servicio, cantidad, descripcion y adjuntos."  
+  **Dirigete a:** "Nuevo pedido"  
+  **Accion en pantalla:** completa campos clave y adjunta archivo.
+- **Frase 3:** "Al enviar, el pedido queda registrado y visible para seguimiento."  
+  **Dirigete a:** listado de pedidos del cliente  
+  **Accion en pantalla:** muestra pedido recien creado.
 
-**📁 Archivos relacionados:**
-- 👤 Dashboard Cliente: `frontend/src/pages/cliente/ClienteDashboard.tsx`
-- ➕ Crear Pedido: `frontend/src/pages/cliente/LinearPedidoEditor.tsx` o `CrearPedido.tsx`
-- 📦 Card Pedido: `frontend/src/components/PedidoCard.tsx` (visualización)
-- 📨 Validación: `frontend/src/schemas/pedido.schema.ts` (Zod - tipo, cantidad, descripción, archivo)
-- 📤 Upload archivo: `frontend/src/services/api.ts` → función `uploadFile()` o `createPedido()`
-- 🔗 Endpoint Backend: `POST /api/pedidos` (Spring Boot)
-- 💾 Base de datos: `backend/src/main/resources/` (esquema pedidos)
+**📁 Referencias de apoyo:**
+- [`docs/md/Memoria_Final.md`](./Memoria_Final.md) (7.1 Flujo Cliente)
+- `http://localhost:5173`
 
 ---
 
-### **[3:15-4:45] Flujo 3: Admin Gestionando Pedidos (1 minuto 30 seg)**
+### **[3:20-4:40] Flujo 3: Admin gestionando pedidos (1 min 20 seg)**
 
 **Lo que se ve:**
-1. Logout de cliente
-2. Login como admin
-3. Dashboard del admin
-4. Sección "Gestión de Pedidos"
-5. Lista de todos los pedidos con estados
-6. Abrir un pedido
-7. Ver detalles del pedido (usuario, archivo adjunto, descripción)
-8. Cambiar estado del pedido (Pendiente → En Proceso → Completado)
-9. Guardar cambios
-10. Confirmación de actualización
+1. Login admin (`admin` / `admin123`)
+2. Lista global de pedidos
+3. Detalle y cambio de estado
+4. Confirmacion de actualizacion
 
 **Lo que se dice:**
-> "Ahora desde la perspectiva del **administrador**. El admin tiene acceso a la sección de 'Gestión de Pedidos' donde puede ver **todos los pedidos** del sistema con sus estados. Al abrir un pedido, podemos ver todos los detalles: quién lo hizo, qué tipo de impresión solicitó, la cantidad, la descripción y el archivo adjunto. El admin puede cambiar el estado del pedido a través de un selector (Pendiente, En Proceso, Completado). Esto es crucial para el flujo operativo: cuando cambiamos el estado, se actualiza en tiempo real para el cliente. Al guardar, vemos una confirmación de éxito y el pedido ya aparece con el nuevo estado en la lista."
+- **Frase 1:** "Desde admin se centraliza la operativa: ver todos los pedidos y priorizar trabajo."  
+  **Dirigete a:** seccion pedidos admin  
+  **Accion en pantalla:** enseña tabla y filtros.
+- **Frase 2:** "El admin puede abrir un pedido, revisar adjuntos y actualizar estado segun el avance."  
+  **Dirigete a:** detalle de pedido  
+  **Accion en pantalla:** cambia estado y guarda.
+- **Frase 3:** "Este flujo mejora trazabilidad y comunicacion con el cliente."  
+  **Dirigete a:** vista de estado actualizado  
+  **Accion en pantalla:** muestra estado final en lista.
 
-**📁 Archivos relacionados:**
-- 🎛️ Dashboard Admin: `frontend/src/pages/admin/AdminDashboard.tsx`
-- 📋 Gestión Pedidos: `frontend/src/pages/admin/AdminPedidos.tsx` o `GestionPedidos.tsx`
-- 📝 Detalles Pedido: `frontend/src/components/PedidoDetalle.tsx` o modal de detalles
-- 🔄 Cambiar estado: `frontend/src/services/api.ts` → función `updatePedidoStatus()`
-- 📌 Estados: Define enums/constantes en `frontend/src/constants/` o `schemas/pedido.schema.ts`
-- 🔗 Endpoint Backend: `PUT /api/pedidos/{id}/status` (Spring Boot)
-- 📊 Control de acceso: Solo roles ADMIN en `frontend/src/components/ProtectedRoute.tsx`
+**📁 Referencias de apoyo:**
+- [`docs/md/Memoria_Final.md`](./Memoria_Final.md) (7.2 Flujo Administrador)
+- `http://localhost:5173`
 
 ---
 
-### **[4:45-5:00] Resumen (15 seg)**
+### **[4:40-5:00] Cierre y puente al video tecnico (20 seg)**
 
 **Lo que se dice:**
-> "Como viste, RealPrint conecta de forma fluida a clientes y administradores en un mismo sistema. Los clientes pueden hacer pedidos fácilmente y los admins gestionar el flujo de trabajo. En el siguiente video, profundizaremos en la **arquitectura técnica** del frontend."
+- **Frase 1:** "En este primer video vimos el por que del proyecto y como se refleja en la experiencia de usuario."  
+  **Dirigete a:** vista general de la app  
+  **Accion en pantalla:** cierre visual con dashboard.
+- **Frase 2:** "En el segundo video vamos al codigo para explicar arquitectura, seguridad, servicios y validaciones."  
+  **Dirigete a:** IDE con [`frontend/src/App.tsx`](../../frontend/src/App.tsx)  
+  **Accion en pantalla:** transicion del navegador al editor.
 
 ---
 
 ---
 
-## Video 2: Explicación Técnica Frontend (5 min)
+<a id="video-2--explicación-técnica-frontend-5-min"></a>
+## Video 2: Codigo Frontend (5 min)
 
 ### Objetivo
 Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend (solo código).
+
+**Regla del video 2:** abrir codigo en IDE y explicar implementacion; no repetir demo funcional completa del video 1.
 
 ---
 
@@ -138,13 +148,21 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
 - Estructura de carpetas del frontend
 
 **Lo que se dice:**
-> "Bienvenido a la explicación técnica del frontend de RealPrint. En este video te mostraré cómo está estructurado el código, qué tecnologías usamos y cómo fluye la información en la aplicación. El proyecto está construido con React 18, TypeScript y Vite, que nos da excelente rendimiento en desarrollo y compilación."
+- **Frase 1:** "Bienvenido a la explicación técnica del frontend de RealPrint."  
+  **Dirígete a:** [`frontend/package.json`](../../frontend/package.json)  
+  **Acción en pantalla:** abre la base del proyecto y las dependencias.
+- **Frase 2:** "En este video te mostraré cómo está estructurado el código, qué tecnologías usamos y cómo fluye la información en la aplicación."  
+  **Dirígete a:** [`frontend/src/App.tsx`](../../frontend/src/App.tsx)  
+  **Acción en pantalla:** enseña el árbol de carpetas.
+- **Frase 3:** "El proyecto está construido con React 18, TypeScript y Vite, que nos da excelente rendimiento en desarrollo y compilación."  
+  **Dirígete a:** [`frontend/package.json`](../../frontend/package.json), [`frontend/vite.config.js`](../../frontend/vite.config.js), [`frontend/tsconfig.json`](../../frontend/tsconfig.json)  
+  **Acción en pantalla:** resalta la configuración técnica.
 
 **📁 Archivos clave:**
-- 📦 Config: `frontend/package.json` (dependencias: React, TypeScript, Vite, Zod, React Router)
-- ⚙️ Config Vite: `frontend/vite.config.js`
-- 🔧 Config TypeScript: `frontend/tsconfig.json`
-- 📂 Carpeta src: `frontend/src/`
+- 📦 Config: [`frontend/package.json`](../../frontend/package.json) (dependencias: React, TypeScript, Vite, Zod, React Router)
+- ⚙️ Config Vite: [`frontend/vite.config.js`](../../frontend/vite.config.js)
+- 🔧 Config TypeScript: [`frontend/tsconfig.json`](../../frontend/tsconfig.json)
+- 📂 Carpeta src: [`frontend/src/App.tsx`](../../frontend/src/App.tsx)
 
 ---
 
@@ -161,16 +179,39 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   - `/src/hooks` - Custom hooks
 
 **Lo que se dice:**
-> "La estructura del frontend sigue arquitectura modular. Tenemos **pages** donde están las vistas principales como Login, Dashboard, etc. Luego **components** contiene componentes reutilizables como LoginForm, PedidoCard, etc. En **services** tenemos la lógica de comunicación con el backend mediante fetch. **Context** maneja el estado global de autenticación usando React Context API. **Schemas** define validaciones usando Zod - esta es nuestra capa de seguridad del lado cliente. Y en **hooks** tenemos custom hooks personalizados para lógica reutilizable. Esta estructura mantiene el código limpio y escalable."
+- **Frase 1:** "La estructura del frontend sigue arquitectura modular."  
+  **Dirígete a:** [`frontend/src/App.tsx`](../../frontend/src/App.tsx)  
+  **Acción en pantalla:** muestra la carpeta raíz del código.
+- **Frase 2:** "Tenemos pages donde están las vistas principales como Login, Dashboard, etc."  
+  **Dirígete a:** [`frontend/src/pages/Login.tsx`](../../frontend/src/pages/Login.tsx)  
+  **Acción en pantalla:** abre la carpeta de páginas.
+- **Frase 3:** "Luego components contiene componentes reutilizables como LoginForm, PedidoCard, etc."  
+  **Dirígete a:** [`frontend/src/components/LoginForm.tsx`](../../frontend/src/components/LoginForm.tsx)  
+  **Acción en pantalla:** enseña los componentes reutilizables.
+- **Frase 4:** "En services tenemos la lógica de comunicación con el backend mediante fetch."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** muestra el archivo de servicios.
+- **Frase 5:** "Context maneja el estado global de autenticación usando React Context API."  
+  **Dirígete a:** [`frontend/src/context/AuthContext.tsx`](../../frontend/src/context/AuthContext.tsx)  
+  **Acción en pantalla:** abre el contexto de autenticación.
+- **Frase 6:** "Schemas define validaciones usando Zod - esta es nuestra capa de seguridad del lado cliente."  
+  **Dirígete a:** [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)  
+  **Acción en pantalla:** enseña los esquemas de validación.
+- **Frase 7:** "Y en hooks tenemos custom hooks personalizados para lógica reutilizable."  
+  **Dirígete a:** [`frontend/src/hooks/useLogin.ts`](../../frontend/src/hooks/useLogin.ts)  
+  **Acción en pantalla:** entra en la carpeta de hooks si existe.
+- **Frase 8:** "Esta estructura mantiene el código limpio y escalable."  
+  **Dirígete a:** [`frontend/src/App.tsx`](../../frontend/src/App.tsx)  
+  **Acción en pantalla:** cierra con una vista general de la estructura.
 
 **📁 Estructura física:**
-- 📄 Páginas: `frontend/src/pages/` → `Login.tsx`, `admin/`, `cliente/`
-- 🧩 Componentes: `frontend/src/components/` → `LoginForm.tsx`, `PedidoCard.tsx`, `ProtectedRoute.tsx`
-- 🌍 Servicios: `frontend/src/services/api.ts` (fetch/requests)
-- 🎯 Contexto: `frontend/src/context/AuthContext.tsx`
-- ✅ Esquemas: `frontend/src/schemas/` → `auth.schema.ts`, `pedido.schema.ts`
-- 🪝 Hooks: `frontend/src/hooks/` → custom hooks propios
-- 🎨 Estilos: `frontend/src/App.css`, con Tailwind CSS (`frontend/tailwind.config.js`)
+- 📄 Páginas: [`frontend/src/pages/Login.tsx`](../../frontend/src/pages/Login.tsx), [`frontend/src/pages/admin/AdminDashboard.tsx`](../../frontend/src/pages/admin/AdminDashboard.tsx), [`frontend/src/pages/cliente/ClienteDashboard.tsx`](../../frontend/src/pages/cliente/ClienteDashboard.tsx)
+- 🧩 Componentes: [`frontend/src/components/LoginForm.tsx`](../../frontend/src/components/LoginForm.tsx), [`frontend/src/components/layout/ProtectedRoute.tsx`](../../frontend/src/components/layout/ProtectedRoute.tsx), [`frontend/src/components/CreateOrderForm/CreateOrderForm.tsx`](../../frontend/src/components/CreateOrderForm/CreateOrderForm.tsx)
+- 🌍 Servicios: [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts) (fetch/requests)
+- 🎯 Contexto: [`frontend/src/context/AuthContext.tsx`](../../frontend/src/context/AuthContext.tsx)
+- ✅ Esquemas: [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)
+- 🪝 Hooks: [`frontend/src/hooks/useLogin.ts`](../../frontend/src/hooks/useLogin.ts) → custom hooks propios
+- 🎨 Estilos: [`frontend/src/App.css`](../../frontend/src/App.css), con Tailwind CSS ([`frontend/tailwind.config.js`](../../frontend/tailwind.config.js))
 
 ---
 
@@ -187,21 +228,41 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   - Redirección según rol
 
 **Lo que se dice:**
-> "El **sistema de autenticación** es fundamental. Cuando un usuario hace login, primero validamos los datos del lado cliente usando **Zod** - esto asegura que cumplan ciertos requisitos antes de enviar. Luego hacemos una petición POST al backend, que verifica las credenciales en base de datos y devuelve un **token JWT**. Este token se almacena en localStorage. El **AuthContext** mantiene el estado de autenticación en toda la app - guarda el usuario actual y el token. Luego, un **ProtectedRoute** usa este contexto para permitir o denegar el acceso a páginas según roles. Si intentas acceder a una página de admin siendo cliente, automáticamente te redirige."
+- **Frase 1:** "El sistema de autenticación es fundamental."  
+  **Dirígete a:** [`frontend/src/components/LoginForm.tsx`](../../frontend/src/components/LoginForm.tsx)  
+  **Acción en pantalla:** abre el formulario de login.
+- **Frase 2:** "Cuando un usuario hace login, primero validamos los datos del lado cliente usando Zod - esto asegura que cumplan ciertos requisitos antes de enviar."  
+  **Dirígete a:** [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)  
+  **Acción en pantalla:** muestra la validación del esquema.
+- **Frase 3:** "Luego hacemos una petición POST al backend, que verifica las credenciales en base de datos y devuelve un token JWT."  
+  **Dirígete a:** [`frontend/src/components/LoginForm.tsx`](../../frontend/src/components/LoginForm.tsx) o [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** enseña la petición de autenticación.
+- **Frase 4:** "Este token se almacena en localStorage."  
+  **Dirígete a:** [`frontend/src/context/AuthContext.tsx`](../../frontend/src/context/AuthContext.tsx)  
+  **Acción en pantalla:** muestra el guardado del token.
+- **Frase 5:** "El AuthContext mantiene el estado de autenticación en toda la app - guarda el usuario actual y el token."  
+  **Dirígete a:** [`frontend/src/context/AuthContext.tsx`](../../frontend/src/context/AuthContext.tsx)  
+  **Acción en pantalla:** resalta la gestión del estado global.
+- **Frase 6:** "Luego, un ProtectedRoute usa este contexto para permitir o denegar el acceso a páginas según roles."  
+  **Dirígete a:** [`frontend/src/components/layout/ProtectedRoute.tsx`](../../frontend/src/components/layout/ProtectedRoute.tsx)  
+  **Acción en pantalla:** enseña la lógica de protección de rutas.
+- **Frase 7:** "Si intentas acceder a una página de admin siendo cliente, automáticamente te redirige."  
+  **Dirígete a:** [`frontend/src/components/layout/ProtectedRoute.tsx`](../../frontend/src/components/layout/ProtectedRoute.tsx)  
+  **Acción en pantalla:** finaliza mostrando la redirección.
 
 **📁 Archivos detallados:**
-- 🔐 Formulario Login: `frontend/src/components/LoginForm.tsx` (validación con Zod, POST)
+- 🔐 Formulario Login: [`frontend/src/components/LoginForm.tsx`](../../frontend/src/components/LoginForm.tsx) (validación con Zod, POST)
   - Línea clave: `schema.parse(data)` o `safeParse(data)`
   - API call: `POST /api/auth/login`
-- 🌍 Contexto Auth: `frontend/src/context/AuthContext.tsx`
+- 🌍 Contexto Auth: [`frontend/src/context/AuthContext.tsx`](../../frontend/src/context/AuthContext.tsx)
   - Almacena: `user`, `token`, `isAuthenticated`, `role`
   - localStorage: `authToken`, `userRole`
-- 🛂 Rutas protegidas: `frontend/src/components/ProtectedRoute.tsx`
+- 🛂 Rutas protegidas: [`frontend/src/components/layout/ProtectedRoute.tsx`](../../frontend/src/components/layout/ProtectedRoute.tsx)
   - Valida rol vs ruta requerida
   - Redirecciona si no autorizado
-- ✅ Esquema: `frontend/src/schemas/auth.schema.ts`
+- ✅ Esquema: [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)
   - Validación: email, contraseña (min length, format)
-- 🔗 Backend: `backend/src/main/java/...controller/AuthController.java` (POST /api/auth/login)
+- 🔗 Backend: [`backend/src/main/java/com/realprint/realprintbackend/controller/AuthController.java`](../../backend/src/main/java/com/realprint/realprintbackend/controller/AuthController.java) (POST /api/auth/login)
 
 ---
 
@@ -220,20 +281,43 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   - useNavigate
 
 **Lo que se dice:**
-> "En el **ClienteDashboard**, por ejemplo, usamos **hooks de React** para manejar el estado. Al montar el componente, un useEffect llama a un servicio que trae todos los pedidos del cliente desde el backend. El estado se actualiza y se renderizan los componentes Card. Cada card es **reutilizable** y responde a acciones del usuario. Cuando el cliente hace clic en 'Nuevo Pedido', se abre un formulario. Este formulario usa **validación en tiempo real** con Zod - cada vez que cambias un campo, se valida. Si hay errores, los ve inmediatamente. Cuando envía el formulario, hacemos un POST con los datos validados, la aplicación espera la respuesta del backend y si es exitosa, nos redirige a la lista de pedidos con un mensaje de éxito."
+- **Frase 1:** "En el ClienteDashboard, por ejemplo, usamos hooks de React para manejar el estado."  
+  **Dirígete a:** [`frontend/src/pages/cliente/ClienteDashboard.tsx`](../../frontend/src/pages/cliente/ClienteDashboard.tsx)  
+  **Acción en pantalla:** abre el dashboard del cliente.
+- **Frase 2:** "Al montar el componente, un useEffect llama a un servicio que trae todos los pedidos del cliente desde el backend."  
+  **Dirígete a:** [`frontend/src/pages/cliente/ClienteDashboard.tsx`](../../frontend/src/pages/cliente/ClienteDashboard.tsx) y [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** señala el `useEffect` y la llamada al servicio.
+- **Frase 3:** "El estado se actualiza y se renderizan los componentes Card."  
+  **Dirígete a:** [`frontend/src/components/CreateOrderForm/CreateOrderForm.tsx`](../../frontend/src/components/CreateOrderForm/CreateOrderForm.tsx)  
+  **Acción en pantalla:** muestra la tarjeta reutilizable.
+- **Frase 4:** "Cada card es reutilizable y responde a acciones del usuario."  
+  **Dirígete a:** [`frontend/src/components/CreateOrderForm/CreateOrderForm.tsx`](../../frontend/src/components/CreateOrderForm/CreateOrderForm.tsx)  
+  **Acción en pantalla:** permanece en la tarjeta para explicar sus props.
+- **Frase 5:** "Cuando el cliente hace clic en Nuevo Pedido, se abre un formulario."  
+  **Dirígete a:** [`frontend/src/pages/cliente/LinearPedidoEditor.tsx`](../../frontend/src/pages/cliente/LinearPedidoEditor.tsx)  
+  **Acción en pantalla:** abre el formulario de pedido.
+- **Frase 6:** "Este formulario usa validación en tiempo real con Zod - cada vez que cambias un campo, se valida."  
+  **Dirígete a:** [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)  
+  **Acción en pantalla:** muestra el esquema de validación.
+- **Frase 7:** "Si hay errores, los ve inmediatamente."  
+  **Dirígete a:** [`frontend/src/pages/cliente/LinearPedidoEditor.tsx`](../../frontend/src/pages/cliente/LinearPedidoEditor.tsx)  
+  **Acción en pantalla:** enseña los mensajes de error en el formulario.
+- **Frase 8:** "Cuando envía el formulario, hacemos un POST con los datos validados, la aplicación espera la respuesta del backend y si es exitosa, nos redirige a la lista de pedidos con un mensaje de éxito."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts) y [`frontend/src/pages/cliente/ClienteDashboard.tsx`](../../frontend/src/pages/cliente/ClienteDashboard.tsx)  
+  **Acción en pantalla:** muestra el envío y la redirección final.
 
 **📁 Archivos y conceptos:**
-- 👤 Dashboard Cliente: `frontend/src/pages/cliente/ClienteDashboard.tsx`
+- 👤 Dashboard Cliente: [`frontend/src/pages/cliente/ClienteDashboard.tsx`](../../frontend/src/pages/cliente/ClienteDashboard.tsx)
   - `useState([])` para lista de pedidos
   - `useEffect(() => { fetchPedidos() }, [])` al montar
   - Mapeo: `pedidos.map(p => <PedidoCard key={p.id} pedido={p} />)`
   
-- 📦 Card Pedido: `frontend/src/components/PedidoCard.tsx`
+- 📦 Componente formulario/pasos: [`frontend/src/components/CreateOrderForm/CreateOrderForm.tsx`](../../frontend/src/components/CreateOrderForm/CreateOrderForm.tsx)
   - Props: `pedido: Pedido`
   - Render: datos del pedido (id, estado, createdAt)
   - Acciones: click para abrir detalles
   
-- ➕ Formulario Pedido: `frontend/src/pages/cliente/LinearPedidoEditor.tsx` o similar
+- ➕ Formulario Pedido: [`frontend/src/pages/cliente/LinearPedidoEditor.tsx`](../../frontend/src/pages/cliente/LinearPedidoEditor.tsx)
   - `useState({ tipo, cantidad, descripcion, archivo })`
   - `onChange` → validación instantánea con Zod
   - `onSubmit` → `createPedido(data)` → useNavigate a dashboard
@@ -259,10 +343,33 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
 - Manejo de errores (try/catch)
 
 **Lo que se dice:**
-> "La **comunicación con el backend** está centralizada en servicios. Cada servicio es una función que hace fetch a un endpoint específico. Por ejemplo, `fetchPedidos()` hace GET a `/api/pedidos`. Nota que todas las peticiones incluyen el **token JWT** en los headers bajo 'Authorization: Bearer'. Esto permite al backend verificar que eres un usuario autenticado. El servicio `createPedido()` valida localmente primero, luego hace POST con los datos. `uploadFile()` es especial - usa FormData porque estamos subiendo archivos binarios. Todos los servicios tienen manejo de errores: si la respuesta no es exitosa, lanzamos un error que el componente puede capturar y mostrar al usuario."
+- **Frase 1:** "La comunicación con el backend está centralizada en servicios."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** abre el archivo de servicios.
+- **Frase 2:** "Cada servicio es una función que hace fetch a un endpoint específico."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** recorre las funciones principales.
+- **Frase 3:** "Por ejemplo, fetchPedidos() hace GET a /api/pedidos."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** señala `fetchPedidos()`.
+- **Frase 4:** "Nota que todas las peticiones incluyen el token JWT en los headers bajo Authorization: Bearer."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** resalta los headers comunes.
+- **Frase 5:** "Esto permite al backend verificar que eres un usuario autenticado."  
+  **Dirígete a:** [`backend/src/main/java/com/realprint/realprintbackend/controller/AuthController.java`](../../backend/src/main/java/com/realprint/realprintbackend/controller/AuthController.java)  
+  **Acción en pantalla:** vincula el frontend con el backend.
+- **Frase 6:** "El servicio createPedido() valida localmente primero, luego hace POST con los datos."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** muestra `createPedido()`.
+- **Frase 7:** "uploadFile() es especial - usa FormData porque estamos subiendo archivos binarios."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** señala `uploadFile()`.
+- **Frase 8:** "Todos los servicios tienen manejo de errores: si la respuesta no es exitosa, lanzamos un error que el componente puede capturar y mostrar al usuario."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** muestra el bloque `try/catch`.
 
 **📁 Archivo principal:**
-- 🌐 API Service: `frontend/src/services/api.ts`
+- 🌐 API Service: [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)
   
   **Funciones principales:**
   - `fetchPedidos(token)` → GET `/api/pedidos`
@@ -291,7 +398,7 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   }
   ```
 
-- 🔗 Endpoints Backend: Ver `backend/src/main/java/.../controller/`
+- 🔗 Endpoints Backend: Ver [`backend/src/main/java/com/realprint/realprintbackend/controller/`](../../backend/src/main/java/com/realprint/realprintbackend/controller/)
   - `AuthController.java` → POST /api/auth/login
   - `PedidoController.java` → GET, POST, PUT endpoints
   - `ArchivosController.java` → POST /api/archivos/upload
@@ -312,10 +419,27 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   - Manejo de errores
 
 **Lo que se dice:**
-> "**Zod** es una librería de validación que nos permite definir esquemas en TypeScript. Por ejemplo, el esquema de pedido define que 'tipo' debe ser una cadena de ciertos valores, 'cantidad' debe ser un número positivo, 'descripcion' máximo 500 caracteres, y el 'archivo' debe ser un PDF menor a 10MB. En el formulario, usamos `schema.safeParse(datos)` para validar. Si hay errores, nos devuelve un objeto con los errores específicos que mostramos al usuario. Si es válido, procedemos a enviar. Esto combina típicamente con **TypeScript** que nos da **tipos estáticos** - tanto Zod como TypeScript trabajan juntos para asegurar que los datos que manejamos son siempre del tipo correcto."
+- **Frase 1:** "Zod es una librería de validación que nos permite definir esquemas en TypeScript."  
+  **Dirígete a:** [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)  
+  **Acción en pantalla:** abre el esquema de validación.
+- **Frase 2:** "Por ejemplo, el esquema de pedido define que tipo debe ser una cadena de ciertos valores, cantidad debe ser un número positivo, descripcion máximo 500 caracteres, y el archivo debe ser un PDF menor a 10MB."  
+  **Dirígete a:** [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)  
+  **Acción en pantalla:** muestra cada regla una por una.
+- **Frase 3:** "En el formulario, usamos schema.safeParse(datos) para validar."  
+  **Dirígete a:** [`frontend/src/pages/cliente/LinearPedidoEditor.tsx`](../../frontend/src/pages/cliente/LinearPedidoEditor.tsx)  
+  **Acción en pantalla:** enseña el formulario que consume el esquema.
+- **Frase 4:** "Si hay errores, nos devuelve un objeto con los errores específicos que mostramos al usuario."  
+  **Dirígete a:** [`frontend/src/pages/cliente/LinearPedidoEditor.tsx`](../../frontend/src/pages/cliente/LinearPedidoEditor.tsx)  
+  **Acción en pantalla:** muestra el bloque de errores.
+- **Frase 5:** "Si es válido, procedemos a enviar."  
+  **Dirígete a:** [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** vuelve al envío de datos.
+- **Frase 6:** "Esto combina típicamente con TypeScript que nos da tipos estáticos - tanto Zod como TypeScript trabajan juntos para asegurar que los datos que manejamos son siempre del tipo correcto."  
+  **Dirígete a:** [`frontend/tsconfig.json`](../../frontend/tsconfig.json) y [`frontend/src/vite-env.d.ts`](../../frontend/src/vite-env.d.ts)  
+  **Acción en pantalla:** finaliza mostrando el tipado del proyecto.
 
 **📁 Archivos de validación:**
-- ✅ Esquema Pedido: `frontend/src/schemas/pedido.schema.ts`
+- ✅ Esquema Pedido: [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)
   ```typescript
   const pedidoSchema = z.object({
     tipo: z.enum(['IMPRESION_DIGITAL', 'OFFSET', 'SERIGRAFÍA']),
@@ -328,7 +452,7 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   });
   ```
   
-- ✅ Esquema Auth: `frontend/src/schemas/auth.schema.ts`
+- ✅ Esquema Auth: [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts)
   ```typescript
   const loginSchema = z.object({
     email: z.string().email(),
@@ -336,7 +460,7 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
   });
   ```
 
-- 🔤 Tipos TypeScript: `frontend/src/types/` (si existe)
+- 🔤 Tipos TypeScript: [`frontend/src/vite-env.d.ts`](../../frontend/src/vite-env.d.ts) y tipos inferidos en componentes
   - `Pedido`, `Usuario`, `AuthResponse`, etc.
   - Sincronizados con Zod schemas
   
@@ -356,7 +480,18 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
 ### **[4:30-5:00] Resumen y Mejores Prácticas (30 seg)**
 
 **Lo que se dice:**
-> "Para resumir, el frontend de RealPrint usa **React** con hooks para componentes funcionales, **TypeScript** para seguridad de tipos, **Zod** para validación robusta, **React Context** para estado global, y una **estructura modular** con separación clara entre páginas, componentes y servicios. Esto hace el código **mantenible, escalable y seguro**. Si quieres ver el **backend** o tener más detalles, déjame comentarios. ¡Gracias!"
+- **Frase 1:** "Para resumir, el frontend de RealPrint usa React con hooks para componentes funcionales, TypeScript para seguridad de tipos, Zod para validación robusta, React Context para estado global, y una estructura modular con separación clara entre páginas, componentes y servicios."  
+  **Dirígete a:** [`frontend/package.json`](../../frontend/package.json), [`frontend/src/context/AuthContext.tsx`](../../frontend/src/context/AuthContext.tsx), [`frontend/src/schemas/orderValidation.ts`](../../frontend/src/schemas/orderValidation.ts), [`frontend/src/services/index.ts`](../../frontend/src/services/index.ts)  
+  **Acción en pantalla:** resume abriendo las piezas clave del frontend.
+- **Frase 2:** "Esto hace el código mantenible, escalable y seguro."  
+  **Dirígete a:** [`frontend/src/App.tsx`](../../frontend/src/App.tsx)  
+  **Acción en pantalla:** enseña la estructura general una última vez.
+- **Frase 3:** "Si quieres ver el backend o tener más detalles, déjame comentarios."  
+  **Dirígete a:** [`backend/src/main/java/com/realprint/realprintbackend/controller/`](../../backend/src/main/java/com/realprint/realprintbackend/controller/)  
+  **Acción en pantalla:** conecta con el lado servidor.
+- **Frase 4:** "¡Gracias!"  
+  **Dirígete a:** vista general del proyecto  
+  **Acción en pantalla:** cierra con una visión global del repositorio.
 
 **📁 Resumen de tecnologías:**
 - ⚛️ **React 18**: Componentes funcionales con hooks
@@ -364,8 +499,8 @@ Explicar la estructura, patrones de diseño y tecnologías usadas en el frontend
 - ✅ **Zod**: Validación de datos
 - 🎯 **React Context**: Estado global (auth)
 - 🛣️ **React Router**: Navegación
-- 🎨 **Tailwind CSS**: Estilos (config: `frontend/tailwind.config.js`)
-- ✨ **Vite**: Build tool (config: `frontend/vite.config.js`)
+- 🎨 **Tailwind CSS**: Estilos (config: [`frontend/tailwind.config.js`](../../frontend/tailwind.config.js))
+- ✨ **Vite**: Build tool (config: [`frontend/vite.config.js`](../../frontend/vite.config.js))
 
 **🏗️ Arquitectura:**
 ```
@@ -432,14 +567,14 @@ Backend API (Spring Boot)
 
 ## ⏱️ Timeline de Referencia
 
-### Video 1: Interfaz (5 min)
+### Video 1: Motivacion + Interfaz (5 min)
 | Tiempo | Sección | Duración |
 |--------|---------|----------|
-| 0:00 - 0:30 | Intro | 30s |
-| 0:30 - 1:45 | Login | 1m 15s |
-| 1:45 - 3:15 | Cliente → Nuevo Pedido | 1m 30s |
-| 3:15 - 4:45 | Admin → Gestión Pedidos | 1m 30s |
-| 4:45 - 5:00 | Resumen | 15s |
+| 0:00 - 1:00 | Problema + Motivacion | 1m |
+| 1:00 - 2:00 | Login y Roles | 1m |
+| 2:00 - 3:20 | Cliente → Nuevo Pedido | 1m 20s |
+| 3:20 - 4:40 | Admin → Gestion Pedidos | 1m 20s |
+| 4:40 - 5:00 | Cierre y puente al codigo | 20s |
 
 ### Video 2: Técnico (5 min)
 | Tiempo | Sección | Duración |
@@ -461,13 +596,13 @@ Backend API (Spring Boot)
 frontend/
 ├── src/
 │   ├── pages/                          ← Vistas/Páginas
-│   │   ├── Login.tsx                   [Video 1: 0:30-1:45] [Video 2: 1:15-2:00]
+│   │   ├── Login.tsx                   [Video 1: 1:00-2:00] [Video 2: 1:15-2:00]
 │   │   ├── admin/
-│   │   │   ├── AdminDashboard.tsx      [Video 1: 3:15-4:45]
-│   │   │   └── AdminPedidos.tsx        [Video 1: 3:15-4:45]
+│   │   │   ├── AdminDashboard.tsx      [Video 1: 3:20-4:40]
+│   │   │   └── AdminPedidos.tsx        [Video 1: 3:20-4:40]
 │   │   └── cliente/
-│   │       ├── ClienteDashboard.tsx    [Video 1: 1:45-3:15] [Video 2: 2:00-3:05]
-│   │       └── LinearPedidoEditor.tsx  [Video 1: 1:45-3:15]
+│   │       ├── ClienteDashboard.tsx    [Video 1: 2:00-3:20] [Video 2: 2:00-3:05]
+│   │       └── LinearPedidoEditor.tsx  [Video 1: 2:00-3:20]
 │   │
 │   ├── components/                     ← Componentes Reutilizables
 │   │   ├── LoginForm.tsx               [Video 2: 1:15-2:00] Validación Zod
@@ -519,11 +654,12 @@ docker/
 
 | Concepto | Archivo(s) | Video | Tiempo |
 |----------|-----------|-------|--------|
-| **Login / Autenticación** | `LoginForm.tsx`, `AuthContext.tsx`, `ProtectedRoute.tsx` | V1, V2 | 0:30-1:45, 1:15-2:00 |
-| **Dashboard Admin** | `AdminDashboard.tsx`, `AdminPedidos.tsx` | V1 | 3:15-4:45 |
-| **Dashboard Cliente** | `ClienteDashboard.tsx` | V1, V2 | 1:45-3:15, 2:00-3:05 |
-| **Crear Pedido** | `LinearPedidoEditor.tsx`, `pedido.schema.ts` | V1, V2 | 1:45-3:15, 3:50-4:30 |
-| **Subir Archivo** | `api.ts` (uploadFile) | V1 | 1:45-3:15 |
+| **Motivacion del Proyecto** | `docs/md/Memoria_Final.md` (1.1, 1.2) | V1 | 0:00-1:00 |
+| **Login / Autenticacion** | UI login + `LoginForm.tsx`, `AuthContext.tsx`, `ProtectedRoute.tsx` | V1, V2 | 1:00-2:00, 1:15-2:00 |
+| **Dashboard Admin** | `AdminDashboard.tsx`, `AdminPedidos.tsx` | V1 | 3:20-4:40 |
+| **Dashboard Cliente** | `ClienteDashboard.tsx` | V1, V2 | 2:00-3:20, 2:00-3:05 |
+| **Crear Pedido** | `LinearPedidoEditor.tsx`, `pedido.schema.ts` | V1, V2 | 2:00-3:20, 3:50-4:30 |
+| **Subir Archivo** | UI adjuntos + `api.ts` | V1 | 2:00-3:20 |
 | **Estado Global** | `AuthContext.tsx`, localStorage | V2 | 1:15-2:00 |
 | **Validación Zod** | `auth.schema.ts`, `pedido.schema.ts` | V2 | 3:50-4:30 |
 | **API | Servicios** | `services/api.ts` | V2 | 3:05-3:50 |
