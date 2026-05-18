@@ -13,7 +13,7 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 
 **Usuarios de prueba en producción:**
 - `admin` / `admin123`
-- `cliente` / `cliente123`
+- `igor` / `igor123`
 
 ---
 
