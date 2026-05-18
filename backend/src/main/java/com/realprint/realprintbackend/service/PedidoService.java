@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.entity.Pedido;
 import com.realprint.realprintbackend.entity.PedidoArchivo;
 import com.realprint.realprintbackend.entity.PedidoEstado;
 import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.exception.PedidoNoEncontradoException;
+import com.realprint.realprintbackend.mapper.PedidoMapper;
 import com.realprint.realprintbackend.repository.PedidoArchivoRepository;
 import com.realprint.realprintbackend.repository.PedidoRepository;
 import com.realprint.realprintbackend.repository.UsuarioRepository;
@@ -63,6 +65,16 @@ public class PedidoService {
     }
 
     /**
+     * Devuelve todos los pedidos paginados ya convertidos a DTO.
+     * El mapeo se hace dentro de la transacción para asegurar que las
+     * relaciones lazy (especialmente archivos) estén disponibles.
+     */
+    @Transactional(readOnly = true)
+    public Page<PedidoDTO> findAllDTO(Pageable pageable) {
+        return pedidoRepository.findAllWithCliente(pageable).map(PedidoMapper::toDTO);
+    }
+
+    /**
      * Busca un pedido por id.
      * Si no existe, lanzamos una excepción de negocio clara.
      */
@@ -73,12 +85,31 @@ public class PedidoService {
     }
 
     /**
+     * Devuelve un pedido por id ya convertido a DTO.
+     * Útil para pantallas que necesitan ver archivos asociados sin perder la sesión.
+     */
+    @Transactional(readOnly = true)
+    public PedidoDTO findByIdDTO(Long id) {
+        return PedidoMapper.toDTO(findById(id));
+    }
+
+    /**
      * Devuelve los pedidos de un cliente concreto.
      * Es la base de la pantalla "Mis pedidos".
      */
     @Transactional(readOnly = true)
     public List<Pedido> findByClienteId(Long clienteId) {
         return pedidoRepository.findByClienteId(clienteId);
+    }
+
+    /**
+     * Devuelve los pedidos de un cliente ya convertidos a DTO.
+     */
+    @Transactional(readOnly = true)
+    public List<PedidoDTO> findByClienteIdDTO(Long clienteId) {
+        return pedidoRepository.findByClienteId(clienteId).stream()
+                .map(PedidoMapper::toDTO)
+                .toList();
     }
 
     /**
@@ -208,6 +239,14 @@ public class PedidoService {
                 .tamaño(file.getSize())
                 .build();
 
-        return pedidoArchivoRepository.save(pedidoArchivo);
+        PedidoArchivo archivoGuardado = pedidoArchivoRepository.save(pedidoArchivo);
+
+        // Mantener sincronizada la colección en memoria para evitar listas desfasadas
+        // durante la misma transacción.
+        if (pedido.getArchivos() != null) {
+            pedido.getArchivos().add(archivoGuardado);
+        }
+
+        return archivoGuardado;
     }
 }

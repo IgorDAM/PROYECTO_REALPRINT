@@ -1,10 +1,11 @@
 name: Keep Backend Alive
 
-# Ejecutar cada 10 minutos para evitar cold start de Render
+# Ejecutar cada 5 minutos para evitar cold start de Render
+# Intervalo más corto asegura que se levante cuando el usuario intente acceder
 on:
   schedule:
-    # Cada 10 minutos (cron: minuto hora día mes día-semana)
-    - cron: '*/10 * * * *'
+    # Cada 5 minutos (cron: minuto hora día mes día-semana)
+    - cron: '*/5 * * * *'
 
   # Permitir ejecución manual desde GitHub Actions UI
   workflow_dispatch:
@@ -16,7 +17,7 @@ jobs:
     steps:
       - name: Ping backend health endpoint
         run: |
-          echo "🏓 Haciendo ping al backend..."
+          echo "🏓 Haciendo ping al backend para evitar cold start..."
 
           # Función para hacer ping
           ping_backend() {
@@ -25,7 +26,7 @@ jobs:
 
             echo "🔄 Intento $attempt (timeout: ${timeout}s)..."
             response=$(curl -s -w "\n%{http_code}" --max-time $timeout \
-              https://proyecto-realprint.onrender.com/api/actuator/health 2>&1)
+              https://proyecto-realprint.onrender.com/api/auth/health 2>&1)
 
             http_code=$(echo "$response" | tail -n1)
             body=$(echo "$response" | head -n-1)

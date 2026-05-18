@@ -1,7 +1,5 @@
 package com.realprint.realprintbackend.controller;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -101,13 +99,7 @@ public class PedidoController {
         // Construir Pageable
         Pageable pageable = PageRequest.of(page, size, sortObj);
 
-        // Obtener página de pedidos
-        Page<Pedido> pedidosPage = pedidoService.findAll(pageable);
-
-        // Convertir a DTOs
-        Page<PedidoDTO> dtosPage = pedidosPage.map(PedidoMapper::toDTO);
-
-        return ResponseEntity.ok(dtosPage);
+        return ResponseEntity.ok(pedidoService.findAllDTO(pageable));
     }
 
     /**
@@ -127,7 +119,7 @@ public class PedidoController {
     })
     @GetMapping("/mis-pedidos")
     @PreAuthorize("hasRole('CLIENTE')")
-    public ResponseEntity<List<PedidoDTO>> obtenerMisPedidos(Authentication auth) {
+    public ResponseEntity<java.util.List<PedidoDTO>> obtenerMisPedidos(Authentication auth) {
         if (auth == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autenticado");
         }
@@ -135,12 +127,7 @@ public class PedidoController {
         String username = auth.getName();
         Usuario usuario = pedidoService.findUsuarioByUsername(username);
 
-        List<Pedido> pedidos = pedidoService.findByClienteId(usuario.getId());
-        List<PedidoDTO> dtos = pedidos.stream()
-                .map(PedidoMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(pedidoService.findByClienteIdDTO(usuario.getId()));
     }
 
     /**
@@ -163,8 +150,7 @@ public class PedidoController {
     @GetMapping("/{id}")
     @PostAuthorize("@securityRules.canReadPedido(authentication, returnObject.body)")
     public ResponseEntity<PedidoDTO> obtenerPedido(@PathVariable Long id) {
-        Pedido pedido = pedidoService.findById(id);
-        return ResponseEntity.ok(PedidoMapper.toDTO(pedido));
+        return ResponseEntity.ok(pedidoService.findByIdDTO(id));
     }
 
     /**

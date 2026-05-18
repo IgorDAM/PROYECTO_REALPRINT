@@ -1,5 +1,6 @@
 package com.realprint.realprintbackend.mapper;
 
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import com.realprint.realprintbackend.dto.PedidoArchivoDTO;
@@ -86,11 +87,11 @@ public class PedidoMapper {
                 .estado(estadoEnumToString(pedido.getEstado()))
                 .total(pedido.getTotal())
                 // Incluir archivos asociados
-                .archivos(pedido.getArchivos() != null
+                .archivos(pedido.getArchivos() != null && !pedido.getArchivos().isEmpty()
                         ? pedido.getArchivos().stream()
                                 .map(PedidoMapper::archivoToDTO)
                                 .collect(Collectors.toList())
-                        : null)
+                        : new ArrayList<>())
                 .build();
     }
 

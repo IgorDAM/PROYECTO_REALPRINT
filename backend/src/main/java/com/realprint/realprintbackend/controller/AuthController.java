@@ -93,4 +93,19 @@ public class AuthController {
     public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity.status(401).body(ex.getMessage());
     }
+
+    /**
+     * Endpoint de healthcheck para keep-alive en Render.
+     * No requiere autenticacion pero levanta los beans de AuthService.
+     * Responde rapidamente sin usar recursos de la BD.
+     */
+    @Operation(
+        summary = "Health check del modulo de autenticación",
+        description = "Verifica que el modulo de autenticación está disponible. Usado por keep-alive en CI/CD."
+    )
+    @ApiResponse(responseCode = "200", description = "Servicio de autenticación disponible")
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("{\"status\":\"ok\"}");
+    }
 }

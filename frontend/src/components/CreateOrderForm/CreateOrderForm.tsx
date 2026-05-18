@@ -228,6 +228,15 @@ export function CreateOrderForm({ pedido, onCancel }: CreateOrderFormProps = {})
           } else {
             toast.success(`¡Pedido actualizado con ${successUploads} archivo(s) exitosamente!`);
           }
+
+          // Refrescar el pedido para asegurar que los archivos aparezcan en todas partes
+          try {
+            const pedidoActualizado = await pedidosService.getById(pedidoResultante.id);
+            // Actualizar en contexto local
+            updatePedidoSafe(pedidoResultante.id, pedidoActualizado);
+          } catch (error) {
+            console.warn('No se pudo refrescar el pedido, pero los archivos fueron subidos exitosamente');
+          }
         } else {
           toast.success('¡Pedido actualizado exitosamente!');
         }
@@ -262,6 +271,15 @@ export function CreateOrderForm({ pedido, onCancel }: CreateOrderFormProps = {})
             toast.warning(`Pedido creado. ${successUploads} archivo(s) subido(s), ${failedUploads} fallaron.`);
           } else {
             toast.success(`¡Pedido creado con ${successUploads} archivo(s) exitosamente!`);
+          }
+
+          // Refrescar el pedido para asegurar que los archivos aparezcan en todas partes
+          try {
+            const pedidoActualizado = await pedidosService.getById(pedidoResultante.id);
+            // Actualizar en contexto local
+            updatePedidoSafe(pedidoResultante.id, pedidoActualizado);
+          } catch (error) {
+            console.warn('No se pudo refrescar el pedido, pero los archivos fueron subidos exitosamente');
           }
         } else {
           toast.success('¡Pedido creado exitosamente!');

@@ -38,12 +38,14 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 	@EntityGraph(attributePaths = {"cliente", "archivos"})
 	List<Pedido> findByEstado(PedidoEstado estado);
 
-	// Método custom con JOIN FETCH para paginación - incluye archivos
-	@Query("SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.archivos")
+	// Método custom que carga relaciones con @EntityGraph
+	@EntityGraph(attributePaths = {"cliente", "archivos"})
+	@Query("SELECT DISTINCT p FROM Pedido p")
 	List<Pedido> findAllWithCliente();
 
-	// Método custom con JOIN FETCH para paginación - incluye archivos
-	@Query(value = "SELECT DISTINCT p FROM Pedido p LEFT JOIN FETCH p.cliente LEFT JOIN FETCH p.archivos",
+	// Método custom con paginación - carga relaciones con @EntityGraph
+	@EntityGraph(attributePaths = {"cliente", "archivos"})
+	@Query(value = "SELECT DISTINCT p FROM Pedido p",
 	       countQuery = "SELECT COUNT(DISTINCT p) FROM Pedido p")
 	Page<Pedido> findAllWithCliente(Pageable pageable);
 
