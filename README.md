@@ -2,6 +2,21 @@
 
 Sistema de gestion de pedidos para servicios de impresion personalizada, con frontend React y backend REST seguro.
 
+## 🚀 Acceso a Producción
+
+**App en producción:** [https://app-realprint.netlify.app/](https://app-realprint.netlify.app/)
+
+### Infraestructura en la nube
+- **Frontend**: Alojado en [Netlify](https://netlify.com) (React + Vite compilado)
+- **Backend API**: Alojado en [Render](https://render.com) (Spring Boot)
+- **Base de datos**: PostgreSQL en [Render](https://render.com)
+
+**Usuarios de prueba en producción:**
+- `admin` / `admin123`
+- `cliente` / `cliente123`
+
+---
+
 ## Estructura del proyecto
 
 ```text
@@ -61,7 +76,7 @@ URLs locales:
 
 Usuarios de prueba:
 - `admin` / `admin123`
-- `cliente1` / `cliente123`
+- `cliente` / `cliente123`
 
 ### Nota de entornos
 
