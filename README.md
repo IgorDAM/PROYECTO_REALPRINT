@@ -17,6 +17,23 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 
 ---
 
+## Documentación destacada
+
+A continuación tienes enlaces directos a la documentación principal del proyecto (en `docs/md`) y a los diagramas (`docs/DIAGRAMAS`).
+
+- Memoria final: [docs/md/Memoria_Final.md](docs/md/Memoria_Final.md)
+- Requisitos funcionales: [docs/md/RealPrint_Requisitos_Funcionales.md](docs/md/RealPrint_Requisitos_Funcionales.md)
+- Requisitos no funcionales: [docs/md/RealPrint_Requisitos_NO_Funcionales.md](docs/md/RealPrint_Requisitos_NO_Funcionales.md)
+- Estructura detallada del proyecto: [docs/md/ESTRUCTURA_PROYECTO.md](docs/md/ESTRUCTURA_PROYECTO.md)
+
+Diagramas (carpeta `docs/DIAGRAMAS`):
+
+- [docs/DIAGRAMAS/DER_RealPrint_Mermaid.md](docs/DIAGRAMAS/DER_RealPrint_Mermaid.md)
+- [docs/DIAGRAMAS/RealPrint_Casos_de_uso.md](docs/DIAGRAMAS/RealPrint_Casos_de_uso.md)
+- [docs/DIAGRAMAS/RealPrint_Diagrama_Clases_Mermaid.md](docs/DIAGRAMAS/RealPrint_Diagrama_Clases_Mermaid.md)
+- [docs/DIAGRAMAS/RealPrint_Diagramas_Secuencia.md](docs/DIAGRAMAS/RealPrint_Diagramas_Secuencia.md)
+- Imágenes del diagrama: [docs/DIAGRAMAS/images/](docs/DIAGRAMAS/images/)
+
 ## Estructura del proyecto
 
 ```text
