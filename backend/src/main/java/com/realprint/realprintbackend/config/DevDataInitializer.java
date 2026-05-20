@@ -29,61 +29,43 @@ public class DevDataInitializer {
     @Bean
     public CommandLineRunner initDevUser() {
         return args -> {
-            // Crear o reparar usuario admin
-            var adminOpt = usuarioRepository.findByUsername("admin");
-            if (adminOpt.isPresent()) {
-                Usuario admin = adminOpt.get();
-                // Reparar si tiene rol incorrecto
-                if (admin.getRol() != RolUsuario.ADMIN) {
-                    admin.setRol(RolUsuario.ADMIN);
-                    admin.setNombre("Administrador");
-                    admin.setEmail("admin@realprint.com");
-                    admin.setPasswordHash(passwordEncoder.encode("admin123"));
-                    usuarioRepository.save(admin);
-                    System.out.println("⚠ Usuario admin reparado: admin / admin123 (rol actualizado a ADMIN)");
-                }
-            } else {
-                Usuario admin = Usuario.builder()
-                        .username("admin")
-                        .nombre("Administrador")
-                        .email("admin@realprint.com")
-                        .passwordHash(passwordEncoder.encode("admin123"))
-                        .rol(RolUsuario.ADMIN)
-                        .activo(true)
-                        .build();
-
+            // Solo crear si no existe: admin
+            if (usuarioRepository.findByUsername("admin").isEmpty()) {
+                Usuario admin = new Usuario();
+                admin.setUsername("admin");
+                admin.setNombre("Administrador");
+                admin.setEmail("admin@realprint.com");
+                admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                admin.setRol(RolUsuario.ADMIN);
+                admin.setActivo(true);
                 usuarioRepository.save(admin);
-                System.out.println("✓ Usuario admin creado: admin / admin123");
+                System.out.println("✓ Usuario admin creado");
             }
 
-            // Crear usuario dev-user si no existe
-            if (!usuarioRepository.findByUsername("dev-user").isPresent()) {
-                Usuario devUser = Usuario.builder()
-                        .username("dev-user")
-                        .nombre("Usuario de Desarrollo")
-                        .email("dev@realprint.local")
-                        .passwordHash(passwordEncoder.encode("dev123"))
-                        .rol(RolUsuario.CLIENTE)
-                        .activo(true)
-                        .build();
-
+            // Solo crear si no existe: dev-user
+            if (usuarioRepository.findByUsername("dev-user").isEmpty()) {
+                Usuario devUser = new Usuario();
+                devUser.setUsername("dev-user");
+                devUser.setNombre("Usuario de Desarrollo");
+                devUser.setEmail("dev@realprint.local");
+                devUser.setPasswordHash(passwordEncoder.encode("dev123"));
+                devUser.setRol(RolUsuario.CLIENTE);
+                devUser.setActivo(true);
                 usuarioRepository.save(devUser);
-                System.out.println("✓ Usuario de desarrollo creado: dev-user / dev123");
+                System.out.println("✓ Usuario de desarrollo creado");
             }
 
-            // Crear usuario cliente de prueba si no existe
-            if (!usuarioRepository.findByUsername("cliente").isPresent()) {
-                Usuario cliente = Usuario.builder()
-                        .username("cliente")
-                        .nombre("Cliente Demo")
-                        .email("cliente@realprint.com")
-                        .passwordHash(passwordEncoder.encode("cliente123"))
-                        .rol(RolUsuario.CLIENTE)
-                        .activo(true)
-                        .build();
-
+            // Solo crear si no existe: cliente
+            if (usuarioRepository.findByUsername("cliente").isEmpty()) {
+                Usuario cliente = new Usuario();
+                cliente.setUsername("cliente");
+                cliente.setNombre("Cliente Demo");
+                cliente.setEmail("cliente@realprint.com");
+                cliente.setPasswordHash(passwordEncoder.encode("cliente123"));
+                cliente.setRol(RolUsuario.CLIENTE);
+                cliente.setActivo(true);
                 usuarioRepository.save(cliente);
-                System.out.println("✓ Usuario cliente creado: cliente / cliente123");
+                System.out.println("✓ Usuario cliente creado");
             }
         };
     }

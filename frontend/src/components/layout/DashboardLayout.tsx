@@ -7,6 +7,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import ErrorBoundary from "../ErrorBoundary";
 import { ErrorFallback } from "../ErrorFallback";
+import Logo from "../Logo";
 
 /**
  * Layout principal del dashboard con sidebar y cabecera responsive.
@@ -41,12 +42,7 @@ export default function DashboardLayout() {
           >
             <span className="material-symbols-outlined text-surface-700">menu</span>
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">RP</span>
-            </div>
-            <span className="font-bold text-surface-900">RealPrint</span>
-          </div>
+          <Logo dark size="sm" align="start" className="mx-0 mb-0" />
         </div>
 
         <div className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8">

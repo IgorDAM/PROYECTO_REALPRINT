@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import Logo from "../Logo";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -67,15 +68,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     `}>
       {/* Header with Logo */}
       <div className="flex items-center justify-between h-20 lg:h-24 border-b border-white/10 px-4 lg:px-6">
-        <div className="flex items-center gap-3 lg:gap-4">
-          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-gold-400 to-gold-500 rounded-xl flex items-center justify-center shadow-gold">
-            <span className="text-white font-bold text-lg lg:text-xl">RP</span>
-          </div>
-          <div>
-            <h1 className="text-lg lg:text-xl font-bold text-white tracking-tight">REALPRINT</h1>
-            <p className="text-xs text-white/70">Gestión Profesional</p>
-          </div>
-        </div>
+        <Logo dark={false} size="sm" align="start" className="mx-0 mb-0" />
         {/* Close button for mobile */}
         <button
           onClick={onClose}

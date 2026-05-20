@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { CheckCircle, Printer, Zap, Shield, ArrowRight, Package, Clock, TrendingUp, Users } from "lucide-react";
 import { GlassCard, Badge } from "../components/ui";
+import Logo from "../components/Logo";
 
 /**
  * Landing page pública de RealPrint.
@@ -20,10 +21,7 @@ export default function LandingPage() {
             {/* Logo */}
             <div className="flex justify-center mb-8">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 border border-white/20">
-                <h1 className="text-4xl sm:text-5xl font-bold text-white flex items-center gap-3">
-                  <Printer className="w-10 h-10 sm:w-12 sm:h-12 text-gold-400" />
-                  RealPrint
-                </h1>
+                <Logo dark={false} size="lg" className="mx-0 mb-0" />
               </div>
             </div>
 
@@ -315,7 +313,7 @@ export default function LandingPage() {
               Plataforma profesional de gestión de pedidos de impresión
             </p>
             <p className="text-surface-500 text-sm">
-              © 2024 RealPrint. Todos los derechos reservados.
+              © 2026 RealPrint. Todos los derechos reservados.
             </p>
           </div>
         </div>

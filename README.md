@@ -5,6 +5,7 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 ## 🚀 Acceso a Producción
 
 **App en producción:** [https://app-realprint.netlify.app/](https://app-realprint.netlify.app/)
+- Posibilidad de cold start en backend (Render) si no ha sido accedido recientemente.
 
 ### Infraestructura en la nube
 - **Frontend**: Alojado en [Netlify](https://netlify.com) (React + Vite compilado)

@@ -14,7 +14,7 @@ export default function Login() {
 
       <div className="bg-white w-full max-w-md p-6 sm:p-10 rounded-2xl sm:rounded-3xl shadow-2xl relative z-10">
         <div className="text-center mb-6 sm:mb-8">
-          <Logo />
+          <Logo className="mx-auto mb-4" />
           <p className="text-surface-500 mt-2 text-sm sm:text-base">Inicie sesión en su cuenta</p>
         </div>
 
@@ -22,7 +22,7 @@ export default function Login() {
 
         <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-surface-200 text-center">
           <p className="text-xs sm:text-sm text-surface-500">
-            © 2024 RealPrint. Todos los derechos reservados.
+            © 2026 RealPrint. Todos los derechos reservados.
           </p>
         </div>
       </div>
