@@ -8,13 +8,14 @@
  */
 import FloatingInput from "./FloatingInput";
 import { useLogin } from "../hooks/useLogin";
+import { Link } from "react-router-dom";
 import type { ChangeEvent } from "react";
 
 const SHOW_DEMO_CREDENTIALS = import.meta.env.DEV && import.meta.env.VITE_USE_LOCAL_AUTH !== "false";
 
 export default function LoginForm() {
   // useLogin centraliza validacion, llamada a auth y redireccion por rol.
-  const { username, password, setUsername, setPassword, handleSubmit, error, loading } = useLogin();
+  const { username, password, setUsername, setPassword, remember, setRemember, handleSubmit, error, loading } = useLogin();
 
   const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => setUsername(e.target.value);
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
@@ -67,12 +68,17 @@ export default function LoginForm() {
       {/* Recordarme y link (placeholder visual, sin logica de recuperacion todavia) */}
       <div className="flex items-center justify-between text-sm">
         <label className="flex items-center cursor-pointer text-surface-600">
-          <input type="checkbox" className="mr-2 w-4 h-4 accent-primary-600 rounded" />
+          <input
+            type="checkbox"
+            className="mr-2 w-4 h-4 accent-primary-600 rounded"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
           Recordarme
         </label>
-        <a className="text-primary-600 hover:text-primary-700 font-medium hover:underline" href="#">
+        <Link to="/forgot-password" className="text-primary-600 hover:text-primary-700 font-medium hover:underline">
           ¿Olvidaste tu contraseña?
-        </a>
+        </Link>
       </div>
 
       {/* Botón de login */}

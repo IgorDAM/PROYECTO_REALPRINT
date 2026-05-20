@@ -8,6 +8,7 @@ import { ErrorFallback } from "./components/ErrorFallback";
 import Login from "./pages/Login";
 import LandingPage from "./pages/LandingPage";
 import Configuracion from "./pages/Configuracion";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // Paginas de administrador
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -35,6 +36,7 @@ export default function App() {
               {/* Rutas publicas */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
               {/* Rutas de administrador */}
               <Route

@@ -15,6 +15,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { authService } from "../services";
+import { getToken } from "../services/tokenStorage";
 
 type Role = "admin" | "cliente" | string;
 
@@ -29,7 +30,7 @@ interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<{ success: true; user: AuthUser } | { success: false; error: string }>;
+  login: (username: string, password: string, remember?: boolean) => Promise<{ success: true; user: AuthUser } | { success: false; error: string }>;
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
@@ -72,7 +73,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Hidrata sesion al arrancar para mantener login tras recarga.
     const savedUser = authService.getCurrentUser();
-    const savedToken = localStorage.getItem("realprint_token");
+    // Use centralized token accessor which checks both localStorage and sessionStorage.
+    const savedToken = getToken();
 
     if (savedToken && isTokenExpired(savedToken)) {
       // Token expirado: limpiar sesion
@@ -91,9 +93,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Adaptador entre UI y authService: devuelve contrato estable { success, user/error }.
-  const login: AuthContextValue["login"] = async (username, password) => {
+  const login: AuthContextValue["login"] = async (username, password, remember = true) => {
     try {
-      const { user: loggedUser, token: loginToken } = await authService.login({ username, password });
+      const { user: loggedUser, token: loginToken } = await authService.login({ username, password, remember });
       setUser(loggedUser);
       if (loginToken) {
         setToken(loginToken);

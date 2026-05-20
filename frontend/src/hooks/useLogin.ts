@@ -19,6 +19,8 @@ interface UseLoginResult {
   password: string;
   setUsername: (value: string) => void;
   setPassword: (value: string) => void;
+  remember: boolean;
+  setRemember: (value: boolean) => void;
   handleSubmit: (e: FormEvent<HTMLFormElement>) => Promise<void>;
   error: string;
   loading: boolean;
@@ -31,6 +33,7 @@ export function useLogin(): UseLoginResult {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [remember, setRemember] = useState(true);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,7 +50,7 @@ export function useLogin(): UseLoginResult {
     setLoading(true);
 
     try {
-      const result = await login(username.trim(), password);
+      const result = await login(username.trim(), password, remember);
       if (result.success) {
         // Solo se soportan dashboards de admin y cliente.
         const redirectPath = result.user.role === "admin"
@@ -68,6 +71,6 @@ export function useLogin(): UseLoginResult {
     }
   }
 
-  return { username, password, setUsername, setPassword, handleSubmit, error, loading };
+  return { username, password, setUsername, setPassword, remember, setRemember, handleSubmit, error, loading };
 }
 

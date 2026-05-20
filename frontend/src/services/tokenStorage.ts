@@ -20,19 +20,43 @@ function parseJson(value: string | null): unknown {
 }
 
 /** Devuelve el token actual o null si no hay sesion. */
+/** Devuelve el token actual. Busca primero en localStorage (persistente)
+ *  y luego en sessionStorage (sesión) para soportar "Recordarme" opcional.
+ */
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 }
 
 /** Persiste token de acceso para autenticacion Bearer. */
-export function setToken(token: string): void {
+/**
+ * Persiste token de acceso.
+ * Si `remember` es true (por defecto), guarda en localStorage (persistente),
+ * si es false guarda en sessionStorage (se elimina al cerrar la pestaña).
+ */
+export function setToken(token: string, remember = true): void {
   if (!token) return;
-  localStorage.setItem(TOKEN_KEY, token);
+  try {
+    if (remember) {
+      localStorage.setItem(TOKEN_KEY, token);
+      // Limpia cualquier token en sessionStorage para evitar duplicados/confusión
+      sessionStorage.removeItem(TOKEN_KEY);
+    } else {
+      sessionStorage.setItem(TOKEN_KEY, token);
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    // Silenciar errores de storage (por ejemplo, en modos privados o restricciones)
+  }
 }
 
 /** Elimina solo el token manteniendo el resto de datos si fuese necesario. */
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 /** Recupera el usuario serializado en sesion. */

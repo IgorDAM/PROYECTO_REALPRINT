@@ -33,7 +33,7 @@ interface AuthResponse {
 }
 
 interface AuthServiceApi {
-  login: (credentials: { username: string; password: string }) => Promise<AuthResponse>;
+  login: (credentials: { username: string; password: string; remember?: boolean }) => Promise<AuthResponse>;
   logout: () => void;
   getCurrentUser: () => AuthUser | null;
 }
@@ -89,7 +89,7 @@ function sanitizeUser(user: Record<string, any>): AuthUser {
  * Login local para fase de transicion.
  * Mantiene el contrato de respuesta de la version API ({ user, token }).
  */
-async function loginLocal(username: string, password: string): Promise<AuthResponse> {
+async function loginLocal(username: string, password: string, remember = true): Promise<AuthResponse> {
   logger.info('Login attempt (local)', { username });
 
   const users = readUsersFromStorage();
@@ -109,7 +109,7 @@ async function loginLocal(username: string, password: string): Promise<AuthRespo
   const token = `local-token-${user.id}-${Date.now()}`;
 
   setStoredUser(user);
-  setToken(token);
+  setToken(token, remember);
 
   logger.info('Login successful', { username, userId: user.id, role: user.role });
 
@@ -120,7 +120,7 @@ async function loginLocal(username: string, password: string): Promise<AuthRespo
  * Login contra backend.
  * Espera un endpoint /auth/login que devuelva { token, user: { id, username, name, role } }.
  */
-async function loginApi(username: string, password: string): Promise<AuthResponse> {
+async function loginApi(username: string, password: string, remember = true): Promise<AuthResponse> {
   const response = await httpClient.post("/auth/login", { username, password });
 
   // El backend devuelve: { token: string, user: { id, username, name, role } }
@@ -130,7 +130,7 @@ async function loginApi(username: string, password: string): Promise<AuthRespons
   const user = sanitizeUser((backendResponse?.user) || {});
 
   setStoredUser(user);
-  if (backendResponse?.token) setToken(backendResponse.token);
+  if (backendResponse?.token) setToken(backendResponse.token, remember);
 
   return { user, token: backendResponse?.token };
 }
@@ -140,13 +140,13 @@ async function loginApi(username: string, password: string): Promise<AuthRespons
  * Centraliza persistencia de sesion y normalizacion de errores.
  */
 export const authService: AuthServiceApi = {
-  async login({ username, password }) {
+  async login({ username, password, remember = true }) {
     try {
       if (USE_LOCAL_AUTH) {
-        return await loginLocal(username, password);
+        return await loginLocal(username, password, remember);
       }
 
-      return await loginApi(username, password);
+      return await loginApi(username, password, remember);
     } catch (error) {
       throw normalizeApiError(error, "No se ha podido iniciar sesion");
     }
