@@ -1,5 +1,25 @@
 import { useState, useMemo } from 'react';
 
+/**
+ *  Hook personalizado para manejo de paginación.
+ *    - Permite paginar cualquier array de items.
+ *    - Retorna información útil para construir controles de paginación.
+ *    - Incluye componente PaginationControls para UI de paginación.
+ *
+ * Props:
+ * - items: array de items a paginar
+ * - itemsPerPage: items por página (default: 25)
+ *
+ * Returns:
+ * - currentPage: página actual (1-indexed)
+ * - totalPages: total de páginas
+ * - paginatedItems: items de la página actual
+ * - goToPage: función para ir a página específica
+ * - nextPage: función para ir a siguiente página
+ * - prevPage: función para ir a página anterior
+ * - pageInfo: objeto con info de paginación (totalItems, hasNextPage, etc.)
+ */
+
 type PaginationItem = Record<string, any>;
 
 interface PageInfo {

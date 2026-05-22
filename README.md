@@ -6,6 +6,8 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 
 **App en producción:** [https://app-realprint.netlify.app/](https://app-realprint.netlify.app/)
 - Posibilidad de cold start en backend (Render) si no ha sido accedido recientemente.
+- Archivo keep-backend-alive para evitar cold start y monitor en uptimeRobot para mantenerlo activo.
+- Pudiera ser que hubiese que esperar un minuto para que el backend esté completamente operativo después de acceder por primera vez.
 
 ### Infraestructura en la nube
 - **Frontend**: Alojado en [Netlify](https://netlify.com) (React + Vite compilado)
@@ -16,6 +18,17 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 - `admin` / `admin123`
 - `igor` / `igor123`
 
+---
+
+## 📹 Enlaces Video Presentación
+
+Videos educativos sobre la arquitectura y funcionamiento de RealPrint:
+
+- **Video 1: Motivación y visual de la Interfaz de Usuario** 
+  https://youtu.be/sNf6oNDAsYk
+
+- **Video 2: Frontend — Hooks, Componentes y Flujo de Crear Pedido**
+  https://youtu.be/I16PSnKzb_w
 ---
 
 ## Documentación destacada
