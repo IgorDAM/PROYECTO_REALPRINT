@@ -10,7 +10,7 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 - Pudiera ser que hubiese que esperar un minuto para que el backend esté completamente operativo después de acceder por primera vez.
 
 ### Infraestructura en la nube
-- **Frontend**: Alojado en [Netlify](https://netlify.com) (React + Vite compilado)
+- **Frontend**: Alojado en [Netlify](https://netlify.com) (React + Vite compilado) 
 - **Backend API**: Alojado en [Render](https://render.com) (Spring Boot)
 - **Base de datos**: PostgreSQL en [Render](https://render.com)
 
