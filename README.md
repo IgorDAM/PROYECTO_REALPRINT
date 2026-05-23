@@ -20,6 +20,10 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 
 ---
 
+## 📊 Presentación
+
+- **Diapositivas:** [RealPrint_Presentacion.pptx](./RealPrint_Presentacion.pptx)
+
 ## 📹 Enlaces Video Presentación
 
 Videos educativos sobre la arquitectura y funcionamiento de RealPrint:
