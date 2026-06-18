@@ -37,7 +37,8 @@
       "Bash(curl * curl https://proyecto-realprint.onrender.com/api/actuator/health\r{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"})",
       "Bash(curl *)",
       "Bash(./mvnw clean *)",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "PowerShell(git add *)"
     ]
   }
 }

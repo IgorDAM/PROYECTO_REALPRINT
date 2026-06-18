@@ -19,70 +19,75 @@ jobs:
       HEALTH_URL: https://proyecto-realprint.onrender.com/api/health/db
 
     steps:
-      - name: Ping backend health endpoint
-        shell: bash
-        run: |
-          set -u
+       - name: Ping backend health endpoint
+         shell: bash
+         run: |
+           set -u
 
-          echo "🏓 Keep-alive contra BD: $HEALTH_URL"
-          start_ts=$(date +%s)
+           echo "🏓 Keep-alive contra BD: $HEALTH_URL"
+           start_ts=$(date +%s)
 
-          ping_backend() {
-            local attempt="$1"
-            local timeout="$2"
+           ping_backend() {
+             local attempt="$1"
+             local timeout="$2"
 
-            echo "🔄 Intento ${attempt}/3 (timeout: ${timeout}s)..."
+             echo "🔄 Intento ${attempt} (timeout: ${timeout}s)..."
 
-            response=$(curl -sS -w $'\n%{http_code}' --max-time "$timeout" "$HEALTH_URL" || true)
-            http_code=$(printf '%s\n' "$response" | tail -n1)
-            body=$(printf '%s\n' "$response" | sed '$d')
+             response=$(curl -sS -w $'\n%{http_code}' --max-time "$timeout" "$HEALTH_URL" || true)
+             http_code=$(printf '%s\n' "$response" | tail -n1)
+             body=$(printf '%s\n' "$response" | sed '$d')
 
-            echo "📊 Código HTTP: ${http_code:-sin_respuesta}"
+             echo "📊 Código HTTP: ${http_code:-timeout/sin_respuesta}"
 
-            if [ "$http_code" = "200" ]; then
-              echo "📄 Respuesta: $body"
-              return 0
-            fi
+             if [ "$http_code" = "200" ]; then
+               echo "📄 Respuesta: $body"
+               return 0
+             elif [ "$http_code" = "000" ] || [ -z "$http_code" ]; then
+               echo "❄️ Posible cold start detectado (timeout)"
+               return 2
+             else
+               echo "⚠️ Código HTTP inesperado: $http_code"
+               return 1
+             fi
+           }
 
-            echo "⚠️ Intento ${attempt} falló"
-            return 1
-          }
+           # Intento 1: ping rápido para detectar si está despierto
+           if ping_backend 1 30; then
+             end_ts=$(date +%s)
+             echo "✅ Keep-alive exitoso (servidor ya despierto)"
+             echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
+             exit 0
+           fi
 
-          if ping_backend 1 120; then
-            end_ts=$(date +%s)
-            echo "✅ Keep-alive exitoso"
-            echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
-            echo "🕒 Finalizado: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-            exit 0
-          fi
+           result=$?
+           if [ $result -eq 2 ]; then
+             echo "❄️ Cold start detectado. Esperando 90s para que Render despierte el servidor..."
+             sleep 90
 
-          echo "⏳ Esperando 10s antes del segundo intento..."
-          sleep 10
+             # Intento 2: después del cold start
+             if ping_backend 2 60; then
+               end_ts=$(date +%s)
+               echo "✅ Keep-alive exitoso (post cold start)"
+               echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
+               exit 0
+             fi
 
-          if ping_backend 2 90; then
-            end_ts=$(date +%s)
-            echo "✅ Keep-alive exitoso"
-            echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
-            echo "🕒 Finalizado: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-            exit 0
-          fi
+             # Intento 3: último intento con timeout largo
+             echo "⏳ Esperando 30s adicionales..."
+             sleep 30
 
-          echo "⏳ Esperando 10s antes del tercer intento..."
-          sleep 10
+             if ping_backend 3 60; then
+               end_ts=$(date +%s)
+               echo "✅ Keep-alive exitoso (intento final)"
+               echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
+               exit 0
+             fi
+           fi
 
-          if ping_backend 3 60; then
-            end_ts=$(date +%s)
-            echo "✅ Keep-alive exitoso"
-            echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
-            echo "🕒 Finalizado: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-            exit 0
-          fi
-
-          end_ts=$(date +%s)
-          echo "❌ Todos los intentos fallaron"
-          echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
-          echo "🕒 Finalizado: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          exit 1
+           end_ts=$(date +%s)
+           echo "❌ Todos los intentos fallaron después de $((end_ts - start_ts))s"
+           echo "🔍 Posibles causas: servidor caído, BD desconectada, o timeout excesivo"
+           exit 1
 
       - name: Registro de ejecución
         if: always()
@@ -90,9 +95,9 @@ jobs:
           echo "⏰ Última ejecución: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo "🔄 Siguiente ejecución: cron intercalado con UptimeRobot"
 
-      # Opcional: Notificar si falla
-      - name: Notificar fallo
-        if: failure()
-        run: |
-          echo "❌ El backend no respondió correctamente"
-          echo "🔍 Revisa los logs en Render: https://dashboard.render.com/"
+       # Opcional: Notificar si falla
+       - name: Notificar fallo
+         if: failure()
+         run: |
+           echo "❌ El backend no respondió correctamente"
+           echo "🔍 Revisa los logs en Render: https://dashboard.render.com/"
