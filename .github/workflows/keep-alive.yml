@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HEALTH_URL: https://proyecto-realprint.onrender.com/api/health/db
+      HEALTH_URL: https://proyecto-realprint.onrender.com/api/health
 
     steps:
       - name: Ping backend health endpoint
@@ -24,7 +24,7 @@ jobs:
         run: |
           set -u
 
-          echo "🏓 Keep-alive contra BD: $HEALTH_URL"
+          echo "🏓 Keep-alive backend: $HEALTH_URL"
           start_ts=$(date +%s)
 
           ping_backend() {
