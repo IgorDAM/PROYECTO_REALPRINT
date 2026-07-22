@@ -26,10 +26,19 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
         String rawUrl = firstNonBlank(
                 environment.getProperty("SPRING_DATASOURCE_URL"),
                 environment.getProperty("DATABASE_URL"));
+
+        System.out.println("[RenderDatabaseEnvironmentPostProcessor] Ejecutándose...");
+        System.out.println("[RenderDatabaseEnvironmentPostProcessor] DATABASE_URL = " + environment.getProperty("DATABASE_URL"));
+        System.out.println("[RenderDatabaseEnvironmentPostProcessor] SPRING_DATASOURCE_URL = " + environment.getProperty("SPRING_DATASOURCE_URL"));
+
         if (rawUrl != null) {
+            System.out.println("[RenderDatabaseEnvironmentPostProcessor] URL encontrada: " + rawUrl);
             String normalizedUrl = normalizeJdbcUrl(rawUrl.trim());
+            System.out.println("[RenderDatabaseEnvironmentPostProcessor] URL normalizada: " + normalizedUrl);
             overrides.put("spring.datasource.url", normalizedUrl);
             extractCredentialsFromUrl(rawUrl.trim(), overrides, environment);
+        } else {
+            System.out.println("[RenderDatabaseEnvironmentPostProcessor] ⚠️ NO se encontró DATABASE_URL ni SPRING_DATASOURCE_URL");
         }
 
         // Si username/password no vinieron de la URL, usar variables de entorno
@@ -52,7 +61,10 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
         }
 
         if (!overrides.isEmpty()) {
+            System.out.println("[RenderDatabaseEnvironmentPostProcessor] ✅ Overrides aplicadas: " + overrides.keySet());
             environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, overrides));
+        } else {
+            System.out.println("[RenderDatabaseEnvironmentPostProcessor] ⚠️ No hay overrides para aplicar");
         }
     }
 
