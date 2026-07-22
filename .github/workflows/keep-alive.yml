@@ -57,9 +57,10 @@ jobs:
             echo "✅ Keep-alive exitoso (servidor ya despierto)"
             echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
             exit 0
+          else
+            result=$?
           fi
 
-          result=$?
           if [ $result -eq 2 ]; then
             echo "❄️ Cold start detectado. Esperando 90s para que Render despierte el servidor..."
             sleep 90
