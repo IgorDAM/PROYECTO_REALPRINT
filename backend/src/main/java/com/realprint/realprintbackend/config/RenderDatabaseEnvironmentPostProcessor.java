@@ -27,25 +27,57 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
                 environment.getProperty("SPRING_DATASOURCE_URL"),
                 environment.getProperty("DATABASE_URL"));
         if (rawUrl != null) {
-            overrides.put("spring.datasource.url", normalizeJdbcUrl(rawUrl.trim()));
+            String normalizedUrl = normalizeJdbcUrl(rawUrl.trim());
+            overrides.put("spring.datasource.url", normalizedUrl);
+            extractCredentialsFromUrl(rawUrl.trim(), overrides, environment);
         }
 
-        String username = firstNonBlank(
-                environment.getProperty("SPRING_DATASOURCE_USERNAME"),
-                environment.getProperty("DB_USER"));
-        if (username != null) {
-            overrides.put("spring.datasource.username", username);
+        // Si username/password no vinieron de la URL, usar variables de entorno
+        if (!overrides.containsKey("spring.datasource.username")) {
+            String username = firstNonBlank(
+                    environment.getProperty("SPRING_DATASOURCE_USERNAME"),
+                    environment.getProperty("DB_USER"));
+            if (username != null) {
+                overrides.put("spring.datasource.username", username);
+            }
         }
 
-        String password = firstNonBlank(
-                environment.getProperty("SPRING_DATASOURCE_PASSWORD"),
-                environment.getProperty("DB_PASSWORD"));
-        if (password != null) {
-            overrides.put("spring.datasource.password", password);
+        if (!overrides.containsKey("spring.datasource.password")) {
+            String password = firstNonBlank(
+                    environment.getProperty("SPRING_DATASOURCE_PASSWORD"),
+                    environment.getProperty("DB_PASSWORD"));
+            if (password != null) {
+                overrides.put("spring.datasource.password", password);
+            }
         }
 
         if (!overrides.isEmpty()) {
             environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, overrides));
+        }
+    }
+
+    private static void extractCredentialsFromUrl(String rawUrl, Map<String, Object> overrides,
+            ConfigurableEnvironment environment) {
+        if (rawUrl.startsWith("postgres://") || rawUrl.startsWith("postgresql://")) {
+            String normalizedSchemeUrl = rawUrl.startsWith("postgres://")
+                    ? rawUrl
+                    : "postgres://" + rawUrl.substring("postgresql://".length());
+
+            try {
+                URI uri = new URI(normalizedSchemeUrl);
+                String userInfo = uri.getUserInfo();
+                if (userInfo != null && !userInfo.isBlank()) {
+                    String[] parts = userInfo.split(":", 2);
+                    if (parts.length >= 1 && !parts[0].isBlank()) {
+                        overrides.put("spring.datasource.username", parts[0]);
+                    }
+                    if (parts.length >= 2 && !parts[1].isBlank()) {
+                        overrides.put("spring.datasource.password", parts[1]);
+                    }
+                }
+            } catch (URISyntaxException ex) {
+                // Ignorar errores de parsing, las credenciales están en la URL ya
+            }
         }
     }
 
@@ -66,6 +98,7 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
 
             try {
                 URI uri = new URI(normalizedSchemeUrl);
+                String userInfo = uri.getUserInfo();
                 String host = uri.getHost();
                 int port = uri.getPort();
                 String path = uri.getPath() == null ? "" : uri.getPath();
@@ -76,6 +109,9 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
                 }
 
                 StringBuilder jdbcUrl = new StringBuilder("jdbc:postgresql://");
+                if (userInfo != null && !userInfo.isBlank()) {
+                    jdbcUrl.append(userInfo).append("@");
+                }
                 jdbcUrl.append(host);
                 if (port > 0) {
                     jdbcUrl.append(":").append(port);

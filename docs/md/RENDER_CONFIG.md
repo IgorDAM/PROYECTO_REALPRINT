@@ -64,10 +64,10 @@ RATE_LIMIT_REQUESTS_PER_MINUTE=100
 ## Base de Datos PostgreSQL
 
 1. Crear PostgreSQL Database en Render
-2. En tu Web Service, ir a "Environment" y agregar:
-   - Seleccionar tu database
-   - Render automáticamente agregará DATABASE_URL
-   - Si lo prefieres manualmente, usa `SPRING_DATASOURCE_URL=jdbc:postgresql://...`
+2. En tu Web Service, ir a "Environment":
+   - **Opción A (Recomendado):** Conectar la database al servicio web → Render automáticamente agregará `DATABASE_URL`
+   - **Opción B:** Setear manualmente `SPRING_DATASOURCE_URL=jdbc:postgresql://host:port/db` + credenciales
+3. El backend normaliza automáticamente `DATABASE_URL=postgresql://...` a formato JDBC y extrae credenciales
 
 ## Pasos Post-Deploy
 

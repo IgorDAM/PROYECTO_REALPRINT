@@ -6,18 +6,30 @@ Para que el backend funcione correctamente en producción, configura estas varia
 
 ### Base de datos PostgreSQL
 
+**Opción 1: Dejar que Render inyecte DATABASE_URL (RECOMENDADO)**
+
+Render automáticamente inyecta `DATABASE_URL=postgresql://user:pass@host:port/db` cuando conectas una base de datos PostgreSQL.
+El backend normaliza automáticamente esta URL a formato JDBC y extrae usuario/contraseña.
+
 ```bash
 SPRING_PROFILES_ACTIVE=production
 SPRING_PROFILE=production
-SPRING_DATASOURCE_URL=jdbc:postgresql://<TU_HOST>:<PUERTO>/<NOMBRE_BD>
-SPRING_DATASOURCE_USERNAME=<TU_USUARIO>
-SPRING_DATASOURCE_PASSWORD=<TU_PASSWORD>
-SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
 ```
 
-**⚠️ IMPORTANTE**: Reemplaza los valores de `<TU_HOST>`, `<TU_USUARIO>` y `<TU_PASSWORD>` con las credenciales reales de tu base de datos en Render. **NUNCA** commitees credenciales reales en el repositorio.
-Si Render te entrega `DATABASE_URL=postgres://...`, el backend también lo acepta y lo convierte a JDBC automáticamente.
+**Opción 2: Usar SPRING_DATASOURCE_URL (si no tienes DATABASE_URL)**
+
+```bash
+SPRING_PROFILES_ACTIVE=production
+SPRING_PROFILE=production
+SPRING_DATASOURCE_URL=jdbc:postgresql://<HOST>:<PUERTO>/<BD>
+SPRING_DATASOURCE_USERNAME=<USUARIO>
+SPRING_DATASOURCE_PASSWORD=<CONTRASEÑA>
+```
+
+**⚠️ IMPORTANTE**: 
+- El backend extrae automáticamente usuario y contraseña de `DATABASE_URL` si están presentes
+- Con `DATABASE_URL=postgresql://user:pass@host:port/db`, no necesitas SPRING_DATASOURCE_USERNAME/PASSWORD
+- **NUNCA** commitees credenciales reales en el repositorio
 
 ### Configuración del servidor
 
