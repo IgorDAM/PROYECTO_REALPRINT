@@ -6,15 +6,15 @@ server:
 spring:
   application:
     name: realprint-backend
-  
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:${SPRING_PROFILE:development}}
-  
+
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:10485760}
       max-request-size: ${MAX_REQUEST_SIZE:12582912}
-  
+
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:realprint_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -26,7 +26,7 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-  
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -37,6 +37,23 @@ spring:
         jdbc:
           batch_size: 20
           fetch_size: 50
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: validate
   
   mvc:
     cors:
