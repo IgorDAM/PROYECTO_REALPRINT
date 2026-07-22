@@ -17,6 +17,7 @@ spring:
       max-request-size: ${MAX_REQUEST_SIZE:12582912}
   
   datasource:
+    url: ${DATABASE_URL:${SPRING_DATASOURCE_URL}}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
