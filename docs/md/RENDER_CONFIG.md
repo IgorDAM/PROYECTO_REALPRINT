@@ -9,6 +9,7 @@ Configura estas variables en Render (Settings > Environment):
 DATABASE_URL=postgresql://...
 ```
 **Nota:** Render automáticamente provee esta variable cuando conectas una base de datos PostgreSQL.
+Si Render expone la URL como `postgres://...`, el backend la normaliza a JDBC al arrancar.
 
 ### Seguridad JWT (REQUERIDO)
 ```
@@ -24,6 +25,7 @@ openssl rand -base64 32
 ```
 PORT=8080
 SERVER_CONTEXT_PATH=/api
+SPRING_PROFILES_ACTIVE=production
 SPRING_PROFILE=production
 ```
 **Nota:** Render asigna el PORT automáticamente.
@@ -65,6 +67,7 @@ RATE_LIMIT_REQUESTS_PER_MINUTE=100
 2. En tu Web Service, ir a "Environment" y agregar:
    - Seleccionar tu database
    - Render automáticamente agregará DATABASE_URL
+   - Si lo prefieres manualmente, usa `SPRING_DATASOURCE_URL=jdbc:postgresql://...`
 
 ## Pasos Post-Deploy
 

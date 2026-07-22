@@ -32,6 +32,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+          cache-dependency-path: backend/pom.xml
 
       - name: Run Maven tests
         run: |
@@ -109,9 +110,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+          cache-dependency-path: backend/pom.xml
 
       - name: Populate Maven cache
-        run: mvn dependency:resolve -pl backend -am
+        run: |
+          cd backend
+          mvn -q -DskipTests dependency:go-offline
         continue-on-error: true
 
       - name: Run Trivy vulnerability scanner

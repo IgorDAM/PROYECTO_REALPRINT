@@ -6,17 +6,39 @@ Write-Host "🔍 Verificando estado del backend en Render..." -ForegroundColor C
 Write-Host ""
 
 $BACKEND_URL = "https://proyecto-realprint.onrender.com/api"
-$HEALTH_ENDPOINT = "$BACKEND_URL/health/db"
+$HEALTH_ENDPOINT = "$BACKEND_URL/health"
+$DATABASE_HEALTH_ENDPOINT = "$BACKEND_URL/health/db"
 $ACTUATOR_ENDPOINT = "$BACKEND_URL/actuator/health"
 
 Write-Host "📍 Backend URL: $BACKEND_URL" -ForegroundColor Yellow
 Write-Host ""
 
-# 1. Health check de BD
-Write-Host "1️⃣ Verificando health check de BD..." -ForegroundColor Cyan
+# 1. Health check ligero del backend
+Write-Host "1️⃣ Verificando health check ligero del backend..." -ForegroundColor Cyan
 try {
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     $response = Invoke-WebRequest -Uri $HEALTH_ENDPOINT -TimeoutSec 180 -SkipHttpErrorCheck
+    $stopwatch.Stop()
+
+    if ($response.StatusCode -eq 200) {
+        Write-Host "✅ Backend respondió: $($response.StatusCode) en $($stopwatch.ElapsedMilliseconds)ms" -ForegroundColor Green
+        Write-Host "📄 Respuesta: $($response.Content)" -ForegroundColor Green
+    } else {
+        Write-Host "⚠️ Backend respondió pero con código: $($response.StatusCode)" -ForegroundColor Yellow
+        Write-Host "📄 Respuesta: $($response.Content)" -ForegroundColor Yellow
+    }
+} catch {
+    Write-Host "❌ Error conectando al backend: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "   Posible causa: Cold start (servidor hibernado)" -ForegroundColor Gray
+}
+
+Write-Host ""
+
+# 2. Health check de BD
+Write-Host "2️⃣ Verificando health check de BD..." -ForegroundColor Cyan
+try {
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $response = Invoke-WebRequest -Uri $DATABASE_HEALTH_ENDPOINT -TimeoutSec 180 -SkipHttpErrorCheck
     $stopwatch.Stop()
 
     if ($response.StatusCode -eq 200) {
@@ -28,13 +50,13 @@ try {
     }
 } catch {
     Write-Host "❌ Error conectando a BD: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "   Posible causa: Cold start (servidor hibernado)" -ForegroundColor Gray
+    Write-Host "   Posible causa: BD desconectada o todavía arrancando" -ForegroundColor Gray
 }
 
 Write-Host ""
 
-# 2. Health check general
-Write-Host "2️⃣ Verificando health check general..." -ForegroundColor Cyan
+# 3. Health check general
+Write-Host "3️⃣ Verificando health check general..." -ForegroundColor Cyan
 try {
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     $response = Invoke-WebRequest -Uri $ACTUATOR_ENDPOINT -TimeoutSec 60 -SkipHttpErrorCheck
@@ -54,8 +76,8 @@ try {
 
 Write-Host ""
 
-# 3. Información de diagnóstico
-Write-Host "3️⃣ Diagnóstico:" -ForegroundColor Cyan
+# 4. Información de diagnóstico
+Write-Host "4️⃣ Diagnóstico:" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Posibles causas de fallo:" -ForegroundColor Yellow
 Write-Host "  • ❄️ Cold start: Servidor hibernado por inactividad (normal en plan gratuito)"
@@ -76,4 +98,3 @@ Write-Host "  Accede a: https://app-realprint.netlify.app/" -ForegroundColor Gra
 Write-Host ""
 
 Write-Host "✅ Verificación completada" -ForegroundColor Green
-

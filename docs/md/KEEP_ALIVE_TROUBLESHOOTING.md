@@ -35,6 +35,7 @@ https://dashboard.render.com/
 - Asegúrate de que la **database PostgreSQL está levantada**
 - Ve a: `Render Dashboard > Databases > realprint-db`
 - Verifica que el estado sea **"Running"**
+- Si quieres comprobar la BD de forma explícita, usa `https://proyecto-realprint.onrender.com/api/health/db`
 
 ### 3️⃣ Test Manual del Backend
 ```bash
@@ -42,7 +43,7 @@ https://dashboard.render.com/
 https://app-realprint.netlify.app/
 
 # O hazle curl manual (con espera)
-curl -I https://proyecto-realprint.onrender.com/api/health/db
+curl -I https://proyecto-realprint.onrender.com/api/health
 ```
 
 ## 🔧 Cambios Realizados al Workflow
@@ -84,7 +85,7 @@ Total: ~30-40 segundos
 ## 📌 Cómo Funciona la Prevención
 
 1. **UptimeRobot** → Hace ping cada 5 minutos (tu monitor externo)
-2. **GitHub Actions (keep-alive.yml)** → Hace ping en momentos intercalados
+2. **GitHub Actions (keep-alive.yml)** → Hace ping al health check ligero en momentos intercalados
 3. **Combinación** → Cubre todos los minutos ~ evita suspensión
 
 ## ❓ ¿Qué hacer si sigue fallando después de los cambios?
@@ -139,4 +140,3 @@ En `GitHub Actions > Keep Backend Alive > Run logs`, busca:
 
 **Última actualización:** 2026-06-18
 **Versión del workflow:** v3 (detección inteligente de cold start)
-

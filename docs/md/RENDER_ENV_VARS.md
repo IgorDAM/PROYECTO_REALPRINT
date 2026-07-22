@@ -17,6 +17,7 @@ SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
 ```
 
 **⚠️ IMPORTANTE**: Reemplaza los valores de `<TU_HOST>`, `<TU_USUARIO>` y `<TU_PASSWORD>` con las credenciales reales de tu base de datos en Render. **NUNCA** commitees credenciales reales en el repositorio.
+Si Render te entrega `DATABASE_URL=postgres://...`, el backend también lo acepta y lo convierte a JDBC automáticamente.
 
 ### Configuración del servidor
 

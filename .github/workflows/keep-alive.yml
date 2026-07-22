@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HEALTH_URL: https://proyecto-realprint.onrender.com/api/health/db
+      HEALTH_URL: https://proyecto-realprint.onrender.com/api/health
 
     steps:
       - name: Ping backend health endpoint
@@ -24,7 +24,7 @@ jobs:
         run: |
           set -u
 
-          echo "🏓 Keep-alive contra BD: $HEALTH_URL"
+          echo "🏓 Keep-alive contra backend: $HEALTH_URL"
           start_ts=$(date +%s)
 
           ping_backend() {
@@ -86,7 +86,7 @@ jobs:
 
           end_ts=$(date +%s)
           echo "❌ Todos los intentos fallaron después de $((end_ts - start_ts))s"
-          echo "🔍 Posibles causas: servidor caído, BD desconectada, o timeout excesivo"
+          echo "🔍 Posibles causas: servidor caído o timeout excesivo"
           exit 1
 
       - name: Registro de ejecución
