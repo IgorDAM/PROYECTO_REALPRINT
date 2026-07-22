@@ -12,7 +12,7 @@ class RenderDatabaseEnvironmentPostProcessorTest {
                 "postgres://user:password@dpg-abc123.render.com:5432/realprint_db?sslmode=require");
 
         assertEquals(
-                "jdbc:postgresql://dpg-abc123.render.com:5432/realprint_db?sslmode=require",
+                "jdbc:postgresql://user:password@dpg-abc123.render.com:5432/realprint_db?sslmode=require",
                 jdbcUrl);
     }
 
