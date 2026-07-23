@@ -18,6 +18,8 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String databaseUrl = environment.getProperty("DATABASE_URL");
+        String[] activeProfiles = environment.getActiveProfiles();
+        boolean isProduction = java.util.Arrays.asList(activeProfiles).contains("production");
 
         if (databaseUrl != null && !databaseUrl.isBlank()) {
             String jdbcUrl = normalizeJdbcUrl(databaseUrl.trim());
@@ -27,6 +29,10 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
 
             environment.getPropertySources().addFirst(
                     new MapPropertySource("database-url-from-render", props));
+        } else if (isProduction) {
+            throw new IllegalStateException(
+                    "DATABASE_URL environment variable is required in production but was not found. " +
+                    "Render must inject DATABASE_URL from the connected PostgreSQL database.");
         }
     }
 
