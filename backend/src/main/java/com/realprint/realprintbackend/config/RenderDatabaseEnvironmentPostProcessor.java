@@ -1,7 +1,5 @@
 package com.realprint.realprintbackend.config;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -12,60 +10,37 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
 /**
- * Normaliza la configuración de PostgreSQL de Render antes de que Spring cree
- * el datasource.
+ * Copia DATABASE_URL a spring.datasource.url para que Spring Boot lo interprete.
+ * Normaliza postgresql:// a jdbc:postgresql://
  */
 public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
-    private static final String PROPERTY_SOURCE_NAME = "render-database-overrides";
-
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        Map<String, Object> overrides = new LinkedHashMap<>();
+        String databaseUrl = environment.getProperty("DATABASE_URL");
 
-        String rawUrl = firstNonBlank(
-                environment.getProperty("SPRING_DATASOURCE_URL"),
-                environment.getProperty("DATABASE_URL"));
+        if (databaseUrl != null && !databaseUrl.isBlank()) {
+            String jdbcUrl = normalizeUrl(databaseUrl.trim());
 
-        System.out.println("[RenderDatabaseEnvironmentPostProcessor] Ejecutándose...");
-        System.out.println("[RenderDatabaseEnvironmentPostProcessor] DATABASE_URL = " + environment.getProperty("DATABASE_URL"));
-        System.out.println("[RenderDatabaseEnvironmentPostProcessor] SPRING_DATASOURCE_URL = " + environment.getProperty("SPRING_DATASOURCE_URL"));
+            Map<String, Object> props = new LinkedHashMap<>();
+            props.put("spring.datasource.url", jdbcUrl);
 
-        if (rawUrl != null) {
-            System.out.println("[RenderDatabaseEnvironmentPostProcessor] URL encontrada: " + rawUrl);
-            String normalizedUrl = normalizeJdbcUrl(rawUrl.trim());
-            System.out.println("[RenderDatabaseEnvironmentPostProcessor] URL normalizada: " + normalizedUrl);
-            overrides.put("spring.datasource.url", normalizedUrl);
-            extractCredentialsFromUrl(rawUrl.trim(), overrides, environment);
-        } else {
-            System.out.println("[RenderDatabaseEnvironmentPostProcessor] ⚠️ NO se encontró DATABASE_URL ni SPRING_DATASOURCE_URL");
+            environment.getPropertySources().addFirst(
+                    new MapPropertySource("database-url-from-render", props));
         }
+    }
 
-        // Si username/password no vinieron de la URL, usar variables de entorno
-        if (!overrides.containsKey("spring.datasource.username")) {
-            String username = firstNonBlank(
-                    environment.getProperty("SPRING_DATASOURCE_USERNAME"),
-                    environment.getProperty("DB_USER"));
-            if (username != null) {
-                overrides.put("spring.datasource.username", username);
-            }
+    private static String normalizeUrl(String databaseUrl) {
+        if (databaseUrl.startsWith("jdbc:")) {
+            return databaseUrl;
         }
-
-        if (!overrides.containsKey("spring.datasource.password")) {
-            String password = firstNonBlank(
-                    environment.getProperty("SPRING_DATASOURCE_PASSWORD"),
-                    environment.getProperty("DB_PASSWORD"));
-            if (password != null) {
-                overrides.put("spring.datasource.password", password);
-            }
+        if (databaseUrl.startsWith("postgresql://")) {
+            return "jdbc:postgresql://" + databaseUrl.substring("postgresql://".length());
         }
-
-        if (!overrides.isEmpty()) {
-            System.out.println("[RenderDatabaseEnvironmentPostProcessor] ✅ Overrides aplicadas: " + overrides.keySet());
-            environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, overrides));
-        } else {
-            System.out.println("[RenderDatabaseEnvironmentPostProcessor] ⚠️ No hay overrides para aplicar");
+        if (databaseUrl.startsWith("postgres://")) {
+            return "jdbc:postgresql://" + databaseUrl.substring("postgres://".length());
         }
+        return databaseUrl;
     }
 
     private static void extractCredentialsFromUrl(String rawUrl, Map<String, Object> overrides,
