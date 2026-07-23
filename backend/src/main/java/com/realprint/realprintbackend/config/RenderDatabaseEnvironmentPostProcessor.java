@@ -18,8 +18,7 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String databaseUrl = environment.getProperty("DATABASE_URL");
-        String[] activeProfiles = environment.getActiveProfiles();
-        boolean isProduction = java.util.Arrays.asList(activeProfiles).contains("production");
+        boolean isProduction = environment.matchesProfiles("production");
 
         if (databaseUrl != null && !databaseUrl.isBlank()) {
             String jdbcUrl = normalizeJdbcUrl(databaseUrl.trim());
