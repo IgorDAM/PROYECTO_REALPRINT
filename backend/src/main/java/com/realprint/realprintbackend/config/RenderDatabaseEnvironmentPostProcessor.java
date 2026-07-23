@@ -20,7 +20,7 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
         String databaseUrl = environment.getProperty("DATABASE_URL");
 
         if (databaseUrl != null && !databaseUrl.isBlank()) {
-            String jdbcUrl = normalizeUrl(databaseUrl.trim());
+            String jdbcUrl = normalizeJdbcUrl(databaseUrl.trim());
 
             Map<String, Object> props = new LinkedHashMap<>();
             props.put("spring.datasource.url", jdbcUrl);
@@ -30,7 +30,7 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
         }
     }
 
-    private static String normalizeUrl(String databaseUrl) {
+    static String normalizeJdbcUrl(String databaseUrl) {
         if (databaseUrl.startsWith("jdbc:")) {
             return databaseUrl;
         }
