@@ -49,31 +49,77 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
             return databaseUrl;
         }
 
-        // Parsear: user:password@host[:port]/database[?params]
-        // Agregar puerto 5432 si no está presente
-        String authority = urlWithoutScheme;
-        String dbAndParams = "";
+        // Parsear: [user[:password]@]host[:port]/database[?params]
+        String user = null;
+        String password = null;
+        String host = null;
+        String port = "5432";
+        String database = "";
+        String params = "";
 
+        // Separar database y parámetros
         int slashIdx = urlWithoutScheme.indexOf('/');
+        String authority;
         if (slashIdx > 0) {
             authority = urlWithoutScheme.substring(0, slashIdx);
-            dbAndParams = urlWithoutScheme.substring(slashIdx);
+            String rest = urlWithoutScheme.substring(slashIdx + 1);
+            int qIdx = rest.indexOf('?');
+            if (qIdx > 0) {
+                database = rest.substring(0, qIdx);
+                params = rest.substring(qIdx);
+            } else {
+                database = rest;
+            }
+        } else {
+            authority = urlWithoutScheme;
         }
 
-        // Verificar si ya tiene puerto
+        // Parsear autoridad: [user[:password]@]host[:port]
         int atIdx = authority.lastIndexOf('@');
-        String hostPart = (atIdx >= 0) ? authority.substring(atIdx + 1) : authority;
+        if (atIdx > 0) {
+            String credentials = authority.substring(0, atIdx);
+            String hostPort = authority.substring(atIdx + 1);
 
-        if (!hostPart.contains(":")) {
-            // No tiene puerto, agregar 5432
-            if (atIdx >= 0) {
-                authority = authority.substring(0, atIdx + 1) + hostPart + ":5432";
+            int colonIdx = credentials.indexOf(':');
+            if (colonIdx > 0) {
+                user = credentials.substring(0, colonIdx);
+                password = credentials.substring(colonIdx + 1);
             } else {
-                authority = hostPart + ":5432";
+                user = credentials;
+            }
+
+            // Parsear host:port
+            int portColonIdx = hostPort.lastIndexOf(':');
+            if (portColonIdx > 0) {
+                host = hostPort.substring(0, portColonIdx);
+                port = hostPort.substring(portColonIdx + 1);
+            } else {
+                host = hostPort;
+            }
+        } else {
+            // Sin credenciales
+            int portColonIdx = authority.lastIndexOf(':');
+            if (portColonIdx > 0) {
+                host = authority.substring(0, portColonIdx);
+                port = authority.substring(portColonIdx + 1);
+            } else {
+                host = authority;
             }
         }
 
-        return "jdbc:postgresql://" + authority + dbAndParams;
+        // Construir URL JDBC sin credenciales en la URL
+        String url = "jdbc:postgresql://" + host + ":" + port + "/" + database + params;
+
+        // Agregar parámetros de usuario y contraseña
+        if (user != null) {
+            String sep = params.isEmpty() ? "?" : "&";
+            url += sep + "user=" + user;
+            if (password != null) {
+                url += "&password=" + password;
+            }
+        }
+
+        return url;
     }
 
     @Override
