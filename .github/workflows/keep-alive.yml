@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HEALTH_URL: https://proyecto-realprint.onrender.com/api/actuator/health
+      HEALTH_URL: https://proyecto-realprint.onrender.com/api/auth/health
 
     steps:
       - name: Ping backend health endpoint
@@ -39,7 +39,7 @@ jobs:
 
             echo "📊 Código HTTP: ${http_code:-timeout/sin_respuesta}"
 
-            if [ "$http_code" = "200" ]; then
+            if [[ "$http_code" =~ ^2[0-9][0-9]$ || "$http_code" =~ ^3[0-9][0-9]$ ]]; then
               echo "📄 Respuesta: $body"
               return 0
             elif [ "$http_code" = "000" ] || [ -z "$http_code" ]; then
