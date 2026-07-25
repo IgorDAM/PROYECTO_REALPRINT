@@ -39,13 +39,41 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
         if (databaseUrl.startsWith("jdbc:")) {
             return databaseUrl;
         }
+
+        String urlWithoutScheme = null;
         if (databaseUrl.startsWith("postgresql://")) {
-            return "jdbc:postgresql://" + databaseUrl.substring("postgresql://".length());
+            urlWithoutScheme = databaseUrl.substring("postgresql://".length());
+        } else if (databaseUrl.startsWith("postgres://")) {
+            urlWithoutScheme = databaseUrl.substring("postgres://".length());
+        } else {
+            return databaseUrl;
         }
-        if (databaseUrl.startsWith("postgres://")) {
-            return "jdbc:postgresql://" + databaseUrl.substring("postgres://".length());
+
+        // Parsear: user:password@host[:port]/database[?params]
+        // Agregar puerto 5432 si no está presente
+        String authority = urlWithoutScheme;
+        String dbAndParams = "";
+
+        int slashIdx = urlWithoutScheme.indexOf('/');
+        if (slashIdx > 0) {
+            authority = urlWithoutScheme.substring(0, slashIdx);
+            dbAndParams = urlWithoutScheme.substring(slashIdx);
         }
-        return databaseUrl;
+
+        // Verificar si ya tiene puerto
+        int atIdx = authority.lastIndexOf('@');
+        String hostPart = (atIdx >= 0) ? authority.substring(atIdx + 1) : authority;
+
+        if (!hostPart.contains(":")) {
+            // No tiene puerto, agregar 5432
+            if (atIdx >= 0) {
+                authority = authority.substring(0, atIdx + 1) + hostPart + ":5432";
+            } else {
+                authority = hostPart + ":5432";
+            }
+        }
+
+        return "jdbc:postgresql://" + authority + dbAndParams;
     }
 
     @Override
