@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HEALTH_URL: https://proyecto-realprint.onrender.com/api/health
+      HEALTH_URL: https://proyecto-realprint.onrender.com/api/actuator/health
 
     steps:
       - name: Ping backend health endpoint
