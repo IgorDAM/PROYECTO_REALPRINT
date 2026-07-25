@@ -232,7 +232,7 @@ jobs:
 
     environment:
       name: production
-      url: https://realprint.com
+      url: https://app-realprint.netlify.app
 
     steps:
       - name: Checkout code
