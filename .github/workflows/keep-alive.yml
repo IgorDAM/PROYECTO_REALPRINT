@@ -16,23 +16,19 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HEALTH_URL: https://proyecto-realprint.onrender.com/api/setup/status
+      HEALTH_URL: https://proyecto-realprint-v2.onrender.com/api/setup/status
 
     steps:
       - name: Ping backend health endpoint
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
 
           echo "🏓 Keep-alive contra backend: $HEALTH_URL"
           start_ts=$(date +%s)
 
           ping_backend() {
-            local attempt="$1"
-            local timeout="$2"
-
-            echo "🔄 Intento ${attempt} (timeout: ${timeout}s)..."
-
+            local timeout="$1"
             response=$(curl -sS -w $'\n%{http_code}' --max-time "$timeout" "$HEALTH_URL" || true)
             http_code=$(printf '%s\n' "$response" | tail -n1)
             body=$(printf '%s\n' "$response" | sed '$d')
@@ -42,47 +38,37 @@ jobs:
             if [[ "$http_code" =~ ^2[0-9][0-9]$ || "$http_code" =~ ^3[0-9][0-9]$ ]]; then
               echo "📄 Respuesta: $body"
               return 0
-            elif [ "$http_code" = "000" ] || [ -z "$http_code" ] || [ "$http_code" = "404" ] || [ "$http_code" = "503" ]; then
-              echo "❄️ Servidor no listo o en cold start (código: $http_code)"
-              return 2
-            else
-              echo "⚠️ Código HTTP inesperado: $http_code"
-              return 1
             fi
+
+            # Tratar como retryable mientras se inicia
+            if [[ "$http_code" == "000" || -z "$http_code" || "$http_code" == "503" || "$http_code" == "404" ]]; then
+              return 2
+            fi
+
+            return 1
           }
 
-          # Intento 1: ping rápido para detectar si está despierto
-          if ping_backend 1 30; then
-            end_ts=$(date +%s)
-            echo "✅ Keep-alive exitoso (servidor ya despierto)"
-            echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
-            exit 0
-          fi
+          # Reintentos: timeout + espera
+          timeouts=(30 60 60)
+          waits=(90 30 0)
 
-          result=$?
-          if [ $result -eq 2 ]; then
-            echo "❄️ Cold start detectado. Esperando 90s para que Render despierte el servidor..."
-            sleep 90
+          for i in "${!timeouts[@]}"; do
+            attempt=$((i+1))
+            echo "🔄 Intento ${attempt} (timeout: ${timeouts[$i]}s)..."
 
-            # Intento 2: después del cold start
-            if ping_backend 2 60; then
+            if ping_backend "${timeouts[$i]}"; then
               end_ts=$(date +%s)
-              echo "✅ Keep-alive exitoso (post cold start)"
+              echo "✅ Keep-alive exitoso"
               echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
               exit 0
             fi
 
-            # Intento 3: último intento con timeout largo
-            echo "⏳ Esperando 30s adicionales..."
-            sleep 30
-
-            if ping_backend 3 60; then
-              end_ts=$(date +%s)
-              echo "✅ Keep-alive exitoso (intento final)"
-              echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
-              exit 0
+            rc=$?
+            if [[ $rc -eq 2 && ${waits[$i]} -gt 0 ]]; then
+              echo "❄️ Servidor no listo. Esperando ${waits[$i]}s..."
+              sleep "${waits[$i]}"
             fi
-          fi
+          done
 
           end_ts=$(date +%s)
           echo "❌ Todos los intentos fallaron después de $((end_ts - start_ts))s"
