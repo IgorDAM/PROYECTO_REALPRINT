@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      HEALTH_URL: https://proyecto-realprint.onrender.com/api/auth/health
+      HEALTH_URL: https://proyecto-realprint.onrender.com/api/setup/status
 
     steps:
       - name: Ping backend health endpoint
@@ -42,8 +42,8 @@ jobs:
             if [[ "$http_code" =~ ^2[0-9][0-9]$ || "$http_code" =~ ^3[0-9][0-9]$ ]]; then
               echo "📄 Respuesta: $body"
               return 0
-            elif [ "$http_code" = "000" ] || [ -z "$http_code" ]; then
-              echo "❄️ Posible cold start detectado (timeout)"
+            elif [ "$http_code" = "000" ] || [ -z "$http_code" ] || [ "$http_code" = "404" ] || [ "$http_code" = "503" ]; then
+              echo "❄️ Servidor no listo o en cold start (código: $http_code)"
               return 2
             else
               echo "⚠️ Código HTTP inesperado: $http_code"
