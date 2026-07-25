@@ -29,7 +29,15 @@ jobs:
 
           ping_backend() {
             local timeout="$1"
-            response=$(curl -sS -w $'\n%{http_code}' --max-time "$timeout" "$HEALTH_URL" || true)
+            response=$(curl -sS -L \
+              --connect-timeout 10 \
+              --max-time "$timeout" \
+              --retry 2 \
+              --retry-delay 2 \
+              --retry-connrefused \
+              -w $'\n%{http_code}' \
+              "$HEALTH_URL" || true)
+
             http_code=$(printf '%s\n' "$response" | tail -n1)
             body=$(printf '%s\n' "$response" | sed '$d')
 
@@ -48,22 +56,24 @@ jobs:
             return 1
           }
 
-          # Reintentos: timeout + espera
-          timeouts=(30 60 60)
-          waits=(90 30 0)
+          # Reintentos: timeout + espera (ajustados para cold starts en Render)
+          timeouts=(45 75 90)
+          waits=(60 45 0)
 
           for i in "${!timeouts[@]}"; do
             attempt=$((i+1))
             echo "🔄 Intento ${attempt} (timeout: ${timeouts[$i]}s)..."
 
-            if ping_backend "${timeouts[$i]}"; then
+            ping_backend "${timeouts[$i]}"
+            rc=$?
+
+            if [[ $rc -eq 0 ]]; then
               end_ts=$(date +%s)
               echo "✅ Keep-alive exitoso"
               echo "⏱️ Tiempo total: $((end_ts - start_ts))s"
               exit 0
             fi
 
-            rc=$?
             if [[ $rc -eq 2 && ${waits[$i]} -gt 0 ]]; then
               echo "❄️ Servidor no listo. Esperando ${waits[$i]}s..."
               sleep "${waits[$i]}"
