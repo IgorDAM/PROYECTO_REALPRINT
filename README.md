@@ -4,19 +4,22 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 
 ## 🚀 Acceso a Producción
 
-**App en producción:** [https://app-realprint.netlify.app/](https://app-realprint.netlify.app/)
-- Posibilidad de cold start en backend (Render) si no ha sido accedido recientemente.
-- Archivo keep-backend-alive para evitar cold start y monitor en uptimeRobot para mantenerlo activo.
-- Pudiera ser que hubiese que esperar un minuto para que el backend esté completamente operativo después de acceder por primera vez.
+**App en producción:** [https://brave-desert-082e32103.7.azurestaticapps.net](https://brave-desert-082e32103.7.azurestaticapps.net)
+- El backend (Azure Container Apps, `min-replicas: 0`) puede tardar unos segundos en arrancar si no ha recibido tráfico recientemente.
+- La base de datos (Aiven Free) también se apaga tras inactividad y se reactiva sola al reconectar.
 
-### Infraestructura en la nube
-- **Frontend**: Alojado en [Netlify](https://netlify.com) (React + Vite compilado) 
-- **Backend API**: Alojado en [Render](https://render.com) (Spring Boot)
-- **Base de datos**: PostgreSQL en [Render](https://render.com)
+### Infraestructura en la nube (100% gratuita)
+- **Frontend**: [Azure Static Web Apps](https://azure.microsoft.com/products/app-service/static) (plan Free, React + Vite compilado)
+- **Backend API**: [Azure Container Apps](https://azure.microsoft.com/products/container-apps) (plan consumo, grant gratuito mensual) — `https://realprint-backend.politepebble-bca8a1b2.westeurope.azurecontainerapps.io`
+- **Base de datos**: MySQL en [Aiven](https://aiven.io/free-mysql-database) (plan Free)
+- **Redeploy del backend**: manual tras cada push a `main` (el tenant de Azure no permite crear service principals para automatizarlo):
+  ```
+  az containerapp update --name realprint-backend --resource-group realprint-rg --image ghcr.io/igordam/proyecto_realprint-backend:main
+  ```
 
 **Usuarios de prueba en producción:**
 - `admin` / `admin123`
-- `igor` / `igor123`
+- `cliente` / `cliente123`
 
 ---
 

@@ -201,26 +201,35 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ========================================
-  # Job 5: Deploy Backend to Azure App Service
+  # Job 5: Deploy Backend (manual) - Azure Container Apps
   # ========================================
+  # El tenant de Azure (educastur) no permite crear service principals
+  # (Insufficient privileges to complete the operation), y Azure Container
+  # Apps no tiene un mecanismo de despliegue basado en publish-profile como
+  # App Service. Por eso el redeploy del backend tras un build nuevo es
+  # manual, ejecutando desde un equipo con `az login` propio:
+  #
+  #   az containerapp update --name realprint-backend \
+  #     --resource-group realprint-rg \
+  #     --image ghcr.io/igordam/proyecto_realprint-backend:main
+  #
   deploy-backend:
     needs: build-docker
     runs-on: ubuntu-latest
-    name: Deploy Backend to Azure App Service
+    name: Deploy Backend (manual step required)
 
     if: github.ref == 'refs/heads/main'
 
     environment:
       name: production
-      url: https://realprint-backend.azurewebsites.net
+      url: https://realprint-backend.politepebble-bca8a1b2.westeurope.azurecontainerapps.io
 
     steps:
-      - name: Deploy container to App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: realprint-backend
-          publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
-          images: ghcr.io/${{ github.repository_owner }}/proyecto_realprint-backend:main
+      - name: Recordatorio de deploy manual
+        run: |
+          echo "Imagen nueva publicada en ghcr.io/igordam/proyecto_realprint-backend:main"
+          echo "Aplica el cambio al backend ejecutando:"
+          echo "az containerapp update --name realprint-backend --resource-group realprint-rg --image ghcr.io/igordam/proyecto_realprint-backend:main"
 
   # ========================================
   # Job 6: Deploy Frontend to Azure Static Web Apps
