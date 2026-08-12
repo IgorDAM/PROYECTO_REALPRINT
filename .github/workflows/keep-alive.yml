@@ -3,10 +3,13 @@ name: Keep Backend Alive
 # Keep-alive intercalado con UptimeRobot.
 # UptimeRobot hace ping cada 5 minutos; este workflow se desfasará para cubrir huecos.
 on:
-  schedule:
-    # Pings desfasados: 02, 07, 12, 17... y 07, 12, 17, 22...
-    - cron: '2-59/10 * * * *'
-    - cron: '7-59/10 * * * *'
+  # PAUSADO: migracion de Render a Azure en curso.
+  # Reactivar descomentando el "schedule" de abajo, o borrar el workflow
+  # una vez el nuevo despliegue en Azure este verificado.
+  # schedule:
+  #   Pings desfasados: 02, 07, 12, 17... y 07, 12, 17, 22...
+  #   - cron: '2-59/10 * * * *'
+  #   - cron: '7-59/10 * * * *'
 
   # Permitir ejecución manual desde GitHub Actions UI
   workflow_dispatch:
