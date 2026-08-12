@@ -111,6 +111,16 @@ echo [OK] Dependencias del frontend instaladas
 
 echo.
 echo ============================================================================
+echo           Instalando git hooks del proyecto...
+echo ============================================================================
+echo.
+
+cd /d "%~dp0.."
+copy /Y "scripts\hooks\pre-push" ".git\hooks\pre-push" >nul
+echo [OK] Hook pre-push instalado (avisa si un push toca backend/)
+
+echo.
+echo ============================================================================
 echo           Setup Completado Exitosamente
 echo ============================================================================
 echo.

@@ -71,11 +71,18 @@ az containerapp create \
 > ⚠️ Si ejecutas esto desde Git Bash en Windows, antepón `MSYS_NO_PATHCONV=1` a cualquier comando que incluya un valor empezando por `/` (como `SERVER_CONTEXT_PATH=/api`) — Git Bash lo convierte a una ruta de Windows (`C:/Program Files/Git/api`) y rompe el arranque de Spring Boot.
 
 ### Redeploy tras un build nuevo (manual)
-El pipeline de GitHub Actions construye y publica la imagen automáticamente, pero **no** la aplica al backend: el tenant de Azure (`educastur`) no permite crear *service principals*, que es lo que necesitaría la Action de despliegue. Aplica el cambio manualmente:
+El pipeline de GitHub Actions construye y publica la imagen automáticamente, pero **no** la aplica al backend: el tenant de Azure (`educastur`) no permite crear *service principals*, que es lo que necesitaría la Action de despliegue. Aplica el cambio con el script del proyecto (hace el update + comprueba el health check):
+```bash
+./scripts/redeploy-backend.sh          # Git Bash / Linux / macOS
+scripts\redeploy-backend.bat           # cmd de Windows
+```
+Equivalente manual si prefieres el comando suelto:
 ```bash
 az containerapp update --name realprint-backend --resource-group realprint-rg \
   --image ghcr.io/igordam/proyecto_realprint-backend:main
 ```
+
+Un hook de git (`scripts/hooks/pre-push`, instalado automáticamente por `scripts/SETUP.bat`, o manualmente con `scripts/install-hooks.sh`) avisa en el propio `git push` si el commit toca `backend/`, recordando que hay que ejecutar el script después de que termine el pipeline.
 
 ## Pasos Post-Deploy
 

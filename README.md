@@ -12,9 +12,9 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
 - **Frontend**: [Azure Static Web Apps](https://azure.microsoft.com/products/app-service/static) (plan Free, React + Vite compilado)
 - **Backend API**: [Azure Container Apps](https://azure.microsoft.com/products/container-apps) (plan consumo, grant gratuito mensual) — `https://realprint-backend.politepebble-bca8a1b2.westeurope.azurecontainerapps.io`
 - **Base de datos**: MySQL en [Aiven](https://aiven.io/free-mysql-database) (plan Free)
-- **Redeploy del backend**: manual tras cada push a `main` (el tenant de Azure no permite crear service principals para automatizarlo):
+- **Redeploy del backend**: manual tras cada push a `main` (el tenant de Azure no permite crear service principals para automatizarlo). Un hook de git (`scripts/hooks/pre-push`, instalado por `SETUP.bat`) avisa si el push toca `backend/`:
   ```
-  az containerapp update --name realprint-backend --resource-group realprint-rg --image ghcr.io/igordam/proyecto_realprint-backend:main
+  ./scripts/redeploy-backend.sh       # o scripts\redeploy-backend.bat en cmd
   ```
 
 **Usuarios de prueba en producción:**

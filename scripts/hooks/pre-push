@@ -1,0 +1,32 @@
+#!/bin/sh
+# Git hook: avisa si el push incluye cambios en backend/, ya que el redeploy
+# a Azure Container Apps no es automatico (ver docs/md/AZURE_BACKEND_CONFIG.md).
+# Instalado via scripts/install-hooks.sh en .git/hooks/pre-push
+
+while read local_ref local_sha remote_ref remote_sha; do
+    if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+        continue
+    fi
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        range="$local_sha"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+
+    if git diff --name-only "$range" 2>/dev/null | grep -q '^backend/'; then
+        echo ""
+        echo "=============================================================="
+        echo "  Este push incluye cambios en backend/."
+        echo "  El redeploy a Azure Container Apps NO es automatico."
+        echo "  Cuando termine el pipeline de GitHub Actions (build+push"
+        echo "  de la imagen a GHCR), ejecuta:"
+        echo ""
+        echo "    ./scripts/redeploy-backend.sh"
+        echo "    (o scripts\\redeploy-backend.bat en cmd de Windows)"
+        echo ""
+        echo "=============================================================="
+        echo ""
+    fi
+done
+
+exit 0
