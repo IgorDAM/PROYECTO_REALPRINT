@@ -41,7 +41,7 @@ Este documento describe las mejores prácticas de seguridad para trabajar con es
 .env.*.local
 
 # Archivos con credenciales reales
-**/RENDER_ENV_VARS.local.md
+**/AZURE_BACKEND_ENV_VARS.local.md
 **/INFORME_SESION*.local.md
 **/credenciales*.md
 **/secrets*.md
@@ -64,17 +64,17 @@ uploads/*
 
 ✅ **CORRECTO:**
 ```bash
-SPRING_DATASOURCE_URL=jdbc:postgresql://<TU_HOST>:<PUERTO>/<NOMBRE_BD>
-SPRING_DATASOURCE_USERNAME=<TU_USUARIO>
-SPRING_DATASOURCE_PASSWORD=<TU_PASSWORD>
-JWT_SECRET=<GENERA_UNO_CON: openssl rand -base64 32>
+DB_HOST=<TU_HOST>.aivencloud.com
+DB_USER=<TU_USUARIO>
+DB_PASSWORD=<TU_PASSWORD>
+JWT_SECRET=<GENERA_UNO_CON: openssl rand -base64 48>
 ```
 
 ❌ **INCORRECTO:**
 ```bash
-SPRING_DATASOURCE_URL=jdbc:postgresql://dpg-xyz123.render.com:5432/realprint
-SPRING_DATASOURCE_USERNAME=realprint_user
-SPRING_DATASOURCE_PASSWORD=MiPasswordReal123
+DB_HOST=mysql-abc123-tuproyecto.aivencloud.com
+DB_USER=avnadmin
+DB_PASSWORD=MiPasswordReal123
 JWT_SECRET=clave-secreta-real-del-proyecto
 ```
 
@@ -84,7 +84,7 @@ Si necesitas archivos con datos reales para desarrollo local:
 
 ```bash
 # Copia el template
-cp docs/md/RENDER_ENV_VARS.md docs/md/RENDER_ENV_VARS.local.md
+cp docs/md/AZURE_BACKEND_ENV_VARS.md docs/md/AZURE_BACKEND_ENV_VARS.local.md
 
 # Edita la versión .local con datos reales
 # Este archivo NO se subirá a GitHub (está en .gitignore)
@@ -171,11 +171,11 @@ git reset --soft HEAD~1
 
 Los siguientes archivos han sido revisados y limpiados de información sensible:
 
-- ✅ `docs/md/RENDER_ENV_VARS.md` - Credenciales reemplazadas por placeholders
+- ✅ `docs/md/AZURE_BACKEND_ENV_VARS.md` - Credenciales reemplazadas por placeholders
 - ✅ `docs/md/INFORME_SESION_12_05_2026.md` - URLs y credenciales ofuscadas
 - ✅ `docs/md/DEPLOY_CHECKLIST.md` - Solo contiene ejemplos genéricos
-- ✅ `docs/md/RENDER_CONFIG.md` - Placeholders correctos
-- ✅ `docs/md/NETLIFY_CONFIG.md` - Placeholders correctos
+- ✅ `docs/md/AZURE_BACKEND_CONFIG.md` - Placeholders correctos
+- ✅ `docs/md/AZURE_FRONTEND_CONFIG.md` - Placeholders correctos
 - ✅ `README.md` - Solo información pública
 
 ### Archivos con datos de ejemplo (no sensibles):

@@ -1,122 +1,70 @@
-# Checklist de Deploy - RealPrint
+# Checklist de Deploy - RealPrint (Azure)
 
-## Resumen de Cambios Realizados
+## Resumen de Infraestructura
 
-✅ **Backend configurado para PostgreSQL** en producción
-✅ **Hibernate ddl-auto cambiado a `update`** (safe para producción)
-✅ **CORS configurado** para variables de entorno
-✅ **Frontend configurado** para apuntar a backend en Render
-✅ **Documentación completa** de configuración
-✅ **netlify.toml configurado** con redirects y headers
+✅ **Backend en Azure Container Apps** (plan consumo, grant gratuito mensual, `min-replicas: 0`)
+✅ **Frontend en Azure Static Web Apps** (plan Free)
+✅ **Base de datos MySQL en Aiven** (plan Free)
+✅ **Backend configurado para MySQL** en producción (antes PostgreSQL en Render)
+✅ **CORS configurado** vía variable de entorno del Container App
+✅ **Alerta de presupuesto** de 1€/mes en el resource group `realprint-rg`
+✅ **Coste esperado: 0€**
 
 ---
 
 ## 📋 Checklist de Deploy
 
-### Parte 1: Deploy del Backend en Render
+### Parte 1: Recursos Azure
 
-#### 1.1 Crear PostgreSQL Database
-- [ ] Ir a Render Dashboard
-- [ ] Crear nuevo PostgreSQL Database
-- [ ] Anotar: nombre de la base de datos
+#### 1.1 Resource group y entorno de Container Apps
+- [ ] `az group create --name realprint-rg --location westeurope`
+- [ ] `az containerapp env create --name realprint-env --resource-group realprint-rg --location westeurope`
 
-#### 1.2 Crear Web Service
-- [ ] Crear nuevo Web Service
-- [ ] Conectar repositorio Git
-- [ ] Configurar build:
-  ```
-  Build Command: cd backend && ./mvnw clean package -DskipTests
-  Start Command: cd backend && java -jar target/*.jar
-  ```
+#### 1.2 Base de datos MySQL en Aiven
+- [ ] Crear cuenta en https://aiven.io/free-mysql-database (sin tarjeta)
+- [ ] Crear servicio MySQL, plan Free
+- [ ] Anotar: host, puerto, usuario (`avnadmin`), password, nombre de BD (`defaultdb`)
 
-#### 1.3 Configurar Variables de Entorno
-En Render, agregar estas variables (Settings > Environment):
+#### 1.3 Crear la Container App del backend
+- [ ] `az containerapp create` con imagen `ghcr.io/igordam/proyecto_realprint-backend:main` (ver [AZURE_BACKEND_CONFIG.md](./AZURE_BACKEND_CONFIG.md))
+- [ ] Variables/secrets: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (secret), `JWT_SECRET` (secret), `SPRING_PROFILE=production`, `SERVER_CONTEXT_PATH=/api`, `CORS_ALLOWED_ORIGINS`
 
-**OBLIGATORIAS:**
-- [ ] `DATABASE_URL` → Conectar la PostgreSQL Database creada
-- [ ] `JWT_SECRET` → Generar con: `openssl rand -base64 32`
-- [ ] `SPRING_PROFILE` → `production`
+#### 1.4 Crear la Static Web App del frontend
+- [ ] `az staticwebapp create --name realprint-frontend --resource-group realprint-rg --sku Free`
+- [ ] Obtener el token: `az staticwebapp secrets list --name realprint-frontend --resource-group realprint-rg`
 
-**IMPORTANTE:**
-- [ ] `CORS_ALLOWED_ORIGINS` → `https://app-realprint.netlify.app`
-
-**OPCIONALES (tienen valores por defecto):**
-- [ ] `JWT_EXPIRATION_MS` → `86400000`
-- [ ] `SERVER_CONTEXT_PATH` → `/api`
-- [ ] `MAX_FILE_SIZE` → `10485760`
-- [ ] `MAX_REQUEST_SIZE` → `12582912`
-- [ ] `UPLOAD_DIR` → `/tmp/uploads`
-
-#### 1.4 Deploy y Verificación
-- [ ] Hacer deploy (automático al pushear a main)
-- [ ] Esperar a que termine el build (~5-10 min)
-- [ ] Anotar la URL: `https://tu-backend.onrender.com`
-- [ ] Verificar salud: `https://tu-backend.onrender.com/api/actuator/health`
-- [ ] Verificar setup: `https://tu-backend.onrender.com/api/setup/status`
-
-#### 1.5 Crear Usuario Admin
-Ejecutar en terminal:
-```bash
-curl -X POST https://proyecto-realprint.onrender.com/api/setup/admin \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "nombre": "Administrador",
-    "password": "admin123"
-  }'
-```
-- [ ] Admin creado exitosamente
+#### 1.5 Presupuesto de seguridad
+- [ ] Crear budget de 1€/mes en `realprint-rg` con alerta al 50% (ver comando en `AZURE_BACKEND_CONFIG.md` histórico o Azure Portal > Cost Management)
 
 ---
 
-### Parte 2: Deploy del Frontend en Netlify
+### Parte 2: GitHub
 
-#### 2.1 Actualizar Configuración Local
-✅ **Ya configurado:**
-- [x] `frontend/.env.production` → `VITE_API_URL=https://proyecto-realprint.onrender.com/api`
+#### 2.1 Secrets del repositorio
+- [ ] `AZURE_STATIC_WEB_APPS_API_TOKEN` (del paso 1.4)
+- [ ] Hacer público el paquete GHCR del backend: GitHub → Packages → `proyecto_realprint-backend` → Package settings → Change visibility → Public
 
-#### 2.2 Crear Sitio en Netlify
-- [ ] Ir a Netlify Dashboard
-- [ ] "Add new site" > "Import an existing project"
-- [ ] Conectar repositorio Git
-- [ ] Configurar build (debería autodetectar `netlify.toml`):
+#### 2.2 Verificar `.github/workflows/ci-cd.yml`
+- [ ] Job `deploy-frontend` con `env: VITE_API_URL` apuntando al backend
+- [ ] Job `deploy-backend` documentado como manual (el tenant no permite service principals)
+
+#### 2.3 Deploy y Verificación
+- [ ] Push a `main` → pipeline verde (tests, build, push de imágenes, deploy automático del frontend)
+- [ ] Aplicar el backend manualmente:
+  ```bash
+  az containerapp update --name realprint-backend --resource-group realprint-rg \
+    --image ghcr.io/igordam/proyecto_realprint-backend:main
   ```
-  Base directory: frontend
-  Build command: npm ci && npm run build
-  Publish directory: frontend/dist
-  ```
-
-#### 2.3 Configurar Variables de Entorno
-En Netlify (Site settings > Environment variables):
-
-**OBLIGATORIA:**
-- [ ] `VITE_API_URL` → `https://proyecto-realprint.onrender.com/api`
-
-**Verificar (ya están en .env.production):**
-- [ ] `VITE_USE_LOCAL_AUTH` → `false`
-- [ ] Todas las `VITE_USE_*_SERVICE_*` → `true`
-
-#### 2.4 Deploy y Verificación
-- [ ] Hacer deploy
-- [ ] Esperar build (~2-5 min)
-- [ ] Tu URL será: `https://app-realprint.netlify.app`
-- [ ] Abrir la URL en el navegador
-- [ ] Verificar que carga sin errores
+- [ ] Verificar salud: `curl https://realprint-backend.politepebble-bca8a1b2.westeurope.azurecontainerapps.io/api/actuator/health`
 
 ---
 
-### Parte 3: Conectar Frontend y Backend
+### Parte 3: Verificar Conectividad Frontend ↔ Backend
 
-#### 3.1 Actualizar CORS en Backend
-- [ ] Ir a Render > tu-backend > Environment
-- [ ] Configurar `CORS_ALLOWED_ORIGINS` → `https://app-realprint.netlify.app`
-- [ ] Guardar cambios (redeploy automático del backend)
-
-#### 3.2 Verificar Conectividad
-- [ ] Abrir frontend en Netlify
-- [ ] Abrir DevTools (F12) > Network
-- [ ] Intentar login con usuario admin
-- [ ] Verificar que las peticiones van a Render
+- [ ] Abrir https://brave-desert-082e32103.7.azurestaticapps.net
+- [ ] DevTools (F12) > Network
+- [ ] Login con `admin` / `admin123`
+- [ ] Verificar que las peticiones van al backend de Container Apps
 - [ ] Verificar que NO hay errores CORS
 - [ ] Login exitoso ✅
 
@@ -124,44 +72,28 @@ En Netlify (Site settings > Environment variables):
 
 ## 🚨 Troubleshooting Común
 
-### Backend no levanta
-1. Revisar logs en Render Dashboard
-2. Verificar que DATABASE_URL está configurado
-3. Verificar que JWT_SECRET tiene mínimo 32 caracteres
-
-### CORS errors
-1. Verificar URL en `CORS_ALLOWED_ORIGINS` (sin trailing slash)
-2. Hacer redeploy del backend después de cambiar
-3. Limpiar cache del navegador
-
-### Frontend no conecta
-1. Verificar `VITE_API_URL` en Netlify
-2. Verificar que backend esté funcionando
-3. Ver Network tab en DevTools
-
-### Build falla en Netlify
-1. Verificar que `package-lock.json` está commiteado
-2. Limpiar cache: Deploys > Trigger deploy > Clear cache and deploy
-
-### Primera request tarda mucho
-- Normal en Render free tier (el servicio "duerme")
-- Primera request despierta el servicio (~30 segundos)
+Ver documentos específicos:
+- Backend / Container Apps → [AZURE_BACKEND_CONFIG.md](./AZURE_BACKEND_CONFIG.md)
+- Frontend / Static Web Apps → [AZURE_FRONTEND_CONFIG.md](./AZURE_FRONTEND_CONFIG.md)
+- Cold start / arranque lento → [COLD_START_TROUBLESHOOTING.md](./COLD_START_TROUBLESHOOTING.md)
 
 ---
 
 ## 📚 Documentación Adicional
 
-- **Configuración de Render:** Ver `RENDER_CONFIG.md`
-- **Configuración de Netlify:** Ver `NETLIFY_CONFIG.md`
+- **Configuración del backend:** Ver `AZURE_BACKEND_CONFIG.md` y `AZURE_BACKEND_ENV_VARS.md`
+- **Configuración del frontend:** Ver `AZURE_FRONTEND_CONFIG.md`
 
 ---
 
 ## ✅ Deploy Completo
 
 Si todos los checkboxes están marcados:
-- ✅ Backend funcionando en Render
-- ✅ Frontend funcionando en Netlify
+- ✅ Backend funcionando en Azure Container Apps
+- ✅ Frontend funcionando en Azure Static Web Apps
+- ✅ Base de datos funcionando en Aiven
 - ✅ Ambos comunicándose correctamente
 - ✅ Login funcional
+- ✅ Coste real: 0€
 
 **¡Felicidades! Tu aplicación está en producción** 🎉

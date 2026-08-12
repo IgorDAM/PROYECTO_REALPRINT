@@ -237,9 +237,10 @@ Para despliegue, revisa:
 - **Guía de inicio rápido**: `docs/md/QUICK_START.md`
 - **Estructura del proyecto**: `docs/md/ESTRUCTURA_PROYECTO.md`
 - **Deploy en producción**: `docs/md/DEPLOY_CHECKLIST.md`
-- **Configuración Netlify**: `docs/md/NETLIFY_CONFIG.md`
-- **Configuración Render**: `docs/md/RENDER_CONFIG.md`
-- **Variables de entorno Render**: `docs/md/RENDER_ENV_VARS.md`
+- **Configuración backend (Azure Container Apps)**: `docs/md/AZURE_BACKEND_CONFIG.md`
+- **Variables de entorno del backend**: `docs/md/AZURE_BACKEND_ENV_VARS.md`
+- **Configuración frontend (Azure Static Web Apps)**: `docs/md/AZURE_FRONTEND_CONFIG.md`
+- **Cold start / troubleshooting**: `docs/md/COLD_START_TROUBLESHOOTING.md`
 - **Memoria final**: `docs/md/Memoria_Final.md`
 - **Flujo de endpoints**: `docs/md/RealPrint_Flujo_Endpoints.md`
 - **Diagramas**: `docs/DIAGRAMAS/`

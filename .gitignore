@@ -10,6 +10,9 @@
 # !.env.production
 # !.env.example
 
+# Certificados y credenciales
+**/ca-certificate*.pem
+
 # Dependencies
 node_modules/
 /frontend/node_modules/
@@ -104,7 +107,7 @@ pnpm-lock.yaml
 # y guárdalos solo en tu máquina
 
 # Archivos de configuración con credenciales reales
-**/RENDER_ENV_VARS.local.md
+**/AZURE_BACKEND_ENV_VARS.local.md
 **/INFORME_SESION*.local.md
 **/credenciales*.md
 **/secrets*.md
