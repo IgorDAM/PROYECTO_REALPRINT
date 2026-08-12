@@ -201,49 +201,50 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ========================================
-  # Job 5: Deploy to Staging
+  # Job 5: Deploy Backend to Azure App Service
   # ========================================
-  deploy-staging:
+  deploy-backend:
     needs: build-docker
     runs-on: ubuntu-latest
-    name: Deploy to Staging
-
-    if: github.ref == 'refs/heads/develop'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to Staging
-        run: |
-          echo "Deploying to staging environment..."
-          # TODO: Implementar deployment a staging
-          # ssh -i ${{ secrets.STAGING_SSH_KEY }} user@staging-server 'cd /app && docker-compose pull && docker-compose up -d'
-
-  # ========================================
-  # Job 6: Deploy to Production
-  # ========================================
-  deploy-production:
-    needs: build-docker
-    runs-on: ubuntu-latest
-    name: Deploy to Production
+    name: Deploy Backend to Azure App Service
 
     if: github.ref == 'refs/heads/main'
 
     environment:
       name: production
-      url: https://app-realprint.netlify.app
+      url: https://realprint-backend.azurewebsites.net
+
+    steps:
+      - name: Deploy container to App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: realprint-backend
+          publish-profile: ${{ secrets.AZURE_BACKEND_PUBLISH_PROFILE }}
+          images: ghcr.io/${{ github.repository_owner }}/proyecto_realprint-backend:main
+
+  # ========================================
+  # Job 6: Deploy Frontend to Azure Static Web Apps
+  # ========================================
+  deploy-frontend:
+    needs: test-frontend
+    runs-on: ubuntu-latest
+    name: Deploy Frontend to Azure Static Web Apps
+
+    if: github.ref == 'refs/heads/main'
+
+    environment:
+      name: production
+      url: https://brave-desert-082e32103.7.azurestaticapps.net
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to Production
-        run: |
-          echo "Deploying to production environment..."
-          # TODO: Implementar deployment a produccion
-          # ssh -i ${{ secrets.PROD_SSH_KEY }} user@prod-server 'cd /app && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d'
-
-      # NOTE: Slack notifications deshabilitadas
-      # Para habilitarlas, configurar SLACK_WEBHOOK_URL en GitHub Secrets:
-      # https://github.com/IgorDAM/PROYECTO_REALPRINT/settings/secrets/actions
+      - name: Deploy to Azure Static Web Apps
+        uses: azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: /frontend
+          output_location: dist
