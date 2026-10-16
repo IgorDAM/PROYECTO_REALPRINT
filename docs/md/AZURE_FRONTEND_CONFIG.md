@@ -49,7 +49,7 @@ Si cambia la URL del frontend, actualiza `CORS_ALLOWED_ORIGINS` en el Container 
 
 ### 2. Probar la Aplicación
 1. Accede a https://brave-desert-082e32103.7.azurestaticapps.net
-2. Intenta hacer login (`admin` / `admin123`)
+2. Intenta hacer login con las credenciales de administrador reales de producción (no las de demo de desarrollo local, `admin`/`admin123`)
 3. Verifica que las llamadas van al backend de Container Apps (DevTools > Network)
 
 ## Troubleshooting

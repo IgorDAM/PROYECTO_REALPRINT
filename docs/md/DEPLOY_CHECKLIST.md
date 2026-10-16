@@ -63,7 +63,7 @@
 
 - [ ] Abrir https://brave-desert-082e32103.7.azurestaticapps.net
 - [ ] DevTools (F12) > Network
-- [ ] Login con `admin` / `admin123`
+- [ ] Login con las credenciales de administrador reales de producción (no las de demo `admin`/`admin123`)
 - [ ] Verificar que las peticiones van al backend de Container Apps
 - [ ] Verificar que NO hay errores CORS
 - [ ] Login exitoso ✅

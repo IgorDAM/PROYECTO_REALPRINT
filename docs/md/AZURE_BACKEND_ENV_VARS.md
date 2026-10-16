@@ -73,8 +73,9 @@ Debería devolver:
 ```bash
 curl -X POST https://realprint-backend.politepebble-bca8a1b2.westeurope.azurecontainerapps.io/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"username":"<usuario-admin-real>","password":"<password-admin-real>"}'
 ```
+No uses aquí las credenciales de demo (`admin`/`admin123`) de desarrollo local: en producción deben haberse rotado.
 
 ---
 

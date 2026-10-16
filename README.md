@@ -17,9 +17,7 @@ Sistema de gestion de pedidos para servicios de impresion personalizada, con fro
   ./scripts/redeploy-backend.sh       # o scripts\redeploy-backend.bat en cmd
   ```
 
-**Usuarios de prueba en producción:**
-- `admin` / `admin123`
-- `cliente` / `cliente123`
+**Acceso a producción:** las credenciales de administrador NO se publican aquí. Pide el usuario/contraseña reales a quien gestiona el despliegue. Si en algún momento se usaron aquí las mismas credenciales de demo que en desarrollo local (ver más abajo), rótalas cuanto antes: al estar en el historial de git ya no son secretas.
 
 ---
 
