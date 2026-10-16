@@ -137,16 +137,20 @@ public class UsuarioService {
      * @return El usuario actualizado
      * @throws UnauthorizedException Si no existe
      */
-    public Usuario update(Long id, Usuario usuarioActualizado) {
+    public Usuario update(Long id, Usuario usuarioActualizado, boolean isAdmin) {
         Usuario usuarioExistente = findById(id);
 
-        // Actualizar solo los campos permitidos
+        // Estos campos los puede tocar cualquiera (ADMIN o el propio usuario)
         usuarioExistente.setNombre(usuarioActualizado.getNombre());
         usuarioExistente.setEmail(usuarioActualizado.getEmail());
-        usuarioExistente.setRol(usuarioActualizado.getRol());
-        // Solo actualizar activo si se proporciona, sino mantener el valor actual
-        if (usuarioActualizado.getActivo() != null) {
-            usuarioExistente.setActivo(usuarioActualizado.getActivo());
+
+        // rol y activo SOLO los puede cambiar un ADMIN.
+        // Si el que llama no es ADMIN, se ignoran aunque vengan en el body.
+        if (isAdmin) {
+            usuarioExistente.setRol(usuarioActualizado.getRol());
+            if (usuarioActualizado.getActivo() != null) {
+                usuarioExistente.setActivo(usuarioActualizado.getActivo());
+            }
         }
         // NUNCA actualizar passwordHash desde aquí
 

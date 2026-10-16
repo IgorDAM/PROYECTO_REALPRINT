@@ -199,12 +199,17 @@ public class UsuarioController {
     @PreAuthorize("@securityRules.canUpdateUsuario(authentication, #id)")
     public ResponseEntity<UsuarioDTO> actualizarUsuario(
             @PathVariable Long id,
-            @Valid @RequestBody UsuarioDTO usuarioDTO) {
+            @Valid @RequestBody UsuarioDTO usuarioDTO,
+            Authentication authentication) {
         // Convertir DTO → Entity
         Usuario usuario = UsuarioMapper.toEntity(usuarioDTO);
 
+        // Solo un ADMIN puede cambiar rol/activo (ver UsuarioService.update)
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
         // Actualizar en base de datos
-        Usuario usuarioActualizado = usuarioService.update(id, usuario);
+        Usuario usuarioActualizado = usuarioService.update(id, usuario, isAdmin);
 
         // Convertir Entity → DTO
         return ResponseEntity.ok(UsuarioMapper.toDTO(usuarioActualizado));

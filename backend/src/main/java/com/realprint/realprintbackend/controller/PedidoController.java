@@ -222,11 +222,14 @@ public class PedidoController {
             @Valid @RequestBody PedidoDTO pedidoDTO,
             Authentication auth) {
 
-        // Convertir DTO → Entity
+        // Convertir DTO → Entity (solo se usan los campos permitidos, ver PedidoService.update)
         Pedido pedido = PedidoMapper.toEntity(pedidoDTO);
 
+        boolean isAdmin = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
         // Actualizar en base de datos
-        Pedido pedidoActualizado = pedidoService.update(id, pedido);
+        Pedido pedidoActualizado = pedidoService.update(id, pedido, isAdmin);
 
         // Convertir Entity → DTO
         return ResponseEntity.ok(PedidoMapper.toDTO(pedidoActualizado));

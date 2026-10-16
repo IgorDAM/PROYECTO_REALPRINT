@@ -145,6 +145,11 @@ public class PedidoService {
             pedido.setCliente(usuarioAutenticado);
         }
 
+        // Un pedido nuevo SIEMPRE nace pendiente y sin precio.
+        // El estado y el total los asigna el ADMIN más adelante (ver update()).
+        pedido.setEstado(PedidoEstado.PENDIENTE);
+        pedido.setTotal(null);
+
         return pedidoRepository.save(pedido);
     }
 
@@ -161,14 +166,27 @@ public class PedidoService {
      * Primero comprobamos que exista para evitar guardar algo que no está en la base de datos.
      * NO modifica cliente (owner del pedido).
      */
-    public Pedido update(Long id, Pedido pedidoActualizado) {
+    public Pedido update(Long id, Pedido cambios, boolean isAdmin) {
         Pedido pedidoExistente = findById(id);
 
-        pedidoActualizado.setId(pedidoExistente.getId());
-        // NO modificar cliente (propietario)
-        pedidoActualizado.setCliente(pedidoExistente.getCliente());
+        // Campos que puede tocar el propietario (CLIENTE) o el ADMIN
+        pedidoExistente.setServicio(cambios.getServicio());
+        pedidoExistente.setDescripcion(cambios.getDescripcion());
+        pedidoExistente.setCantidad(cambios.getCantidad());
+        pedidoExistente.setFechaEntrega(cambios.getFechaEntrega());
+        pedidoExistente.setMeasurementWidthCm(cambios.getMeasurementWidthCm());
+        pedidoExistente.setMeasurementHeightCm(cambios.getMeasurementHeightCm());
 
-        return pedidoRepository.save(pedidoActualizado);
+        // estado y total son gestión de producción: SOLO ADMIN.
+        if (isAdmin) {
+            pedidoExistente.setEstado(cambios.getEstado());
+            pedidoExistente.setTotal(cambios.getTotal());
+        }
+
+        // id, cliente, archivos, fecha y createdAt no se tocan: se quedan
+        // con el valor de pedidoExistente porque nunca los sobrescribimos.
+
+        return pedidoRepository.save(pedidoExistente);
     }
 
     /**
