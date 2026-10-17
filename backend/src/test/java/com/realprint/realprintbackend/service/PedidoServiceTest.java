@@ -73,7 +73,7 @@ class PedidoServiceTest {
                 "file",
                 "test.pdf",
                 "application/pdf",
-                "test content".getBytes()
+                "%PDF-1.4 test".getBytes()
         );
         pedidoService.addArchivo(pedidoCreado.getId(), file);
 
@@ -102,7 +102,7 @@ class PedidoServiceTest {
                 "file",
                 "documento.pdf",
                 "application/pdf",
-                "contenido".getBytes()
+                "%PDF-1.4 test".getBytes()
         );
         pedidoService.addArchivo(pedidoCreado.getId(), file);
 
@@ -123,7 +123,7 @@ class PedidoServiceTest {
                 "file",
                 "archivo.pdf",
                 "application/pdf",
-                "data".getBytes()
+                "%PDF-1.4 test".getBytes()
         );
         pedidoService.addArchivo(pedidoCreado.getId(), file);
 

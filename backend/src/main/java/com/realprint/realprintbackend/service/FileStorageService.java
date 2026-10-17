@@ -1,10 +1,12 @@
 package com.realprint.realprintbackend.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -29,6 +31,9 @@ public class FileStorageService {
 
     private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "jpg", "jpeg", "png");
+    private static final byte[] PDF_SIGNATURE = {0x25, 0x50, 0x44, 0x46, 0x2D};
+    private static final byte[] JPEG_SIGNATURE = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
+    private static final byte[] PNG_SIGNATURE = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -59,6 +64,10 @@ public class FileStorageService {
 
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
             throw new ResponseStatusException(BAD_REQUEST, "Formato no permitido. Usa PDF, JPG o PNG");
+        }
+
+        if (!hasValidSignature(file)) {
+            throw new ResponseStatusException(BAD_REQUEST, "El contenido del archivo no coincide con su formato");
         }
 
         String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
@@ -129,6 +138,28 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Comprueba que los primeros bytes del archivo coinciden con la firma de
+     * un PDF, un JPEG o un PNG (no depende de la extensión del nombre).
+     */
+    private boolean hasValidSignature(MultipartFile file) {
+        try (InputStream in = file.getInputStream()) {
+            byte[] header = in.readNBytes(8);
+            return startsWith(header, PDF_SIGNATURE)
+                    || startsWith(header, JPEG_SIGNATURE)
+                    || startsWith(header, PNG_SIGNATURE);
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
+    private boolean startsWith(byte[] header, byte[] signature) {
+        if (header.length < signature.length) {
+            return false;
+        }
+        return Arrays.equals(Arrays.copyOf(header, signature.length), signature);
+    }
+
     private String extractExtension(String fileName) {
         int dotIndex = fileName.lastIndexOf('.');
         if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
@@ -150,4 +181,3 @@ public class FileStorageService {
     public record StoredFile(Resource resource, String fileName, MediaType mediaType) {
     }
 }
-
