@@ -22,7 +22,7 @@ interface PedidosDomainOps {
   addPedido: (pedido: Entity) => Entity | Entity[];
   createPedidoSafe: (pedido: Entity) => Promise<Entity | Entity[]>;
   updatePedido: (id: number | string, updates: Record<string, any>) => void;
-  updatePedidoSafe: (id: number | string, updates: Record<string, any>) => Promise<void>;
+  updatePedidoSafe: (id: number | string, updates: Record<string, any>) => Promise<Entity | void>;
   deletePedido: (id: number | string) => void;
   deletePedidoSafe: (id: number | string) => Promise<void>;
 }
@@ -134,14 +134,14 @@ export function createPedidosDomain({
       return addPedido(pedido);
     }
 
-    try {
-      const createdPedido = await pedidosService.create(pedido);
-      // Add the created pedido to local state so it appears in the UI immediately
-      setPedidos((prev) => [createdPedido, ...prev]);
-      return createdPedido;
-    } catch {
-      return addPedido(pedido);
-    }
+    // Importante: si la API falla, NO caemos en silencio a un pedido solo-local
+    // (eso hacia parecer que se habia creado cuando en realidad nunca llego al
+    // backend). Dejamos que el error se propague para que la pantalla que llama
+    // (normalmente a traves de useApiStatus().runApi) lo muestre de verdad.
+    const createdPedido = await pedidosService.create(pedido);
+    // Add the created pedido to local state so it appears in the UI immediately
+    setPedidos((prev) => [createdPedido, ...prev]);
+    return createdPedido;
   };
 
   const updatePedido = (id, updates) => {
@@ -153,15 +153,16 @@ export function createPedidosDomain({
   const updatePedidoSafe = async (id, updates) => {
     if (!useUpdateService) {
       updatePedido(id, updates);
-      return;
+      return pedidos.find((p) => p.id === id);
     }
 
-    try {
-      await pedidosService.update(id, updates);
-      updatePedido(id, updates);
-    } catch {
-      updatePedido(id, updates);
-    }
+    // Igual que en createPedidoSafe: si el PUT falla (red, validacion, etc.) no
+    // aplicamos el cambio en local como si hubiera funcionado. Devolvemos el
+    // pedido actualizado que confirma el backend, para que quien llama pueda
+    // comprobar que realmente se guardo.
+    const pedidoActualizado = await pedidosService.update(id, updates);
+    updatePedido(id, pedidoActualizado ?? updates);
+    return pedidoActualizado;
   };
 
   const deletePedido = (id) => {
@@ -175,12 +176,11 @@ export function createPedidosDomain({
       return;
     }
 
-    try {
-      await pedidosService.remove(id);
-      deletePedido(id);
-    } catch {
-      deletePedido(id);
-    }
+    // Si el DELETE falla, no quitamos el pedido de la lista local: seguiria
+    // existiendo en el backend y lo volveriamos a ver en el siguiente refresco,
+    // asi que es mejor mostrar el error ahora que fingir que se borro.
+    await pedidosService.remove(id);
+    deletePedido(id);
   };
 
   return {

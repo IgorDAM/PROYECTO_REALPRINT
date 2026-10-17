@@ -14,7 +14,7 @@ interface UsuariosDomainOps {
   addUsuario: (usuario: Entity) => Entity;
   addUsuarioSafe: (usuario: Entity) => Promise<Entity>;
   updateUsuario: (id: number | string, updates: Record<string, any>) => void;
-  updateUsuarioSafe: (id: number | string, updates: Record<string, any>) => Promise<void>;
+  updateUsuarioSafe: (id: number | string, updates: Record<string, any>) => Promise<Entity | void>;
   deleteUsuario: (id: number | string) => void;
   deleteUsuarioSafe: (id: number | string) => Promise<void>;
 }
@@ -42,17 +42,15 @@ export function createUsuariosDomain({
       return addUsuario(usuario);
     }
 
-    try {
-      const created = await usuariosService.create(usuario);
-      if (created && typeof created === "object" && created.id !== undefined) {
-        const normalizedUser = { activo: true, ...created };
-        setUsuarios([...usuarios, normalizedUser]);
-        return normalizedUser;
-      }
-      return addUsuario(usuario);
-    } catch {
-      return addUsuario(usuario);
+    // No caer en silencio a un usuario solo-local si la API falla: eso hacia
+    // parecer que se habia creado cuando en realidad nunca llego al backend.
+    const created = await usuariosService.create(usuario);
+    if (created && typeof created === "object" && created.id !== undefined) {
+      const normalizedUser = { activo: true, ...created };
+      setUsuarios([...usuarios, normalizedUser]);
+      return normalizedUser;
     }
+    throw new Error("El servidor no devolvio un usuario valido al crearlo");
   };
 
   const updateUsuario = (id, updates) => {
@@ -62,15 +60,12 @@ export function createUsuariosDomain({
   const updateUsuarioSafe = async (id, updates) => {
     if (!useUpdateService) {
       updateUsuario(id, updates);
-      return;
+      return usuarios.find((u) => u.id === id);
     }
 
-    try {
-      await usuariosService.update(id, updates);
-      updateUsuario(id, updates);
-    } catch {
-      updateUsuario(id, updates);
-    }
+    const usuarioActualizado = await usuariosService.update(id, updates);
+    updateUsuario(id, usuarioActualizado ?? updates);
+    return usuarioActualizado;
   };
 
   const deleteUsuario = (id) => {
@@ -83,12 +78,8 @@ export function createUsuariosDomain({
       return;
     }
 
-    try {
-      await usuariosService.remove(id);
-      deleteUsuario(id);
-    } catch {
-      deleteUsuario(id);
-    }
+    await usuariosService.remove(id);
+    deleteUsuario(id);
   };
 
   return {

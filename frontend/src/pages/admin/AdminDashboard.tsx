@@ -48,10 +48,14 @@ export default function AdminDashboard() {
    * Cambia el estado de un pedido.
    * Estados disponibles: pendiente, en_proceso, completado, enviado, cancelado
    */
+  // El backend valida el pedido completo en cada PUT (exige "servicio", etc.),
+  // asi que no basta con mandar solo { estado }: partimos del pedido completo
+  // que ya tenemos en memoria y solo pisamos el estado.
   const handleCambiarEstado = async (pedidoId: string | number, nuevoEstado: string) => {
     await runApi(
       async () => {
-        await updatePedidoSafe(pedidoId, { estado: nuevoEstado });
+        const pedidoActual = pedidos.find((p: any) => p.id === pedidoId);
+        await updatePedidoSafe(pedidoId, { ...pedidoActual, estado: nuevoEstado });
       },
       "No se ha podido actualizar el estado del pedido"
     );
@@ -70,7 +74,7 @@ export default function AdminDashboard() {
     {
       key: "total",
       label: "Total",
-      render: (value) => <span className="font-semibold text-surface-900">€{typeof value === "number" ? value.toFixed(2) : "0.00"}</span>,
+      render: (value) => <span className="font-semibold text-surface-900">{typeof value === "number" ? `€${value.toFixed(2)}` : "Sin fijar"}</span>,
     },
   ];
 
@@ -86,7 +90,7 @@ export default function AdminDashboard() {
     {
       key: "total",
       label: "Total",
-      render: (value) => <span className="font-semibold text-surface-900">€{typeof value === "number" ? value.toFixed(2) : "0.00"}</span>,
+      render: (value) => <span className="font-semibold text-surface-900">{typeof value === "number" ? `€${value.toFixed(2)}` : "Sin fijar"}</span>,
     },
     {
       key: "acciones",

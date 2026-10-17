@@ -178,6 +178,8 @@ export default function AdminPedidos() {
    const [isModalOpen, setIsModalOpen] = useState(false);
    const [searchTerm, setSearchTerm] = useState("");
    const [filterEstado, setFilterEstado] = useState("");
+   const [totalInput, setTotalInput] = useState("");
+   const [totalError, setTotalError] = useState<string | null>(null);
 
   /**
    * Detecta query param ?tab= para abrir la pestaña correspondiente.
@@ -233,16 +235,37 @@ export default function AdminPedidos() {
 
   const handleViewDetails = (pedido: PedidoItem) => {
     setSelectedPedido(pedido);
+    setTotalInput(typeof pedido?.total === "number" ? String(pedido.total) : "");
+    setTotalError(null);
     setIsModalOpen(true);
   };
 
+  // IMPORTANTE: el backend valida el pedido completo en cada PUT (p.ej. exige
+  // que "servicio" no venga vacio). Si mandamos solo { estado } el PUT falla
+  // la validacion y el cambio no se guarda de verdad. Por eso partimos siempre
+  // del pedido seleccionado completo y solo pisamos el campo que cambia.
   const handleUpdateEstado = async (id: string | number, nuevoEstado: string) => {
     await runApi(async () => {
-      await updatePedidoSafe(id, { estado: nuevoEstado });
+      await updatePedidoSafe(id, { ...selectedPedido, estado: nuevoEstado });
       if (selectedPedido?.id === id) {
         setSelectedPedido({ ...selectedPedido, estado: nuevoEstado });
       }
     }, "No se ha podido actualizar el estado del pedido");
+  };
+
+  const handleUpdateTotal = async () => {
+    if (!selectedPedido) return;
+    const parsed = Number(totalInput.replace(",", "."));
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      setTotalError("Introduce un precio valido (numero igual o mayor que 0)");
+      return;
+    }
+    setTotalError(null);
+
+    await runApi(async () => {
+      await updatePedidoSafe(selectedPedido.id, { ...selectedPedido, total: parsed });
+      setSelectedPedido({ ...selectedPedido, total: parsed });
+    }, "No se ha podido actualizar el precio del pedido");
   };
 
    const handleDeletePedido = async (id: string | number) => {
@@ -260,7 +283,7 @@ export default function AdminPedidos() {
     { key: "estado", label: "Estado", render: (value) => (
       <Badge variant={value}>{ESTADOS_PEDIDO[value]?.label || value}</Badge>
     ) },
-    { key: "total", label: "Total", render: (value) => `€${typeof value === "number" ? value.toFixed(2) : "0.00"}` },
+    { key: "total", label: "Total", render: (value) => typeof value === "number" ? `€${value.toFixed(2)}` : "Sin fijar" },
     {
       key: "acciones",
       label: "",
@@ -384,7 +407,10 @@ export default function AdminPedidos() {
               </div>
               <div>
                 <p className="text-surface-500 text-sm">Total</p>
-                <p className="font-medium text-lg sm:text-xl">€{typeof selectedPedido.total === "number" ? selectedPedido.total.toFixed(2) : "0.00"}</p>
+                <p className="font-medium text-lg sm:text-xl">{typeof selectedPedido.total === "number" ? `€${selectedPedido.total.toFixed(2)}` : "Sin fijar"}</p>
+                {typeof selectedPedido.precioSugerido === "number" && (
+                  <p className="text-surface-400 text-xs mt-0.5">Precio sugerido por el cliente: €{selectedPedido.precioSugerido.toFixed(2)}</p>
+                )}
               </div>
               <div>
                 <p className="text-surface-500 text-sm">Estado Actual</p>
@@ -392,6 +418,25 @@ export default function AdminPedidos() {
                   {ESTADOS_PEDIDO[selectedPedido.estado]?.label}
                 </Badge>
               </div>
+            </div>
+
+            <div>
+              <p className="text-surface-500 text-sm mb-2">Fijar precio (total)</p>
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-start">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={totalInput}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setTotalInput(e.target.value)}
+                  placeholder="0.00"
+                  className="sm:max-w-[160px]"
+                />
+                <Button size="sm" disabled={isProcessing} onClick={handleUpdateTotal}>
+                  Guardar precio
+                </Button>
+              </div>
+              {totalError && <p className="text-red-600 text-xs mt-1">{totalError}</p>}
             </div>
 
             <div>

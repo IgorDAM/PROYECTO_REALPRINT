@@ -141,9 +141,12 @@ export default function AdminUsuarios() {
     }
   };
 
+  // El backend valida el UsuarioDTO completo en cada PUT (username y nombre son
+  // obligatorios), asi que no basta con mandar solo { activo }: partimos del
+  // usuario completo y solo pisamos el campo que cambia.
   const handleToggleActive = async (usuario: UsuarioItem) => {
     await runApi(
-      () => updateUsuarioSafe(usuario.id, { activo: !usuario.activo }),
+      () => updateUsuarioSafe(usuario.id, { ...usuario, activo: !usuario.activo }),
       "No se ha podido actualizar el estado del usuario",
     );
   };
