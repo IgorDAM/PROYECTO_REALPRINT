@@ -123,3 +123,4 @@ docs/md/GUION_VIDEOS.md
 # Archivos de configuración de Claude con credenciales
 .claude/settings.local.json
 
+backend/uploads/
