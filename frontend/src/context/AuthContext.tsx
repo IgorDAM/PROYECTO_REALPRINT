@@ -15,7 +15,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { authService } from "../services";
-import { getToken } from "../services/tokenStorage";
+import { getToken, clearToken } from "../services/tokenStorage";
 
 type Role = "admin" | "cliente" | string;
 
@@ -52,7 +52,9 @@ function decodeJWT(token: string): JwtPayload | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
-    const decoded = JSON.parse(atob(payload)) as JwtPayload;
+    // El payload del JWT viene en base64url (- y _); atob espera base64 estandar (+ y /).
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = JSON.parse(atob(base64)) as JwtPayload;
     return decoded;
   } catch {
     return null;
@@ -78,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     if (savedToken && isTokenExpired(savedToken)) {
       // Token expirado: limpiar sesion
-      localStorage.removeItem("realprint_token");
+      clearToken();
       authService.logout();
       setUser(null);
       setToken(null);

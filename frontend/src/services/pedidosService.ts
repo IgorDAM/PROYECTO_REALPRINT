@@ -1,4 +1,5 @@
 import { httpClient } from "./httpClient";
+import { getToken } from "./tokenStorage";
 
 /**
  * Servicio CRUD de pedidos.
@@ -75,7 +76,7 @@ export const pedidosService: CrudService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const token = localStorage.getItem('realprint_token');
+    const token = getToken();
 
     // Para multipart/form-data, NO usar httpClient que fuerza Content-Type: application/json
     const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/files`, {
@@ -108,7 +109,7 @@ export const pedidosService: CrudService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const token = localStorage.getItem('realprint_token');
+    const token = getToken();
 
     const response = await fetch(
       `${import.meta.env.VITE_API_URL || 'http://localhost:8080/api'}/pedidos/${pedidoId}/archivos`,

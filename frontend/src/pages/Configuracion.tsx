@@ -7,6 +7,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 import { usePricingConfig } from "../hooks/usePricingConfig";
 import { GlassCard, Button, Input } from "../components/ui";
+import { getToken } from "../services/tokenStorage";
 
 interface PerfilState {
   nombre: string;
@@ -69,7 +70,7 @@ export default function Configuracion() {
     setCargando(true);
 
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8080/api"}/usuarios/${user?.id}/cambiar-password`, {
         method: "PUT",
         headers: {
