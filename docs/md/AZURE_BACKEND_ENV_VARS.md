@@ -37,6 +37,18 @@ JWT_EXPIRATION_MS=86400000
 CORS_ALLOWED_ORIGINS=https://brave-desert-082e32103.7.azurestaticapps.net
 ```
 
+### Configuración inicial (SETUP_SECRET)
+
+```bash
+SETUP_SECRET=secretref:setup-secret   # generado con: openssl rand -hex 24
+```
+
+`POST /setup/admin` (crea el primer usuario ADMIN cuando la base de datos está
+vacía) exige esta clave además de que no haya usuarios todavía. Sin
+`SETUP_SECRET` definido, el endpoint queda deshabilitado. Tras crear el admin
+real, se puede rotar o borrar esta variable: el endpoint ya no admite más
+usos una vez que la BD tiene usuarios.
+
 ---
 
 ## Cómo aplicar cambios en Azure

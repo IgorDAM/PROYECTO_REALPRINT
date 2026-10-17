@@ -74,6 +74,11 @@ app:
     dir: ${UPLOAD_DIR:uploads}
     max-size: ${MAX_FILE_SIZE:10485760}
     allowed-types: image/jpeg,image/png,image/gif,application/pdf
+  setup:
+    # Clave requerida por POST /setup/admin para crear el primer admin.
+    # IMPORTANTE: definir SETUP_SECRET en Azure tras el primer despliegue (y rotarla/borrarla
+    # una vez creado el admin real) para evitar que el endpoint quede abierto indefinidamente.
+    secret: ${SETUP_SECRET:}
 
 management:
   endpoints:

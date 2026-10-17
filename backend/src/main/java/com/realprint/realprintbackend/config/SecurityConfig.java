@@ -35,7 +35,15 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/health/**", "/setup/**", "/error", "/actuator/**").permitAll()
+                        // /setup/** debe quedar accesible sin JWT (se usa antes de que exista ningún
+                        // usuario), pero el propio controlador exige una clave de configuracion
+                        // (app.setup.secret / SETUP_SECRET) ademas de exigir que la BD este vacia.
+                        .requestMatchers("/auth/**", "/health/**", "/setup/**", "/error").permitAll()
+                        // Solo el healthcheck de actuator es publico (lo usan las sondas de Azure).
+                        // El resto de /actuator/** (metrics, prometheus, etc.) expone datos internos
+                        // y ahora requiere estar autenticado como ADMIN.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
