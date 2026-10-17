@@ -1,5 +1,5 @@
 -- Script para limpiar usuarios de desarrollo en producción
--- Ejecutar en la consola de PostgreSQL de Render
+-- Ejecutar en la consola de MySQL (Aiven o local)
 
 -- 1. Ver todos los usuarios actuales con sus roles
 SELECT

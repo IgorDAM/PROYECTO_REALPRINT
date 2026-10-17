@@ -38,7 +38,7 @@ curl -m 30 https://realprint-backend.politepebble-bca8a1b2.westeurope.azureconta
 
 ## 🔧 Ya no hay workflow de keep-alive
 
-El antiguo `keep-alive.yml` (pings periódicos a Render) está desactivado (`.github/workflows/keep-alive.yml`, sin `schedule`, solo `workflow_dispatch`). No se ha sustituido por uno equivalente para Azure a propósito: mantener el backend "siempre despierto" consumiría más cuota gratuita mensual de Container Apps sin necesidad real para un proyecto académico. Si en el futuro el cold start resulta molesto para una demo, se puede:
+El antiguo workflow `keep-alive.yml` (pings periódicos a Render) se eliminó del repositorio. No se ha sustituido por uno equivalente para Azure a propósito: mantener el backend "siempre despierto" consumiría más cuota gratuita mensual de Container Apps sin necesidad real para un proyecto académico. Si en el futuro el cold start resulta molesto para una demo, se puede:
 - Subir `min-replicas` a 1 en el Container App (deja de haber cold start, pero consume grant gratuito de forma continua — seguiría siendo 0€ mientras no se supere el grant mensual).
 - Reactivar un workflow de ping periódico similar al antiguo, apuntando a la nueva URL.
 

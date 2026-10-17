@@ -163,7 +163,7 @@ git reset --soft HEAD~1
 **Contacta al administrador del repositorio inmediatamente** para:
 - Rotar todas las credenciales comprometidas
 - Limpiar el historial de Git (git filter-branch o BFG Repo-Cleaner)
-- Actualizar las credenciales en los servicios (Render, Netlify, etc.)
+- Actualizar las credenciales en los servicios (Azure, Aiven, GitHub, etc.)
 
 ---
 
@@ -189,18 +189,17 @@ Los siguientes archivos han sido revisados y limpiados de información sensible:
 
 Si sospechas que alguna credencial fue comprometida:
 
-### Base de datos (Render):
-1. Dashboard de Render → PostgreSQL → Connections
-2. "Reset Password"
-3. Actualizar `SPRING_DATASOURCE_PASSWORD` en variables de entorno
+### Base de datos (Aiven MySQL):
+1. Consola de Aiven → servicio MySQL → usuario → "Reset password"
+2. Actualizar `DB_PASSWORD` en las variables de entorno del Container App de Azure
 
 ### JWT Secret:
 ```bash
 # Generar nuevo secret
 openssl rand -base64 32
 
-# Actualizar en Render
-RENDER_ENV: JWT_SECRET=<nuevo_valor>
+# Actualizar en Azure Container Apps (variable de entorno)
+JWT_SECRET=<nuevo_valor>
 ```
 
 ### API Keys externas:

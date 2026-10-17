@@ -1,5 +1,5 @@
 -- Script para verificar el estado de pedidos y archivos
--- Ejecutar en la consola de PostgreSQL de Render
+-- Ejecutar en la consola de MySQL (Aiven o local)
 
 -- 1. Ver cuántos pedidos hay en total
 SELECT COUNT(*) as total_pedidos FROM pedidos;

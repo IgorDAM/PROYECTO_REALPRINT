@@ -99,7 +99,7 @@ public class AuthController {
     }
 
     /**
-     * Endpoint de healthcheck para keep-alive en Render.
+     * Endpoint de healthcheck para comprobar que el backend responde.
      * No requiere autenticacion pero levanta los beans de AuthService.
      * Responde rapidamente sin usar recursos de la BD.
      */

@@ -117,7 +117,7 @@ Usuarios de prueba:
 ### Nota de entornos
 
 - **Desarrollo local**: MySQL en Docker (`docker/docker-compose.yml`).
-- **Producción**: PostgreSQL (`docker/docker-compose.prod.yml` como referencia local y `backend/src/main/resources/application-production.yml` para Render).
+- **Producción**: MySQL en Aiven (`backend/src/main/resources/application-production.yml`); `docker/docker-compose.prod.yml` queda como referencia local.
 - El perfil por defecto es `development`, así que el backend espera la base de datos local levantada en Docker.
 
 ## Testing de API con Postman
