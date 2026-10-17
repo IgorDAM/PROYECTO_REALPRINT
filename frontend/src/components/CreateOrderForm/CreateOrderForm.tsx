@@ -197,7 +197,9 @@ export function CreateOrderForm({pedido, onCancel}: CreateOrderFormProps = {}) {
                 // Estado inicial (opcional, backend lo asigna por defecto)
                 estado: 'pendiente',
 
-                total: Number(currentItem.totalPrice) || 0,
+                // El precio final ("total") solo lo puede fijar un ADMIN desde el panel.
+                // Lo que calculamos aqui es solo una referencia informativa para el ADMIN.
+                precioSugerido: Number(currentItem.totalPrice) || 0,
 
                 // Campos adicionales para compatibilidad y edición posterior
                 linearMeters: currentItem.linearMetersRaw,

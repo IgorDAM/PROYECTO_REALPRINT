@@ -39,13 +39,14 @@ export default function ClienteHistorial() {
     {
       key: "total",
       label: "Total",
-      render: (value) => `€${value.toFixed(2)}`,
+      render: (value) => typeof value === "number" ? `€${value.toFixed(2)}` : "Pendiente de fijar",
     },
   ];
 
+  // p.total puede ser null (precio aun no fijado por el ADMIN): no sumamos esos casos.
   const totalHistorico = historial
     .filter((p) => p.estado !== "cancelado")
-    .reduce((sum, p) => sum + p.total, 0);
+    .reduce((sum, p) => sum + (typeof p.total === "number" ? p.total : 0), 0);
 
   return (
     <div>

@@ -105,7 +105,9 @@ export default function LinearPedidoEditor({ pedido, onCancel }: LinearPedidoEdi
       unitWidthCm: formData.unitWidthCm,
       unitHeightCm: formData.unitHeightCm,
       billableLinearMeters: totalLinearMeters,
-      total: pricing.totalPrice,
+      // El precio final ("total") solo lo puede fijar un ADMIN. Esto es solo
+      // una referencia informativa calculada por el propio formulario.
+      precioSugerido: pricing.totalPrice,
       descripcion: [
         'Tipo: Solo serigrafia',
         `Unidad referencia: ${Number(formData.unitWidthCm).toFixed(1)} x ${Number(formData.unitHeightCm).toFixed(1)} cm`,

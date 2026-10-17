@@ -86,6 +86,7 @@ public class PedidoMapper {
                 // CRÍTICO: Convertir enum a minúsculas
                 .estado(estadoEnumToString(pedido.getEstado()))
                 .total(pedido.getTotal())
+                .precioSugerido(pedido.getPrecioSugerido())
                 // Incluir archivos asociados
                 .archivos(pedido.getArchivos() != null && !pedido.getArchivos().isEmpty()
                         ? pedido.getArchivos().stream()
@@ -144,6 +145,7 @@ public class PedidoMapper {
                 // CRÍTICO: Convertir string minúscula a enum MAYÚSCULA
                 .estado(stringToEstadoEnum(dto.getEstado()))
                 .total(dto.getTotal())
+                .precioSugerido(dto.getPrecioSugerido())
                 .build();
     }
 }

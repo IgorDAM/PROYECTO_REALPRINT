@@ -69,9 +69,13 @@ public class PedidoDTO {
              message = "Estado inválido. Valores permitidos: pendiente, en_proceso, completado, enviado, cancelado")
     private String estado;
 
-    // Total a pagar
+    // Total a pagar. Solo un ADMIN puede fijarlo (ver PedidoService.update).
     @DecimalMin(value = "0.0", inclusive = true, message = "El total no puede ser negativo")
     private BigDecimal total;
+
+    // Precio sugerido/calculado por el cliente en el frontend. Informativo, no vinculante.
+    @DecimalMin(value = "0.0", inclusive = true, message = "El precio sugerido no puede ser negativo")
+    private BigDecimal precioSugerido;
 
     // Archivos asociados al pedido
     @Builder.Default

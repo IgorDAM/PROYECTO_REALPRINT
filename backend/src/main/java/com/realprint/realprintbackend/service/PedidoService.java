@@ -145,10 +145,12 @@ public class PedidoService {
             pedido.setCliente(usuarioAutenticado);
         }
 
-        // Un pedido nuevo SIEMPRE nace pendiente y sin precio.
-        // El estado y el total los asigna el ADMIN más adelante (ver update()).
+        // Un pedido nuevo SIEMPRE nace pendiente y sin precio final.
+        // El estado y el total (precio real a cobrar) los asigna el ADMIN más adelante (ver update()).
         pedido.setEstado(PedidoEstado.PENDIENTE);
         pedido.setTotal(null);
+        // precioSugerido SI se conserva: es el precio que el propio frontend calculó
+        // (metros lineales x tarifa) y sirve de referencia para el ADMIN. No es vinculante.
 
         return pedidoRepository.save(pedido);
     }
@@ -176,8 +178,11 @@ public class PedidoService {
         pedidoExistente.setFechaEntrega(cambios.getFechaEntrega());
         pedidoExistente.setMeasurementWidthCm(cambios.getMeasurementWidthCm());
         pedidoExistente.setMeasurementHeightCm(cambios.getMeasurementHeightCm());
+        // precioSugerido es solo informativo (lo recalcula el cliente al editar su pedido);
+        // no es el precio real, así que el propietario también puede actualizarlo.
+        pedidoExistente.setPrecioSugerido(cambios.getPrecioSugerido());
 
-        // estado y total son gestión de producción: SOLO ADMIN.
+        // estado y total (precio real a cobrar) son gestión de producción: SOLO ADMIN.
         if (isAdmin) {
             pedidoExistente.setEstado(cambios.getEstado());
             pedidoExistente.setTotal(cambios.getTotal());

@@ -16,8 +16,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+
 import com.realprint.realprintbackend.dto.PedidoDTO;
 import com.realprint.realprintbackend.entity.Pedido;
+import com.realprint.realprintbackend.entity.PedidoEstado;
 import com.realprint.realprintbackend.entity.RolUsuario;
 import com.realprint.realprintbackend.entity.Usuario;
 import com.realprint.realprintbackend.repository.PedidoRepository;
@@ -139,6 +142,91 @@ class PedidoServiceTest {
         assertNotNull(pedidoDTO.getArchivos());
         assertEquals(1, pedidoDTO.getArchivos().size());
         assertEquals("archivo.pdf", pedidoDTO.getArchivos().get(0).getNombreArchivo());
+    }
+
+    // --- Tests de autorizacion: un CLIENTE (isAdmin = false) no puede fijar
+    // ni estado ni total de un pedido, aunque los mande en el cuerpo de la
+    // peticion. Ver UsuarioController/PedidoController, que calculan isAdmin
+    // a partir del rol real del usuario autenticado, nunca de lo que diga el
+    // cliente en el DTO. ---
+
+    @Test
+    void testUpdateSinSerAdminIgnoraEstadoYTotal() {
+        // El pedido nace PENDIENTE y sin total (ver save()); nos aseguramos de partir de ahi.
+        assertEquals(PedidoEstado.PENDIENTE, pedidoCreado.getEstado());
+        assertNull(pedidoCreado.getTotal());
+
+        Pedido cambiosMaliciosos = Pedido.builder()
+                .servicio("serigrafía actualizada")
+                .descripcion("Intento de cliente")
+                .cantidad(20)
+                .estado(PedidoEstado.COMPLETADO)
+                .total(new BigDecimal("9999.99"))
+                .build();
+
+        Pedido resultado = pedidoService.update(pedidoCreado.getId(), cambiosMaliciosos, false);
+
+        // Los campos "normales" SI se actualizan (el propietario puede tocarlos).
+        assertEquals("serigrafía actualizada", resultado.getServicio());
+        assertEquals(20, resultado.getCantidad());
+
+        // estado y total deben IGNORARSE por completo cuando quien llama no es ADMIN.
+        assertEquals(PedidoEstado.PENDIENTE, resultado.getEstado(),
+                "Un CLIENTE no deberia poder cambiar el estado de su propio pedido");
+        assertNull(resultado.getTotal(),
+                "Un CLIENTE no deberia poder fijar el total/precio de su propio pedido");
+    }
+
+    @Test
+    void testUpdateComoAdminSiPermiteCambiarEstadoYTotal() {
+        Pedido cambiosAdmin = Pedido.builder()
+                .servicio(pedidoCreado.getServicio())
+                .descripcion(pedidoCreado.getDescripcion())
+                .cantidad(pedidoCreado.getCantidad())
+                .estado(PedidoEstado.EN_PROCESO)
+                .total(new BigDecimal("150.00"))
+                .build();
+
+        Pedido resultado = pedidoService.update(pedidoCreado.getId(), cambiosAdmin, true);
+
+        assertEquals(PedidoEstado.EN_PROCESO, resultado.getEstado());
+        assertEquals(new BigDecimal("150.00"), resultado.getTotal());
+    }
+
+    @Test
+    void testUpdatePermitePrecioSugeridoSinSerAdmin() {
+        // precioSugerido es solo informativo (lo recalcula el propio cliente al
+        // editar su pedido), asi que el propietario SI puede actualizarlo aunque
+        // no sea ADMIN.
+        Pedido cambios = Pedido.builder()
+                .servicio(pedidoCreado.getServicio())
+                .descripcion(pedidoCreado.getDescripcion())
+                .cantidad(pedidoCreado.getCantidad())
+                .precioSugerido(new BigDecimal("42.50"))
+                .build();
+
+        Pedido resultado = pedidoService.update(pedidoCreado.getId(), cambios, false);
+
+        assertEquals(new BigDecimal("42.50"), resultado.getPrecioSugerido());
+        // Y sigue sin poder tocar el total real.
+        assertNull(resultado.getTotal());
+    }
+
+    @Test
+    void testSaveIgnoraEstadoYTotalEnviadosPorElCliente() {
+        Pedido pedidoMalicioso = Pedido.builder()
+                .cliente(cliente)
+                .servicio("serigrafía")
+                .descripcion("Intento de fijar mi propio precio")
+                .cantidad(5)
+                .estado(PedidoEstado.COMPLETADO)
+                .total(new BigDecimal("1.00"))
+                .build();
+
+        Pedido guardado = pedidoService.save(pedidoMalicioso, null);
+
+        assertEquals(PedidoEstado.PENDIENTE, guardado.getEstado());
+        assertNull(guardado.getTotal());
     }
 }
 

@@ -45,7 +45,7 @@ export default function ClienteDashboard() {
     {
       key: "total",
       label: "Total",
-      render: (value) => `€${value.toFixed(2)}`,
+      render: (value) => typeof value === "number" ? `€${value.toFixed(2)}` : "Pendiente de fijar",
     },
     {
       key: "acciones",
@@ -62,7 +62,8 @@ export default function ClienteDashboard() {
     },
   ];
 
-  const totalGastado = misPedidos.reduce((sum, p) => sum + p.total, 0);
+  // p.total puede ser null (precio aun no fijado por el ADMIN): no sumamos esos casos.
+  const totalGastado = misPedidos.reduce((sum, p) => sum + (typeof p.total === "number" ? p.total : 0), 0);
 
   return (
     <div>

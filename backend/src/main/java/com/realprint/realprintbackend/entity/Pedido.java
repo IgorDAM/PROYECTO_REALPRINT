@@ -89,9 +89,16 @@ public class Pedido {
     @Column(nullable = false)
     private PedidoEstado estado = PedidoEstado.PENDIENTE;
 
-    // Precio total calculado para este pedido.
+    // Precio total calculado para este pedido. Autoridad exclusiva de ADMIN
+    // (ver PedidoService.update). Es el precio que realmente se cobra.
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
+
+    // Precio sugerido/calculado por el cliente en el frontend (metros lineales x tarifa).
+    // Puramente informativo: nunca se usa como precio final, solo ayuda al ADMIN
+    // a decidir el valor de `total`.
+    @Column(name = "precio_sugerido", precision = 10, scale = 2)
+    private BigDecimal precioSugerido;
 
     // Fecha/hora de creación técnica del registro.
     private LocalDateTime createdAt;
