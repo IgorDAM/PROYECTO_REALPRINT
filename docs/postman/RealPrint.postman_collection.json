@@ -51,7 +51,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"dev-user\",\n  \"password\": \"dev123\"\n}"
+              "raw": "{\n  \"username\": \"cliente\",\n  \"password\": \"cliente123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/auth/login",

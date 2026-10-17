@@ -134,8 +134,6 @@ public class PedidoService {
     /**
      * Guarda un pedido nuevo asignando automáticamente el cliente desde el contexto de seguridad.
      * Solo CLIENTE puede invocar este método (validado en el controller con @PreAuthorize).
-     *
-     * En desarrollo, DevAuthenticationFilter inyecta automáticamente un usuario mock.
      */
     public Pedido save(Pedido pedido, Authentication auth) {
         if (pedido.getCliente() == null && auth != null) {
