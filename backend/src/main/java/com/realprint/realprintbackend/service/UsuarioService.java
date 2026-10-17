@@ -1,7 +1,11 @@
 package com.realprint.realprintbackend.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +38,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor // Lombok genera constructor con los campos finales (usuarioRepository, passwordEncoder)
 @Transactional // Todas las operaciones de este servicio se ejecutan dentro de una transacción de base de datos(begin,commit, rollback)
 public class UsuarioService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioService.class);
+
+    // Caducidad del token de recuperación de contraseña.
+    private static final long RESET_TOKEN_VALIDITY_MINUTES = 30;
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder; // Inyectamos el PasswordEncoder para manejar contraseñas de forma segura
@@ -211,6 +220,73 @@ public class UsuarioService {
         Usuario usuario = findById(id);
         usuario.setActivo(false);
         return usuarioRepository.save(usuario);
+    }
+
+    /**
+     * Inicia el flujo de "olvidé mi contraseña".
+     *
+     * **Seguridad:**
+     * - Nunca revela si el identificador (username o email) existe o no: el
+     *   controlador siempre responde igual, exista o no el usuario.
+     * - Genera un token de un solo uso con caducidad de {@link #RESET_TOKEN_VALIDITY_MINUTES}
+     *   minutos y lo guarda en el propio usuario.
+     *
+     * **Limitación conocida:** este proyecto no tiene configurado un proveedor de
+     * email (SMTP/SendGrid/etc.), así que el enlace de recuperación se escribe en
+     * el log del backend en vez de enviarse por correo. Conectar un envío real de
+     * email queda como mejora pendiente.
+     *
+     * @param identifier username o email del usuario
+     */
+    public void requestPasswordReset(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return;
+        }
+
+        Usuario usuario = usuarioRepository.findByUsername(identifier)
+                .or(() -> usuarioRepository.findByEmail(identifier))
+                .orElse(null);
+
+        // No revelar si el usuario existe: si no lo encontramos, simplemente no hacemos nada.
+        if (usuario == null) {
+            logger.info("Solicitud de recuperación de contraseña para un identificador no encontrado");
+            return;
+        }
+
+        String token = UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiry(LocalDateTime.now().plusMinutes(RESET_TOKEN_VALIDITY_MINUTES));
+        usuarioRepository.save(usuario);
+
+        // TODO: enviar este enlace por email cuando haya un proveedor de correo configurado.
+        logger.info("Token de recuperación de contraseña generado para el usuario '{}': /reset-password?token={} (caduca en {} min)",
+                usuario.getUsername(), token, RESET_TOKEN_VALIDITY_MINUTES);
+    }
+
+    /**
+     * Completa el flujo de "olvidé mi contraseña": valida el token y establece la nueva contraseña.
+     *
+     * @param token El token recibido en el enlace de recuperación
+     * @param nuevaPassword La nueva contraseña en texto plano
+     * @throws UnauthorizedException Si el token no existe o ha caducado
+     */
+    public void resetPassword(String token, String nuevaPassword) {
+        Usuario usuario = usuarioRepository.findByResetToken(token)
+                .orElseThrow(() -> new UnauthorizedException("El enlace de recuperación no es válido"));
+
+        if (usuario.getResetTokenExpiry() == null || usuario.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            // Invalidar el token caducado para que no pueda reintentarse.
+            usuario.setResetToken(null);
+            usuario.setResetTokenExpiry(null);
+            usuarioRepository.save(usuario);
+            throw new UnauthorizedException("El enlace de recuperación ha caducado, solicita uno nuevo");
+        }
+
+        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword));
+        // Token de un solo uso: se invalida en cuanto se usa.
+        usuario.setResetToken(null);
+        usuario.setResetTokenExpiry(null);
+        usuarioRepository.save(usuario);
     }
 }
 

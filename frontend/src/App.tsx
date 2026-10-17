@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import LandingPage from "./pages/LandingPage";
 import Configuracion from "./pages/Configuracion";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Paginas de administrador
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Rutas de administrador */}
               <Route

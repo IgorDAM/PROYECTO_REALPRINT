@@ -3,10 +3,13 @@ package com.realprint.realprintbackend.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.realprint.realprintbackend.dto.ForgotPasswordRequest;
 import com.realprint.realprintbackend.dto.LoginRequest;
 import com.realprint.realprintbackend.dto.LoginResponse;
+import com.realprint.realprintbackend.dto.ResetPasswordRequest;
 import com.realprint.realprintbackend.exception.UnauthorizedException;
 import com.realprint.realprintbackend.service.AuthService;
+import com.realprint.realprintbackend.service.UsuarioService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class AuthController {
 
     private final AuthService authService;
+    private final UsuarioService usuarioService;
 
     /**
      * Endpoint de login esperado por el frontend.
@@ -107,5 +111,43 @@ public class AuthController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("{\"status\":\"ok\"}");
+    }
+
+    /**
+     * Inicia el flujo de recuperación de contraseña.
+     *
+     * Por seguridad, SIEMPRE responde 200 con el mismo mensaje genérico,
+     * exista o no una cuenta asociada al identificador (evita que se pueda
+     * averiguar qué usernames/emails están registrados probando aquí).
+     */
+    @Operation(
+        summary = "Solicitar recuperación de contraseña",
+        description = "Genera un enlace de recuperación de un solo uso (caduca a los 30 minutos) si el identificador " +
+                      "(username o email) corresponde a una cuenta existente. La respuesta es siempre la misma para no " +
+                      "revelar si la cuenta existe."
+    )
+    @ApiResponse(responseCode = "200", description = "Petición procesada (independientemente de si la cuenta existe)")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        usuarioService.requestPasswordReset(request.getIdentifier());
+        return ResponseEntity.ok("{\"message\":\"Si existe una cuenta asociada, recibirás instrucciones para continuar.\"}");
+    }
+
+    /**
+     * Completa el flujo de recuperación: cambia la contraseña usando el token recibido.
+     */
+    @Operation(
+        summary = "Restablecer contraseña",
+        description = "Establece una nueva contraseña a partir de un token de recuperación válido y no caducado."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Contraseña restablecida correctamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+        @ApiResponse(responseCode = "401", description = "Token inválido o caducado")
+    })
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        usuarioService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("{\"message\":\"Contraseña actualizada correctamente.\"}");
     }
 }

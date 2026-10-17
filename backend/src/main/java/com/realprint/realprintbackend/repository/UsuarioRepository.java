@@ -16,5 +16,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // Necesitamos este método para el login y para cargar usuarios en JWT.
     Optional<Usuario> findByUsername(String username);
+
+    // Usado por "olvidé mi contraseña" para aceptar username O email como identificador.
+    Optional<Usuario> findByEmail(String email);
+
+    // Usado para validar el token de "olvidé mi contraseña" al resetear la clave.
+    Optional<Usuario> findByResetToken(String resetToken);
 }
 

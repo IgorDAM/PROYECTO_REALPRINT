@@ -1,5 +1,7 @@
 package com.realprint.realprintbackend.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -59,4 +61,13 @@ public class Usuario {
     @Column(nullable = false)
     @Builder.Default
     private Boolean activo = true;
+
+    // Token de un solo uso para el flujo de "olvidé mi contraseña".
+    // Null cuando no hay ninguna recuperación pendiente.
+    @Column(name = "reset_token", unique = true)
+    private String resetToken;
+
+    // Caducidad del resetToken (p.ej. 30 minutos tras generarlo).
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
 }
