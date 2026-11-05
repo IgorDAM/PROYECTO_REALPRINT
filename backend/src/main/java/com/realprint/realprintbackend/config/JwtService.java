@@ -5,6 +5,8 @@ import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,18 @@ public class JwtService {
 
     @Value("${jwt.expiration-ms}")
     private long expirationMs;
+
+    /**
+     * Falla al arrancar (y no en el primer login) si el secreto es demasiado corto:
+     * HS256 exige al menos 256 bits (32 bytes).
+     */
+    @PostConstruct
+    void validarSecreto() {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                "jwt.secret debe tener al menos 32 caracteres (256 bits) para firmar con HS256");
+        }
+    }
 
     public String generateToken(Usuario usuario) {
         // Fecha actual = momento de emisión del token.

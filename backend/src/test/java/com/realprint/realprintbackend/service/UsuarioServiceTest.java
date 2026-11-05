@@ -108,10 +108,13 @@ class UsuarioServiceTest {
 
     @Test
     void testRequestPasswordResetGeneraTokenParaUsuarioExistente() {
-        usuarioService.requestPasswordReset(clienteCreado.getUsername());
+        String token = usuarioService.requestPasswordReset(clienteCreado.getUsername());
 
         Usuario actualizado = usuarioRepository.findById(clienteCreado.getId()).orElseThrow();
+        assertNotNull(token);
         assertNotNull(actualizado.getResetToken());
+        assertNotEquals(token, actualizado.getResetToken(),
+                "En la BD debe guardarse el hash del token, no el token en claro");
         assertNotNull(actualizado.getResetTokenExpiry());
         assertTrue(actualizado.getResetTokenExpiry().isAfter(LocalDateTime.now()));
     }
@@ -132,8 +135,7 @@ class UsuarioServiceTest {
 
     @Test
     void testResetPasswordConTokenValidoActualizaContrasena() {
-        usuarioService.requestPasswordReset(clienteCreado.getUsername());
-        String token = usuarioRepository.findById(clienteCreado.getId()).orElseThrow().getResetToken();
+        String token = usuarioService.requestPasswordReset(clienteCreado.getUsername());
 
         usuarioService.resetPassword(token, "contraseñaNueva123");
 
@@ -152,9 +154,8 @@ class UsuarioServiceTest {
 
     @Test
     void testResetPasswordConTokenCaducadoLanzaUnauthorizedYLoInvalida() {
-        usuarioService.requestPasswordReset(clienteCreado.getUsername());
+        String token = usuarioService.requestPasswordReset(clienteCreado.getUsername());
         Usuario usuario = usuarioRepository.findById(clienteCreado.getId()).orElseThrow();
-        String token = usuario.getResetToken();
 
         // Forzar la caducidad manualmente.
         usuario.setResetTokenExpiry(LocalDateTime.now().minusMinutes(1));

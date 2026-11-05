@@ -1,6 +1,5 @@
 package com.realprint.realprintbackend.service;
 
-import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -21,18 +20,17 @@ public class SecurityRulesService {
 
     private final UsuarioRepository usuarioRepository;
     private final PedidoRepository pedidoRepository;
-    private final Environment environment;
 
     public boolean canCreatePedido(Authentication authentication) {
-        return isDevelopment() || hasAuthority(authentication, "ROLE_CLIENTE");
+        return hasAuthority(authentication, "ROLE_CLIENTE");
     }
 
     public boolean canUploadFile(Authentication authentication) {
-        return isDevelopment() || hasAuthority(authentication, "ROLE_CLIENTE");
+        return hasAuthority(authentication, "ROLE_CLIENTE");
     }
 
     public boolean canReadPedido(Authentication authentication, PedidoDTO pedido) {
-        return isDevelopment() || (
+        return (
                 pedido != null && (
                         hasAuthority(authentication, "ROLE_ADMIN") ||
                         isOwner(authentication, pedido.getClienteId())
@@ -41,7 +39,7 @@ public class SecurityRulesService {
     }
 
     public boolean canReadUsuario(Authentication authentication, UsuarioDTO usuario) {
-        return isDevelopment() || (
+        return (
                 usuario != null && (
                         hasAuthority(authentication, "ROLE_ADMIN") ||
                         isOwner(authentication, usuario.getId())
@@ -50,7 +48,7 @@ public class SecurityRulesService {
     }
 
     public boolean canUpdateUsuario(Authentication authentication, Long usuarioId) {
-        return isDevelopment() || (
+        return (
                 usuarioId != null && (
                         hasAuthority(authentication, "ROLE_ADMIN") ||
                         isOwner(authentication, usuarioId)
@@ -59,7 +57,6 @@ public class SecurityRulesService {
     }
 
     public boolean canUpdatePedido(Authentication authentication, Long pedidoId) {
-        if (isDevelopment()) return true;
         if (pedidoId == null || authentication == null) return false;
 
         // ADMIN puede actualizar cualquier pedido
@@ -81,9 +78,6 @@ public class SecurityRulesService {
         return false;
     }
 
-    private boolean isDevelopment() {
-        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("development");
-    }
 
     private boolean hasAuthority(Authentication authentication, String authority) {
         return authentication != null

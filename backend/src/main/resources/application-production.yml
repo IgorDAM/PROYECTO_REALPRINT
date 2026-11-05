@@ -80,6 +80,12 @@ app:
     # una vez creado el admin real) para evitar que el endpoint quede abierto indefinidamente.
     secret: ${SETUP_SECRET:}
 
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+
 management:
   endpoints:
     web:

@@ -1,6 +1,10 @@
 package com.realprint.realprintbackend.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -238,9 +242,9 @@ public class UsuarioService {
      *
      * @param identifier username o email del usuario
      */
-    public void requestPasswordReset(String identifier) {
+    public String requestPasswordReset(String identifier) {
         if (identifier == null || identifier.isBlank()) {
-            return;
+            return null;
         }
 
         Usuario usuario = usuarioRepository.findByUsername(identifier)
@@ -250,17 +254,19 @@ public class UsuarioService {
         // No revelar si el usuario existe: si no lo encontramos, simplemente no hacemos nada.
         if (usuario == null) {
             logger.info("Solicitud de recuperación de contraseña para un identificador no encontrado");
-            return;
+            return null;
         }
 
         String token = UUID.randomUUID().toString();
-        usuario.setResetToken(token);
+        // En la BD solo se guarda el hash: un volcado de la tabla no permite usar el enlace.
+        usuario.setResetToken(hashToken(token));
         usuario.setResetTokenExpiry(LocalDateTime.now().plusMinutes(RESET_TOKEN_VALIDITY_MINUTES));
         usuarioRepository.save(usuario);
 
         // TODO: enviar este enlace por email cuando haya un proveedor de correo configurado.
         logger.info("Token de recuperación de contraseña generado para el usuario '{}': /reset-password?token={} (caduca en {} min)",
                 usuario.getUsername(), token, RESET_TOKEN_VALIDITY_MINUTES);
+        return token;
     }
 
     /**
@@ -271,7 +277,7 @@ public class UsuarioService {
      * @throws UnauthorizedException Si el token no existe o ha caducado
      */
     public void resetPassword(String token, String nuevaPassword) {
-        Usuario usuario = usuarioRepository.findByResetToken(token)
+        Usuario usuario = usuarioRepository.findByResetToken(hashToken(token))
                 .orElseThrow(() -> new UnauthorizedException("El enlace de recuperación no es válido"));
 
         if (usuario.getResetTokenExpiry() == null || usuario.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
@@ -288,5 +294,14 @@ public class UsuarioService {
         usuario.setResetTokenExpiry(null);
         usuarioRepository.save(usuario);
     }
-}
 
+    /** Hash SHA-256 (hex) del token de recuperación; es lo único que se persiste. */
+    private static String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 no disponible", e);
+        }
+    }
+}
