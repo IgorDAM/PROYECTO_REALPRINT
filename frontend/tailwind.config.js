@@ -49,10 +49,11 @@ export default {
         },
         // Sidebar theme colors (hardened single source of truth)
         sidebar: {
-          // Gradient stops for glass-sidebar: 180deg from #4A90E2 → #4A90E2 → #4A90E2
-          light: "#4A90E2",      // custom blue (gradient end)
-          mid: "#4A90E2",         // custom blue (gradient middle)
-          dark: "#4A90E2",        // custom blue (gradient start)
+          // Degradado del sidebar (mantener en sync con --sidebar-* de index.css).
+          // Texto blanco sobre estos azules supera el contraste AA (>= 5:1).
+          light: "#2563eb",      // primary-600 (gradient end)
+          mid: "#1d4ed8",        // primary-700 (gradient middle)
+          dark: "#1e40af",       // primary-800 (gradient start)
         },
       },
       fontFamily: {
