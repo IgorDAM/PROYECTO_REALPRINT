@@ -1,4 +1,5 @@
 import { httpClient } from "./httpClient";
+import { fetchAllPages } from "./fetchAllPages";
 import { getToken } from "./tokenStorage";
 
 /**
@@ -49,7 +50,7 @@ interface CrudService {
 
 export const pedidosService: CrudService = {
   list() {
-    return httpClient.get("/pedidos") as Promise<Pedido[]>;
+    return fetchAllPages<Pedido>("/pedidos");
   },
 
   listMisPedidos() {

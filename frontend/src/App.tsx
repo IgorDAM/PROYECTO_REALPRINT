@@ -1,26 +1,27 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import HomeRedirect from "./components/layout/HomeRedirect";
+import LoadingFallback from "./components/ui/LoadingFallback";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ErrorFallback } from "./components/ErrorFallback";
 import Login from "./pages/Login";
 import LandingPage from "./pages/LandingPage";
-import Configuracion from "./pages/Configuracion";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
-// Paginas de administrador
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminPedidos from "./pages/admin/AdminPedidos";
-import AdminUsuarios from "./pages/admin/AdminUsuarios";
-
-// Paginas de cliente
-import ClienteDashboard from "./pages/cliente/ClienteDashboard";
-import ClienteHistorial from "./pages/cliente/ClienteHistorial";
 import { CreateOrderForm } from "./components/CreateOrderForm";
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
+
+// Paginas de paneles: se cargan bajo demanda para reducir el JS inicial (landing/login).
+const Configuracion = lazy(() => import("./pages/Configuracion"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminPedidos = lazy(() => import("./pages/admin/AdminPedidos"));
+const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios"));
+const ClienteDashboard = lazy(() => import("./pages/cliente/ClienteDashboard"));
+const ClienteHistorial = lazy(() => import("./pages/cliente/ClienteHistorial"));
 const ClienteEditarPedido = lazy(() => import("./pages/cliente/ClienteEditarPedido"));
 
 /**
@@ -31,8 +32,9 @@ export default function App() {
   return (
     <ErrorBoundary name="App" fallback={<ErrorFallback error={null} resetErrorBoundary={() => window.location.reload()} />}>
       <BrowserRouter>
-        <DataProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <DataProvider>
+            <Suspense fallback={<LoadingFallback />}>
             <Routes>
               {/* Rutas publicas */}
               <Route path="/" element={<LandingPage />} />
@@ -67,23 +69,17 @@ export default function App() {
                 <Route index element={<ClienteDashboard />} />
                 <Route path="nuevo-pedido" element={<CreateOrderForm />} />
                 <Route path="crear-pedido" element={<CreateOrderForm />} />
-                <Route
-                  path="editar-pedido/:id"
-                  element={
-                    <Suspense fallback={<div>Cargando...</div>}>
-                      <ClienteEditarPedido />
-                    </Suspense>
-                  }
-                />
+                <Route path="editar-pedido/:id" element={<ClienteEditarPedido />} />
                 <Route path="historial" element={<ClienteHistorial />} />
                 <Route path="configuracion" element={<Configuracion />} />
               </Route>
 
-              {/* Ruta catch-all para redireccion */}
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              {/* Ruta catch-all: redirige segun la sesion */}
+              <Route path="*" element={<HomeRedirect />} />
             </Routes>
-          </AuthProvider>
-        </DataProvider>
+            </Suspense>
+          </DataProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

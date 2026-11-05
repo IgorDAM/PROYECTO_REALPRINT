@@ -12,6 +12,7 @@ import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { useApiStatus } from "../../hooks/useApiStatus";
 import { useUsuariosData } from "../../hooks/useUsuariosData";
+import { useConfirm } from "../../hooks/useConfirm";
 import { Table, Button, Badge, Modal, Input, Select } from "../../components/ui";
 
 type UsuarioItem = Record<string, any>;
@@ -92,6 +93,7 @@ export default function AdminUsuarios() {
     setPrendasCatalogo((prev) => prev.filter((_, i) => i !== idx));
   };
   const { loading: isProcessing, error: apiError, runApi } = useApiStatus();
+  const { confirm, confirmDialog } = useConfirm();
   const [selectedUsuario, setSelectedUsuario] = useState<UsuarioItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -152,7 +154,11 @@ export default function AdminUsuarios() {
   };
 
   const handleDeleteUsuario = async (usuario: UsuarioItem) => {
-    if (!window.confirm(`¿Seguro que quieres eliminar a ${usuario.nombre}?`)) return;
+    const confirmado = await confirm({
+      title: "Eliminar usuario",
+      message: `¿Seguro que quieres eliminar a ${usuario.nombre}?`,
+    });
+    if (!confirmado) return;
     await runApi(
       () => deleteUsuarioSafe(usuario.id),
       "No se ha podido eliminar el usuario",
@@ -418,6 +424,7 @@ export default function AdminUsuarios() {
           </div>
         </div>
       </Modal>
+      {confirmDialog}
     </div>
   );
 }

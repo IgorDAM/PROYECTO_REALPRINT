@@ -24,7 +24,8 @@ import {
   INITIAL_TAREAS,
 } from "./data/initialData";
 import { DataContext, useDataContextStrict } from "./DataContextCore";
-import { pedidosService, usuariosService, authService } from "../services";
+import { pedidosService, usuariosService } from "../services";
+import { useAuth } from "./AuthContext";
 import { createDataValue } from "./data/createDataValue";
 import { dataConfig } from "./data/dataConfig";
 import { ESTADOS_PEDIDO, SERVICIOS } from "./data/uiContracts";
@@ -66,65 +67,67 @@ export function DataProvider({ children }: DataProviderProps) {
     initialTareas: isDevelopment ? INITIAL_TAREAS : [],
   });
 
-  // Fetch pedidos from backend when component mounts
+  // Con backend real (produccion o VITE_USE_LOCAL_AUTH=false) el servidor es la fuente de verdad.
+  // En desarrollo con login local se conserva el comportamiento antiguo (datos mock/localStorage).
+  const { user } = useAuth();
+  const usesRemoteData = !import.meta.env.DEV || import.meta.env.VITE_USE_LOCAL_AUTH === "false";
+  const userRole = user?.role;
+  const userId = user?.id;
+
+  // Carga pedidos (y usuarios si es admin) cada vez que cambia la sesion, no solo al montar.
+  // Sin sesion y con backend real se vacian: asi no quedan datos de un usuario anterior.
   useEffect(() => {
-    const fetchPedidos = async () => {
+    if (!userRole) {
+      if (usesRemoteData) {
+        setPedidos([]);
+        setUsuarios([]);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    // El backend devuelve a veces { content: [...] } (Page) y a veces un array.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apply = (response: unknown, setter: (value: any[]) => void) => {
+      const list = (response as { content?: unknown } | null)?.content ?? response;
+      if (!Array.isArray(list)) return;
+      // Con backend real una lista vacia es un resultado valido y debe reemplazar la cache.
+      if (usesRemoteData || list.length > 0) setter(list);
+    };
+
+    const loadPedidos = async () => {
       try {
-        const user = authService.getCurrentUser() as any;
-        if (!user) return;
-
-        let response;
-        if (user.role === "admin") {
-          // Admin can fetch all pedidos
-          response = await pedidosService.list();
-        } else if (user.role === "cliente") {
-          // Cliente fetches only their own pedidos
-          response = await pedidosService.listMisPedidos();
-        }
-
-        // Backend devuelve un objeto Page con estructura { content: [...], totalElements, ... }
-        // Extraer el array de pedidos del campo content
-        const fetchedPedidos = (response as any)?.content || response;
-
-        if (Array.isArray(fetchedPedidos) && fetchedPedidos.length > 0) {
-          setPedidos(fetchedPedidos);
-        }
+        const response =
+          userRole === "admin"
+            ? await pedidosService.list()
+            : userRole === "cliente"
+              ? await pedidosService.listMisPedidos()
+              : null;
+        if (!cancelled && response) apply(response, setPedidos);
       } catch (error) {
         console.error("Error fetching pedidos:", error);
-        // Keep using localStorage data on error
+        // Se mantienen los datos locales si falla la peticion.
       }
     };
 
-    fetchPedidos();
-  }, [setPedidos]);
-
-  // Fetch usuarios from backend when component mounts (admin only)
-  useEffect(() => {
-    const fetchUsuarios = async () => {
+    const loadUsuarios = async () => {
+      if (userRole !== "admin") return;
       try {
-        const user = authService.getCurrentUser() as any;
-        if (!user) return;
-
-        // Only admin can fetch all usuarios
-        if (user.role === "admin") {
-          const response = await usuariosService.list() as any;
-
-          // Backend devuelve un objeto Page con estructura { content: [...], totalElements, ... }
-          // Extraer el array de usuarios del campo content
-          const fetchedUsuarios = response?.content || response;
-
-          if (Array.isArray(fetchedUsuarios) && fetchedUsuarios.length > 0) {
-            setUsuarios(fetchedUsuarios);
-          }
-        }
+        const response = await usuariosService.list();
+        if (!cancelled) apply(response, setUsuarios);
       } catch (error) {
         console.error("Error fetching usuarios:", error);
-        // Keep using localStorage data on error
       }
     };
 
-    fetchUsuarios();
-  }, [setUsuarios]);
+    void loadPedidos();
+    void loadUsuarios();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, userRole, usesRemoteData, setPedidos, setUsuarios]);
 
   const {
     setCatalogoEmpresa,

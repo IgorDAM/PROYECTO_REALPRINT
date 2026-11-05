@@ -1,4 +1,5 @@
 import { httpClient } from "./httpClient";
+import { fetchAllPages } from "./fetchAllPages";
 
 /**
  * Servicio CRUD de usuarios.
@@ -55,7 +56,7 @@ interface CrudService {
 export const usuariosService: CrudService = {
   /** Obtiene lista completa de usuarios con paginación (backend) */
   list() {
-    return httpClient.get("/usuarios") as Promise<Usuario[]>;
+    return fetchAllPages<Usuario>("/usuarios");
   },
 
   /** Obtiene un usuario específico por ID */

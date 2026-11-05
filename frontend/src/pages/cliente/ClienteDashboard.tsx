@@ -16,18 +16,24 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ESTADOS_PEDIDO } from "../../context/data/uiContracts";
 import { usePedidosData } from "../../hooks/usePedidosData";
+import { useConfirm } from "../../hooks/useConfirm";
 import { StatCard, Button, Badge, Table } from "../../components/ui";
 
 export default function ClienteDashboard() {
   const { user } = useAuth();
   const { pedidos, deletePedidoSafe } = usePedidosData();
+  const { confirm, confirmDialog } = useConfirm();
 
   // Filtra los pedidos del cliente actual
   const misPedidos = pedidos.filter((p) => String(p.clienteId) === String(user?.id));
   const pedidosActivos = misPedidos.filter((p) => ["pendiente", "en_proceso"].includes(p.estado));
 
   const handleEliminarPedido = async (id) => {
-    if (window.confirm("¿Seguro que quieres eliminar este pedido?")) {
+    const confirmado = await confirm({
+      title: "Eliminar pedido",
+      message: "¿Seguro que quieres eliminar este pedido? Esta acción no se puede deshacer.",
+    });
+    if (confirmado) {
       await deletePedidoSafe(id);
     }
   };
@@ -98,6 +104,7 @@ export default function ClienteDashboard() {
         data={pedidosActivos}
         emptyMessage="No tienes pedidos activos"
       />
+      {confirmDialog}
     </div>
   );
 }
